@@ -12,11 +12,9 @@
 
 using namespace std;
 
-unsigned RandomNumGenerator::getMozLifeSpan() {    
-    uniform_int_distribution<> dis(mozLifeLo, mozLifeHi);
-    int mean = dis(gen);
-    exponential_distribution<> d(1./mean);
-    return ceil(d(gen));
+double RandomNumGenerator::getMozLifeSpan() {    
+    exponential_distribution<> d(1./mozLifeHi);
+    return d(gen);
 }
 
 unsigned RandomNumGenerator::getMozLatencyDays() {
@@ -24,8 +22,8 @@ unsigned RandomNumGenerator::getMozLatencyDays() {
     return dis(gen);
 }
 
-unsigned RandomNumGenerator::getMozRestDays() {
-    uniform_int_distribution<> dis(mozRestLo, mozRestHi);
+double RandomNumGenerator::getMozRestDays() {
+    uniform_real_distribution<> dis(mozRestLo, mozRestHi);
     return dis(gen);
 }
 

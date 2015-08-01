@@ -23,7 +23,7 @@ void Mosquito::setLocation(std::string loc) {
     locationID = loc;
 }
 
-unsigned Mosquito::getDDay() const {
+double Mosquito::getDDay() const {
     return dday;
 }
 
@@ -39,11 +39,11 @@ void Mosquito::setState(MozState st) {
     mState = st;
 }
 
-void Mosquito::setBiteStartDay(unsigned d) {
+void Mosquito::setBiteStartDay(double d) {
     biteStartDay = d;
 }
 
-unsigned Mosquito::getBiteStartDay() {
+double Mosquito::getBiteStartDay() {
     return biteStartDay;
 }
 
@@ -195,13 +195,13 @@ void Mosquito::infectiousBite(
     }
 }
 
-Mosquito::Mosquito(unsigned long id, unsigned bd, unsigned dd, string loc) {
+Mosquito::Mosquito(unsigned long id, unsigned bd, double dd, double bsd, string loc) {
     mID = id;
     bday = bd;
     locationID = loc;
     dday = dd;
     mState = Mosquito::MozState::BITE;
-    biteStartDay = bd;
+    biteStartDay = bsd;
     infection.reset(nullptr);
     fly = false;
 }

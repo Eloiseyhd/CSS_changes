@@ -171,45 +171,57 @@ void Simulation::attemptBite(std::unique_ptr<Human>& human, std::unique_ptr<Mosq
     //cout << "\n bite occurs";
 }
 
+
+
 void Simulation::mosquitoDynamics() {
     generateMosquitoes();
-    //printMosquitoes();
-    for (auto it = mosquitoes.begin(); it != mosquitoes.end();) {
-        //cout << "\n" << it->second->toString() << endl;
 
-        // if this is the first day of a mosquito's infectiousness,
-        // set the value of its infectiousness, which will remain until death
-        if (it->second->infection != nullptr) {
-            if (currentDay == it->second->infection->getStartDay())
+    for(auto it = mosquitoes.begin(); it != mosquitoes.end();){
+        if(it->second->infection != nullptr){
+            if(currentDay == it->second->infection->getStartDay())
                 it->second->infection->setInfectiousness(mozInfectiousness);
         }
-
-        // if the mosquito is supposed to enter bite mode today, make that happen
-        if (currentDay >= it->second->getBiteStartDay())
+ 
+        // determine if the mosquito will bite and/or die today, and if so at what time
+        double biteTime = double(numDays + 1), dieTime = double(numDays + 1);
+ 
+        if(it->second->getBiteStartDay() < currentDay + 1){
             it->second->setState(Mosquito::MozState::BITE);
+            biteTime = it->second->getBiteStartDay() - currentDay;
+        }
+ 
+        if(it->second->getDDay() < currentDay + 1){
+            dieTime = it->second->getDDay() - currentDay;
+        }
 
-
-// SWITCH STATEMENT HERE TO HANDLE VARIABLE ORDER OF EVENTS
-
-
-        double biteTime = rGen.getEventProbability();
-
-        // get rid of mosquitoes that die today
-        if(currentDay == it->second->getDDay()) {
+        cout << endl << "currentDay = " << currentDay << " - ";
+ 
+        // if the mosquito dies first, then kill it
+        if(dieTime < biteTime && dieTime < 1.0){
+            cout << "DIE";
             auto it_temp = it;
             it++;
             mosquitoes.erase(it_temp);
             continue;
         }
 
-        // take a bite if that happens today
-        if (it->second->getState() == Mosquito::MozState::BITE)
+        // if the mosquito bites first, then let it bite and then see about dying
+        if(biteTime < dieTime && biteTime < 1.0){
             it->second->takeBite(biteTime,locations[it->second->getLocationID()].get(),&rGen,currentDay,numDays,&out);
-
+             cout << "BITE ";
+            if(dieTime < 1.0){
+            cout << "DIE";
+                auto it_temp = it;
+                it++;
+                mosquitoes.erase(it_temp);
+                continue;
+            }
+        }
+ 
         // let the mosquito move if that happens today
-        if (rGen.getEventProbability() < mozMoveProbability) {
+        if(rGen.getEventProbability() < mozMoveProbability) {
             string newLoc = locations.find(it->first)->second->getRandomCloseLoc(rGen);
-            if (newLoc != "TOO_FAR_FROM_ANYWHERE") {
+            if(newLoc != "TOO_FAR_FROM_ANYWHERE") {
                 it->second->setLocation(newLoc);
                 mosquitoes.insert(make_pair(newLoc, move(it->second)));
                 auto it_temp = it;
@@ -224,18 +236,9 @@ void Simulation::mosquitoDynamics() {
             it++;
         }
     }
-    // for (auto it = mosquitoes.begin(); it != mosquitoes.end();) {
-    //     if (it->second->getFly()) {
-    //         //cout << "\n" << it->second->getMID() << " moving";
-    //         it->second->setFly(false);
-    //         string newLoc = locations.find(it->first)->second->getRandomCloseLoc(rGen);
-    //         if (newLoc != "TOO_FAR_FROM_ANYWHERE") {
-    //             mosquitoes.insert(make_pair(newLoc, move(it->second)));
-    //             it = mosquitoes.erase(it);
-    //         } else ++it;
-    //     } else ++it;
-    // }
 }
+
+
 
 void Simulation::generateMosquitoes() {
     for (auto& x : locations) {
@@ -246,7 +249,8 @@ void Simulation::generateMosquitoes() {
                 exit(1);
             }
             for (int i = 0; i < loc->second[currentDay]; i++) {
-                unique_ptr<Mosquito> moz(new Mosquito(mozID++, currentDay, currentDay + rGen.getMozLifeSpan(), x.first));
+                unique_ptr<Mosquito> moz(new Mosquito(
+                    mozID++, currentDay, double(currentDay) + rGen.getMozLifeSpan(), double(currentDay) + rGen.getMozRestDays(), x.first));
                 mosquitoes.insert(make_pair(x.first, move(moz)));
                 //mosquitoes.push_back(move(moz));
             }
@@ -399,9 +403,9 @@ void Simulation::readSimControlFile(string line) {
     getline(infile, line, ',');
     biteProbablity = strtod(line.c_str(), NULL);
     getline(infile, line, ',');
-    unsigned mlifelo = strtol(line.c_str(), NULL, 10);
+    double mlifelo = strtod(line.c_str(), NULL);
     getline(infile, line, ',');
-    unsigned mlifehi = strtol(line.c_str(), NULL, 10);
+    double mlifehi = strtod(line.c_str(), NULL);
     getline(infile, line, ',');
     mozInfectiousness = strtod(line.c_str(), NULL);
     getline(infile, line, ',');

@@ -12,7 +12,7 @@
 
 class RandomNumGenerator {
 public:
-    unsigned getMozLifeSpan();
+    double getMozLifeSpan();
     unsigned getHumanTrajectory();
     unsigned getHumanImmunity();
     unsigned getRandomNum(unsigned);
@@ -20,7 +20,7 @@ public:
     double getEventProbability();
     unsigned getMozLatencyDays();
     unsigned getHuLatencyDays();
-    unsigned getMozRestDays();
+    double getMozRestDays();
     unsigned getMozNextLoc(unsigned);
     void setSeed(unsigned);
     std::string toString() const;
@@ -38,8 +38,8 @@ private:
     unsigned mozLifeHi;
     unsigned mozLatencyLo;
     unsigned mozLatencyHi;
-    unsigned mozRestLo;
-    unsigned mozRestHi;
+    double mozRestLo;
+    double mozRestHi;
 };
 
 #endif	/* RANDOMNUMGENERATOR_H */
