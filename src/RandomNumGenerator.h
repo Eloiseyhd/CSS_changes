@@ -25,7 +25,7 @@ public:
     unsigned getMozNextLoc(unsigned);
     void setSeed(unsigned);
     std::string toString() const;
-    RandomNumGenerator(unsigned, unsigned, unsigned, unsigned, unsigned, unsigned, unsigned, unsigned, unsigned, unsigned);
+    RandomNumGenerator(unsigned, unsigned, unsigned, unsigned, double, double, unsigned, unsigned, unsigned, unsigned);
     RandomNumGenerator();
     RandomNumGenerator(const RandomNumGenerator& orig);
     virtual ~RandomNumGenerator();
@@ -35,8 +35,8 @@ private:
     unsigned huLatencyLo;
     unsigned huLatencyHi;
     unsigned huImmunity;
-    unsigned mozLifeLo;
-    unsigned mozLifeHi;
+    double emergeFactor;
+    double mozLife;
     unsigned mozLatencyLo;
     unsigned mozLatencyHi;
     double mozRestLo;

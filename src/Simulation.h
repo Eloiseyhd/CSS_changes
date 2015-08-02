@@ -29,7 +29,6 @@ public:
     std::string readInputs();
     void readHumanFile(std::string);
     void readInitialInfectionsFile(std::string);
-    void readMosquitoEmergenceFile(std::string);
     void readSimControlFile(std::string);
     void readLocationFile(std::string);
     void readNeighborhoodFile(std::string);
@@ -37,7 +36,6 @@ public:
     void printLocations() const;
     void printHumans() const;
     void printMosquitoes() const; 
-    void printMEmergence() const;
     void simEngine();
     void humanDynamics();
     void tests();
@@ -53,14 +51,12 @@ public:
     virtual ~Simulation();
 private:
     std::map <std::string,std::unique_ptr<Location>> locations;
-    std::map <std::string,std::vector<unsigned short>> mEmergence;
     std::multimap<std::string,std::unique_ptr<Mosquito>> mosquitoes;
     std::multimap<std::string,std::unique_ptr<Human>> humans;
     unsigned currentDay;
     unsigned numDays;
     unsigned long mozID=0;
     std::string trajectoryFile;
-    std::string mozEmergenceFile;
     std::string configLine;
     std::string locationFile;
     std::string neighborhoodFile;
@@ -70,6 +66,7 @@ private:
     unsigned rSeed;
     std::string outputPath;
     unsigned humanInfectionDays;
+    double emergeFactor;
     double biteProbablity;
     double mozInfectiousness;   
     double mozMoveProbability;
