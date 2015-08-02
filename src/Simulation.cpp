@@ -240,23 +240,22 @@ void Simulation::mosquitoDynamics() {
 
 
 
-void Simulation::generateMosquitoes() {
-    for (auto& x : locations) {
-        auto loc = mEmergence.find(x.first);
-        if (loc != mEmergence.end()) {
-            if (currentDay > loc->second.size()) {
-                cout << "\n\n" << simName <<": " << x.first << ": Not enough mosquito emergence data. Exiting...\n";
-                exit(1);
-            }
-            for (int i = 0; i < loc->second[currentDay]; i++) {
-                unique_ptr<Mosquito> moz(new Mosquito(
-                    mozID++, currentDay, double(currentDay) + rGen.getMozLifeSpan(), double(currentDay) + rGen.getMozRestDays(), x.first));
-                mosquitoes.insert(make_pair(x.first, move(moz)));
-                //mosquitoes.push_back(move(moz));
-            }
+
+void Simulation::generateMosquitoes(){
+    int mozCount = 0;
+
+    for(auto& x : locations){
+        mozCount = rGen.getMozEmerge(x.second->getMozzes());
+
+        for(int i = 0; i < mozCount; i++){
+            unique_ptr<Mosquito> moz(new Mosquito(
+                mozID++, currentDay, double(currentDay) + rGen.getMozLifeSpan(), double(currentDay) + rGen.getMozRestDays(), x.first));
+            mosquitoes.insert(make_pair(x.first, move(moz)));
         }
     }
 }
+
+
 
 void Simulation::readInitialInfectionsFile(string infectionsFile) {
     if (infectionsFile.length() == 0) {
@@ -428,7 +427,7 @@ void Simulation::readLocationFile(string locFile) {
         exit(1);
     }
     string line, locID, locType;
-    double x, y;
+    double x, y, mozzes;
 
     ifstream infile(locFile);
     if (!infile.good()) {
@@ -448,13 +447,16 @@ void Simulation::readLocationFile(string locFile) {
         getline(infile, line, ',');
         getline(infile, line, ',');
         getline(infile, line, ',');
-        getline(infile, line);
+        getline(infile, line, ',');
         locID = line;
+
+        getline(infile, line);
+        mozzes = strtod(line.c_str(), NULL);
 
         while (infile.peek() == '\n')
             infile.ignore(1, '\n');
 
-        unique_ptr<Location> location(new Location(locID, locType, x, y));
+        unique_ptr<Location> location(new Location(locID, locType, x, y, mozzes));
         locations.insert(make_pair(locID, move(location)));
 
     }

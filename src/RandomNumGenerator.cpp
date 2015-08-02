@@ -12,6 +12,11 @@
 
 using namespace std;
 
+unsigned RandomNumGenerator::getMozEmerge(double mozMean) {    
+    poisson_distribution<> dis(mozMean);
+    return dis(gen);
+}
+
 double RandomNumGenerator::getMozLifeSpan() {    
     exponential_distribution<> d(1./mozLifeHi);
     return d(gen);

@@ -23,6 +23,7 @@ private:
     std::string locID;
     double xCor;
     double yCor;
+    double mozzes;
     std::string locType;
     std::unique_ptr<std::vector<std::string>> closeLocs;
     // std::forward_list<std::unique_ptr<Human>> humansVisit;
@@ -36,11 +37,12 @@ public:
     double getDistanceFromLoc(Location &) const;
     double getLocX() const;
     double getLocY() const;
+    double getMozzes() const;
     std::string getLocID() const;
     std::string getLocType() const;
     std::string toString() const;
     void writeNeighToFile(std::ofstream&) const;
-    Location(std::string, std::string, double, double);
+    Location(std::string, std::string, double, double, double);
     Location();
     Location(const Location& orig);
     virtual ~Location();

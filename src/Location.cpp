@@ -28,11 +28,16 @@ double Location::getLocY() const {
     return yCor;
 }
 
-Location::Location(string lID, string lType, double x, double y) {
+double Location::getMozzes() const {
+    return mozzes;
+}
+
+Location::Location(string lID, string lType, double x, double y, double m) {
     locID = lID;
     locType = lType;
     xCor = x;
     yCor = y;
+    mozzes = m;
     closeLocs.reset(new vector<string>());
     //humans.reset(new vector<unique_ptr<Human>>());
 }

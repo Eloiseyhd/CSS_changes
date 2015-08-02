@@ -12,6 +12,7 @@
 
 class RandomNumGenerator {
 public:
+    unsigned getMozEmerge(double);
     double getMozLifeSpan();
     unsigned getHumanTrajectory();
     unsigned getHumanImmunity();
