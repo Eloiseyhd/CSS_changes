@@ -192,11 +192,8 @@ void Simulation::mosquitoDynamics() {
             dieTime = it->second->getDDay() - currentDay;
         }
 
-        cout << endl << "currentDay = " << currentDay << " - ";
- 
         // if the mosquito dies first, then kill it
         if(dieTime < biteTime && dieTime < 1.0){
-            cout << "DIE";
             auto it_temp = it;
             it++;
             mosquitoes.erase(it_temp);
@@ -206,9 +203,8 @@ void Simulation::mosquitoDynamics() {
         // if the mosquito bites first, then let it bite and then see about dying
         if(biteTime < dieTime && biteTime < 1.0){
             it->second->takeBite(biteTime,locations[it->second->getLocationID()].get(),&rGen,currentDay,numDays,&out);
-             cout << "BITE ";
+
             if(dieTime < 1.0){
-            cout << "DIE";
                 auto it_temp = it;
                 it++;
                 mosquitoes.erase(it_temp);

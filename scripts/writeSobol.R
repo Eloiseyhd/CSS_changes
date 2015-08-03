@@ -1,6 +1,6 @@
 source('functions.R')
 
-reps = 1000
+reps = 100
 
 HumanLatencyLow = rep(4,2)
 HumanLatencyHigh = rep(7,2)
@@ -9,9 +9,11 @@ HumanImmunityDays = rep(686,2)
 EmergenceFactor = c(.5,2)
 MosquitoLifespan = c(10,20)
 MosquitoInfectiousness = rep(0.5,2)
-MosquitoLatency = rep(9,2)
+MosquitoLatencyLow = rep(6,2)
+MosquitoLatencyHigh = rep(9,2)
 MosquitoMoveProbability = rep(0.3,2)
-MosquitoRestDays = rep(2,2)
+MosquitoRestDaysLow = rep(2,2)
+MosquitoRestDaysHigh = rep(3,2)
 
 scalars = sobol(vars = list(
   HumanLatencyLow = HumanLatencyLow,
@@ -21,9 +23,11 @@ scalars = sobol(vars = list(
   EmergenceFactor = EmergenceFactor,
   MosquitoLifespan = MosquitoLifespan,
   MosquitoInfectiousness = MosquitoInfectiousness,
-  MosquitoLatency = MosquitoLatency,
+  MosquitoLatencyLow = MosquitoLatencyLow,
+  MosquitoLatencyHigh = MosquitoLatencyHigh,
   MosquitoMoveProbability = MosquitoMoveProbability,
-  MosquitoRestDays = MosquitoRestDays),
+  MosquitoRestDaysLow = MosquitoRestDaysLow,
+  MosquitoRestDaysHigh = MosquitoRestDaysHigh),
   reps)
 
 for(ii in 1 : reps){

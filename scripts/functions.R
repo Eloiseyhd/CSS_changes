@@ -52,7 +52,7 @@ library(pomp)
 
 writeSimControl.sobol = function(
   simControlNum,
-	reps = 1000,
+	reps = 100,
 	NumDays = 365 * 10,
 	OutputPath = '../simulator/data/Output',
 	LocationFile = '../simulator/data/Input/locations_20150801.csv',
@@ -70,7 +70,7 @@ writeSimControl.sobol = function(
   simControlFile = paste('../simulator/SimControl', simControlNum, '.csv', sep='')
 
   file.connection = file(simControlFile)
-	toWrite = 'SimulationName,Seed,NumDays,OutputPath,MosquitoEmergenceFile,LocationFile,NeighborhoodFile,TrajectoryFile,InitialInfectionsFile,HumanLatencyLow,HumanLatencyHigh,HumanInfectionDays,HumanImmunityDays,EmergenceFactor,BiteProbability,MosquitoLifespan,MosquitoInfectiousness,MosquitoLatency,MosquitoMoveProbability,MosquitoRestDays\n'
+	toWrite = 'SimulationName,Seed,NumDays,OutputPath,LocationFile,NeighborhoodFile,TrajectoryFile,InitialInfectionsFile,HumanLatencyLow,HumanLatencyHigh,HumanInfectionDays,HumanImmunityDays,EmergenceFactor,MosquitoLifespan,MosquitoInfectiousness,MosquitoLatencyLow,MosquitoLatencyHigh,MosquitoMoveProbability,MosquitoRestDaysLow,MosquitoRestDaysHigh\n'
 
 	TrajectoryFile = '../simulator/data/Input/trajectories.txt'
 
@@ -95,10 +95,12 @@ writeSimControl.sobol = function(
 			scalars$EmergenceFactor[ii], ',',
 			scalars$MosquitoLifespan[ii], ',',
 			scalars$MosquitoInfectiousness[ii], ',',
-			scalars$MosquitoLatency[ii], ',',
+			scalars$MosquitoLatencyLow[ii], ',',
+			scalars$MosquitoLatencyHigh[ii], ',',
 			scalars$MosquitoMoveProbability[ii], ',',
-			scalars$MosquitoRestDays[ii],
-			'\n',
+			scalars$MosquitoRestDaysLow[ii], ',',
+			scalars$MosquitoRestDaysHigh[ii],
+      '\n',
 			sep = '')
   
 	write(toWrite, file.connection)
