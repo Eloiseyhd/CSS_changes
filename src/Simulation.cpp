@@ -63,6 +63,8 @@ string Simulation::readInputs() {
     readNeighborhoodFile(neighborhoodFile);
     cout << "\n\n" << simName << ": Reading trajectories file ..." << endl;
     readHumanFile(trajectoryFile);
+    cout << "\n\n" << simName << ": Reading emergence file ..." << endl;
+    readMosquitoEmergenceFile(mozEmergenceFile);
     cout << "\n\n" << simName << ": Reading initial infections file ..." << endl;
     readInitialInfectionsFile(initialInfectionsFile);
     return simName;
@@ -85,20 +87,23 @@ void Simulation::simEngine() {
     while (currentDay < numDays) {
         //cout << "\n" << simName <<": Day:" << currentDay << endl;
         cout << currentDay << endl;
-        humanDynamics();
         mosquitoDynamics();
+        humanDynamics();
         currentDay++;
     }
 }
 
 void Simulation::humanDynamics() {
-    int diff;
-
     for (auto it = humans.begin(); it != humans.end(); ++it) {
+        //if (currentDay == it->second->getDDay()) {
+        //humans.erase(it);
+        //continue;
+        //}
+        //cout<<"\n"<<it->second->toString();
         //for (auto itInf = it->second->infections->begin(); itInf != it->second->infections->end();) {
         if (it->second->infection != nullptr) {
             auto& itInf = it->second->infection;
-            diff = currentDay - itInf->getStartDay();
+            int diff = currentDay - itInf->getStartDay();
             if (diff >= 0 && diff < 10) {
                 if (itInf->getInfectionType() == Infection::InfType::DENV1) {
                     itInf->setInfectiousness(dnv[Infection::InfType::DENV1][diff]);
@@ -111,8 +116,13 @@ void Simulation::humanDynamics() {
                 }
             }
         }
-
-        (it->second)->setTrajDay(rGen.getRandomNum(5));
+    }
+    for (auto& hu : humans) {
+        auto path = hu.second->getTrajectory(rGen.getHumanTrajectory());
+        for (auto loc : path) {
+            //cout << "\nvisiting:" << loc.first;
+            humanVisit(hu.second, loc.first, loc.second);
+        }
     }
 }
 
@@ -131,7 +141,7 @@ void Simulation::attemptBite(std::unique_ptr<Human>& human, std::unique_ptr<Mosq
     //cout << mosquito->toString() <<"\n";
 
     //cout<<"\n\nhuman not immune:\n";
-    if (rGen.getEventProbability() < t) { // check
+    if (rGen.getEventProbability() < t * biteProbablity) { // check
 
         mosquito->setState(Mosquito::MozState::REST);
         mosquito->setBiteStartDay(currentDay + rGen.getMozRestDays());
@@ -169,87 +179,57 @@ void Simulation::attemptBite(std::unique_ptr<Human>& human, std::unique_ptr<Mosq
     //cout << "\n bite occurs";
 }
 
-
-
 void Simulation::mosquitoDynamics() {
     generateMosquitoes();
+    //printMosquitoes();
+    for (auto it = mosquitoes.begin(); it != mosquitoes.end();) {
 
-    for(auto it = mosquitoes.begin(); it != mosquitoes.end();){
-        if(it->second->infection != nullptr){
-            if(currentDay == it->second->infection->getStartDay())
-                it->second->infection->setInfectiousness(mozInfectiousness);
-        }
- 
-        // determine if the mosquito will bite and/or die today, and if so at what time
-        double biteTime = double(numDays + 1), dieTime = double(numDays + 1);
- 
-        if(it->second->getBiteStartDay() < currentDay + 1){
-            it->second->setState(Mosquito::MozState::BITE);
-            biteTime = it->second->getBiteStartDay() - currentDay;
-        }
- 
-        if(it->second->getDDay() < currentDay + 1){
-            dieTime = it->second->getDDay() - currentDay;
-        }
-
-        // if the mosquito dies first, then kill it
-        if(dieTime < biteTime && dieTime < 1.0){
-            auto it_temp = it;
-            it++;
-            mosquitoes.erase(it_temp);
+        //cout << "\n" << it->second->toString() << endl;
+        if (currentDay == it->second->getDDay()) {
+            it = mosquitoes.erase(it);
             continue;
         }
-
-        // if the mosquito bites first, then let it bite and then see about dying
-        if(biteTime < dieTime && biteTime < 1.0){
-            it->second->takeBite(biteTime,locations[it->second->getLocationID()].get(),&rGen,currentDay,numDays,&out);
-
-            if(dieTime < 1.0){
-                auto it_temp = it;
-                it++;
-                mosquitoes.erase(it_temp);
-                continue;
-            }
+        if (it->second->infection != nullptr) {
+            if (currentDay == it->second->infection->getStartDay())
+                it->second->infection->setInfectiousness(mozInfectiousness);
         }
- 
-        // let the mosquito move if that happens today
-        if(rGen.getEventProbability() < mozMoveProbability) {
+        if (currentDay == it->second->getBiteStartDay()) {
+            it->second->setState(Mosquito::MozState::BITE);
+        }
+        if (rGen.getEventProbability() < mozMoveProbability) {
+            it->second->setFly(true);
+        }
+        ++it;
+    }
+    for (auto it = mosquitoes.begin(); it != mosquitoes.end();) {
+        if (it->second->getFly()) {
+            //cout << "\n" << it->second->getMID() << " moving";
+            it->second->setFly(false);
             string newLoc = locations.find(it->first)->second->getRandomCloseLoc(rGen);
-            if(newLoc != "TOO_FAR_FROM_ANYWHERE") {
-                it->second->setLocation(newLoc);
+            if (newLoc != "TOO_FAR_FROM_ANYWHERE") {
                 mosquitoes.insert(make_pair(newLoc, move(it->second)));
-                auto it_temp = it;
-                it++;
-                mosquitoes.erase(it_temp);
-            }
-            else{
-                it++;
-            }
-        }
-        else{
-            it++;
-        }
+                it = mosquitoes.erase(it);
+            } else ++it;
+        } else ++it;
     }
 }
 
-
-
-
-void Simulation::generateMosquitoes(){
-    int mozCount = 0;
-
-    for(auto& x : locations){
-        mozCount = rGen.getMozEmerge(x.second->getMozzes());
-
-        for(int i = 0; i < mozCount; i++){
-            unique_ptr<Mosquito> moz(new Mosquito(
-                mozID++, currentDay, double(currentDay) + rGen.getMozLifeSpan(), double(currentDay) + rGen.getMozRestDays(), x.first));
-            mosquitoes.insert(make_pair(x.first, move(moz)));
+void Simulation::generateMosquitoes() {
+    for (auto& x : locations) {
+        auto loc = mEmergence.find(x.first);
+        if (loc != mEmergence.end()) {
+            if (currentDay > loc->second.size()) {
+                cout << "\n\n" << simName <<": " << x.first << ": Not enough mosquito emergence data. Exiting...\n";
+                exit(1);
+            }
+            for (int i = 0; i < loc->second[currentDay]; i++) {
+                unique_ptr<Mosquito> moz(new Mosquito(mozID++, currentDay, currentDay + rGen.getMozLifeSpan(), x.first));
+                mosquitoes.insert(make_pair(x.first, move(moz)));
+                //mosquitoes.push_back(move(moz));
+            }
         }
     }
 }
-
-
 
 void Simulation::readInitialInfectionsFile(string infectionsFile) {
     if (infectionsFile.length() == 0) {
@@ -297,7 +277,53 @@ void Simulation::readInitialInfectionsFile(string infectionsFile) {
 
 }
 
+void Simulation::readMosquitoEmergenceFile(string mozFile) {
+    if (mozFile.length() == 0) {
+        cout << "\n" << simName <<": Mosquito emergence file not specified! Exiting." << endl;
+        exit(1);
+    }
 
+    string line, locID;
+    unsigned char num;
+
+    ifstream infile(mozFile);
+    if (!infile.good()) {
+        cout << "\n\n"  << simName << ": Can't open file:" << mozFile << ". Exiting.\n" << endl;
+        exit(1);
+    }
+    getline(infile, line);
+    while (getline(infile, line, ',')) {
+        line.erase(remove(line.begin(), line.end(), '\"'), line.end());
+        locID = line;
+        vector<unsigned short> em;
+        getline(infile, line);
+        stringstream ss;
+        ss << line;
+        while (getline(ss, line, ',')) {
+            num = strtol(line.c_str(), NULL, 10);
+            em.push_back(num);
+            //cout << num;
+        }
+        mEmergence.insert(make_pair(locID, em));
+        while (infile.peek() == '\n')
+            infile.ignore(1, '\n');
+
+    }
+    infile.close();
+    cout << "\n" << simName << ": Done reading mosquito emergence" <<endl;
+
+}
+
+void Simulation::printMEmergence() const {
+    cout << "\n" << simName << ": Mosquito Emergence:" <<endl;
+    for (auto& x : mEmergence) {
+        cout << "\n" << x.first << " ";
+        for (auto& em : x.second) {
+            cout << em << " ";
+        }
+    }
+    cout << endl;
+}
 
 void Simulation::setLocNeighborhood(double dist) {
     for (auto it1 = locations.begin(); it1 != locations.end(); ++it1) {
@@ -330,6 +356,8 @@ void Simulation::readSimControlFile(string line) {
     getline(infile, line, ',');
     outputPath = line;
     getline(infile, line, ',');
+    mozEmergenceFile = line;
+    getline(infile, line, ',');
     locationFile = line;
     getline(infile, line, ',');
     neighborhoodFile = line;
@@ -346,9 +374,11 @@ void Simulation::readSimControlFile(string line) {
     getline(infile, line, ',');
     unsigned huImm = strtol(line.c_str(), NULL, 10);
     getline(infile, line, ',');
-    emergeFactor = strtod(line.c_str(), NULL);    
+    biteProbablity = strtod(line.c_str(), NULL);
     getline(infile, line, ',');
-    double mlife = strtod(line.c_str(), NULL);
+    unsigned mlifelo = strtol(line.c_str(), NULL, 10);
+    getline(infile, line, ',');
+    unsigned mlifehi = strtol(line.c_str(), NULL, 10);
     getline(infile, line, ',');
     mozInfectiousness = strtod(line.c_str(), NULL);
     getline(infile, line, ',');
@@ -361,7 +391,7 @@ void Simulation::readSimControlFile(string line) {
     unsigned mrestlo = strtol(line.c_str(), NULL, 10);
     getline(infile, line, ',');
     unsigned mresthi = strtol(line.c_str(), NULL, 10);
-    RandomNumGenerator rgen(rSeed, hllo, hlhi, huImm, emergeFactor, mlife, mlho, mlhi, mrestlo, mresthi);
+    RandomNumGenerator rgen(rSeed, hllo, hlhi, huImm, mlifelo, mlifehi, mlho, mlhi, mrestlo, mresthi);
     rGen = rgen;
 }
 
@@ -371,7 +401,7 @@ void Simulation::readLocationFile(string locFile) {
         exit(1);
     }
     string line, locID, locType;
-    double x, y, mozzes;
+    double x, y;
 
     ifstream infile(locFile);
     if (!infile.good()) {
@@ -391,16 +421,13 @@ void Simulation::readLocationFile(string locFile) {
         getline(infile, line, ',');
         getline(infile, line, ',');
         getline(infile, line, ',');
-        getline(infile, line, ',');
-        locID = line;
-
         getline(infile, line);
-        mozzes = strtod(line.c_str(), NULL);
+        locID = line;
 
         while (infile.peek() == '\n')
             infile.ignore(1, '\n');
 
-        unique_ptr<Location> location(new Location(locID, locType, x, y, mozzes));
+        unique_ptr<Location> location(new Location(locID, locType, x, y));
         locations.insert(make_pair(locID, move(location)));
 
     }
@@ -456,7 +483,7 @@ void Simulation::readHumanFile(string humanFile) {
     while (getline(infile, line, ',')) {
         unique_ptr < vector < vector < pair<string, double >> >> trajectories(new vector < vector < pair<string, double >> >());
 
-        for (int i = 0; i < 5; i++) {
+        for (int i = 0; i < 5; i++) { 
             houseID = line;
             getline(infile, line, ',');
             hMemID = strtol(line.c_str(), NULL, 10);
@@ -482,17 +509,10 @@ void Simulation::readHumanFile(string humanFile) {
             if (i < 4)
                 getline(infile, line, ',');
         }
-
         unique_ptr<Human> h(new Human(houseID, hMemID, age, bodySize, gen, trajectories));
-
-        std::set<std::string> locsVisited = h->getLocsVisited();
-        for(std::set<std::string>::iterator itrSet = locsVisited.begin(); itrSet != locsVisited.end(); itrSet++)
-            if(locations.find(*itrSet) != locations.end()){
-                locations.find(*itrSet)->second->addHuman(h.get());
-            }
-
+        //locations.find(houseID)->second->addHuman(move(h));
         humans.insert(make_pair(houseID, move(h)));
-
+        //humans.push_back(move(h));
         while (infile.peek() == '\n')
             infile.ignore(1, '\n');
     }
@@ -558,11 +578,14 @@ void Simulation::printSimulationParams() const {
     cout << "\n\n"<< simName <<": currentDay:" << currentDay << endl;
     cout << "\n"<< simName <<": numDays:" << numDays << endl; 
     cout << "\n"<< simName <<": trajectoryFile:" << trajectoryFile << endl;
+    cout << "\n"<< simName <<": mozEmergenceFile:" << mozEmergenceFile << endl;
     cout << "\n"<< simName <<": locationFile:" << locationFile << endl;
     cout << "\n"<< simName <<": neighborhoodFile:" << neighborhoodFile << endl;
+    //cout << "\n"<< simName <<": simName:" << simName << endl;
     cout << "\n"<< simName <<": seed:" << rSeed << endl;
     cout << "\n"<< simName <<": outputPath:" << outputPath << endl;
     cout << "\n"<< simName <<": humanInfectionDays:" << humanInfectionDays << endl;
+    cout << "\n"<< simName <<": biteProbablity:" << biteProbablity << endl;
     cout << "\n"<< simName <<": mozInfectiousness:" << mozInfectiousness << endl;
     cout << "\n"<< simName <<": mozMoveProbability:" << mozMoveProbability << endl;
     cout << "\n"<< simName <<": " << rGen.toString() << endl;

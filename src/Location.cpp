@@ -28,16 +28,11 @@ double Location::getLocY() const {
     return yCor;
 }
 
-double Location::getMozzes() const {
-    return mozzes;
-}
-
-Location::Location(string lID, string lType, double x, double y, double m) {
+Location::Location(string lID, string lType, double x, double y) {
     locID = lID;
     locType = lType;
     xCor = x;
     yCor = y;
-    mozzes = m;
     closeLocs.reset(new vector<string>());
     //humans.reset(new vector<unique_ptr<Human>>());
 }
@@ -75,16 +70,17 @@ string Location::toString() const {
     return ss.str();
 }
 
-void Location::addHuman(Human * h) {
-    humans.insert(h);
+/*
+void Location::addHuman(unique_ptr<Human> h) {
+    humans->push_back(move(h));
 }
 
-// void Location::printHumans() const {
-//     for (int i=0; i<humans->size(); i++) {
-//         cout << "\n" << (*humans.get())[i]->toString();
-//     }
-// }
-
+void Location::printHumans() const {
+    for (int i=0; i<humans->size(); i++) {
+        cout << "\n" << (*humans.get())[i]->toString();
+    }
+}
+*/
 
 Location::Location() {
 }

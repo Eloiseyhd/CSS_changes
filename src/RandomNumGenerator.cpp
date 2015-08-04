@@ -12,14 +12,11 @@
 
 using namespace std;
 
-unsigned RandomNumGenerator::getMozEmerge(double mozMean) {    
-    poisson_distribution<> dis(emergeFactor * mozMean);
-    return dis(gen);
-}
-
-double RandomNumGenerator::getMozLifeSpan() {    
-    exponential_distribution<> d(1./mozLife);
-    return d(gen);
+unsigned RandomNumGenerator::getMozLifeSpan() {    
+    uniform_int_distribution<> dis(mozLifeLo, mozLifeHi);
+    int mean = dis(gen);
+    exponential_distribution<> d(1./mean);
+    return ceil(d(gen));
 }
 
 unsigned RandomNumGenerator::getMozLatencyDays() {
@@ -27,8 +24,8 @@ unsigned RandomNumGenerator::getMozLatencyDays() {
     return dis(gen);
 }
 
-double RandomNumGenerator::getMozRestDays() {
-    uniform_real_distribution<> dis(mozRestLo, mozRestHi);
+unsigned RandomNumGenerator::getMozRestDays() {
+    uniform_int_distribution<> dis(mozRestLo, mozRestHi);
     return dis(gen);
 }
 
@@ -77,8 +74,8 @@ string RandomNumGenerator::toString() const {
     ss <<"huLatencyLo:" << huLatencyLo;
     ss <<" huLatencyHi:" << huLatencyHi;
     ss <<" huImmunity:" << huImmunity;
-    ss <<" emergeFactor:" << emergeFactor;
-    ss <<" mozLife:" << mozLife;
+    ss <<" mozLifeLo:" << mozLifeLo;
+    ss <<" mozLifeHi:" << mozLifeHi;
     ss <<" mozLatencyLo:" << mozLatencyLo;
     ss <<" mozLatencyHi:" << mozLatencyHi;
     ss <<" mozRestLo:" << mozRestLo;
@@ -86,17 +83,16 @@ string RandomNumGenerator::toString() const {
     return ss.str();
 }
 
-RandomNumGenerator::RandomNumGenerator(
-    unsigned s, unsigned hllo, unsigned hlhi, unsigned huImm, double efactor, double mlife,
-    unsigned mllo, unsigned mlhi, unsigned mrestlo, unsigned mresthi)
-{
+RandomNumGenerator::RandomNumGenerator(unsigned s, unsigned hllo, unsigned hlhi, 
+                                        unsigned huImm, unsigned mlifelo, unsigned mlifehi, 
+                                        unsigned mllo, unsigned mlhi, unsigned mrestlo, unsigned mresthi) {
     seed = s;
     gen.seed(s);
     huLatencyLo = hllo;
     huLatencyHi = hlhi;
     huImmunity = huImm;
-    emergeFactor = efactor;
-    mozLife = mlife;
+    mozLifeLo = mlifelo;
+    mozLifeHi = mlifehi;
     mozLatencyLo = mllo;
     mozLatencyHi = mlhi;
     mozRestLo = mrestlo;
