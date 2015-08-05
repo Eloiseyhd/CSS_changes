@@ -11,7 +11,11 @@
 #include <string>
 #include <memory>
 #include <vector>
+#include <map>
+#include <set>
 #include "Infection.h"
+#include "Location.h"
+#include "RandomNumGenerator.h"
 
 class Mosquito {
 public:
@@ -19,17 +23,21 @@ public:
     unsigned getMosquitoID() const;
     std::string getLocationID() const;
     void setLocation(std::string);
-    unsigned getDDay() const;
+    double getDDay() const;
     unsigned getMID() const;
     MozState getState() const;
     void setState(MozState);
-    void setBiteStartDay(unsigned);
-    unsigned getBiteStartDay();
+    void setBiteStartDay(double);
+    double getBiteStartDay();
     void setFly(bool);
     bool getFly() const;
+    void takeBite(double,Location *,RandomNumGenerator *,int,int,std::ofstream *);
+    Human * whoBite(double,Location *,RandomNumGenerator *);
+    void infectingBite(double,Location *,RandomNumGenerator *,int,int);
+    void infectiousBite(double,Location *,RandomNumGenerator *,int,int,std::ofstream *);
     std::string printInfections() const;
     std::string toString() const;
-    Mosquito(unsigned long, unsigned, unsigned, std::string);
+    Mosquito(unsigned long, unsigned, double, double, std::string);
     Mosquito();
     Mosquito(const Mosquito& orig);
     virtual ~Mosquito();
@@ -39,8 +47,8 @@ private:
     MozState mState;
     std::string locationID;
     unsigned bday;
-    unsigned dday;
-    unsigned biteStartDay;
+    double dday;
+    double biteStartDay;
     bool fly;
     
 };

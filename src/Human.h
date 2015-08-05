@@ -23,7 +23,7 @@ private:
     int dday;
     int trajDay;
     std::string houseID;
-    unsigned houseMemNum;
+    int houseMemNum;
     std::unique_ptr<std::vector<std::vector<std::pair<std::string,double>>>> trajectories;
     double bodySize;
     double attractiveness;
@@ -44,15 +44,15 @@ public:
     void setTrajDay(int dayIn){trajDay = dayIn;}
     std::set<std::string> getLocsVisited();
     std::string getHouseID() const;
-    unsigned getHouseMemNum() const;
+    int getHouseMemNum() const;
     int getAge(unsigned) const;
     double getBodySize() const;
-    double getAttractiveness(){return attractiveness;}
+    double getAttractiveness() const;
     char getGender() const;
     std::string toString() const;
     std::vector<std::pair<std::string,double>> const& getTrajectory(unsigned) const;
-    std::pair<std::string,double>* getCurrentLoc(double);
-    Human(std::string, unsigned, int, double, char, std::unique_ptr<std::vector<std::vector<std::pair<std::string,double>>>>&);
+    std::string getCurrentLoc(double);
+    Human(std::string, int, int, double, char, std::unique_ptr<std::vector<std::vector<std::pair<std::string,double>>>>&);
     Human();
     Human(const Human& orig);
     virtual ~Human();

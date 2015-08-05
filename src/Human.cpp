@@ -10,13 +10,14 @@
 
 using namespace std;
 
-Human::Human(string hID, unsigned hMemID, int age, double bSize, char gen, unique_ptr<vector<vector<pair<string, double >> >> &paths) {
+Human::Human(string hID, int hMemID, int age, double bSize, char gen, unique_ptr<vector<vector<pair<string, double >> >> &paths) {
     houseID = hID;
     houseMemNum = hMemID;
     bday = -365 * age;
     bodySize = bSize;
     gender = gen;
     trajectories = move(paths);
+    trajDay = 0;
     infection.reset(nullptr);
     immunity = false;
     attractiveness = pow(bSize, 1.541);
@@ -41,7 +42,7 @@ string Human::getHouseID() const {
     return houseID;
 }
 
-unsigned Human::getHouseMemNum() const {
+int Human::getHouseMemNum() const {
     return houseMemNum;
 }
 
@@ -51,6 +52,10 @@ int Human::getAge(unsigned currDay) const {
 
 double Human::getBodySize() const {
     return bodySize;
+}
+
+double Human::getAttractiveness() const {
+    return attractiveness;
 }
 
 char Human::getGender() const {
@@ -85,13 +90,19 @@ std::vector<std::pair<std::string, double >> const& Human::getTrajectory(unsigne
     return (*trajectories.get())[i];
 }
 
-std::pair<std::string,double>* Human::getCurrentLoc(double time){
+std::string Human::getCurrentLoc(double time){
     std::vector<std::pair<std::string,double>>::iterator itrLoc = (*trajectories)[trajDay].begin();
 
-    for(double runSum = 0; runSum < time; itrLoc++)
+    for(double runSum = 0; runSum < time && itrLoc != (*trajectories)[trajDay].end(); itrLoc++){
         runSum += itrLoc->second;
+    }
+    if((*trajectories)[trajDay].size() == 1){
+        itrLoc = (*trajectories)[trajDay].begin();
+    } else {
+        itrLoc--;
+    }
 
-    return &(*(--itrLoc));
+    return itrLoc->first;
 }
 
 string Human::toString() const {

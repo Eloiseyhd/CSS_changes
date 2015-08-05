@@ -11,6 +11,8 @@
 
 #include <string>
 #include <vector>
+#include <set>
+#include <forward_list>
 #include <memory>
 #include <fstream>
 #include "RandomNumGenerator.h"
@@ -21,22 +23,26 @@ private:
     std::string locID;
     double xCor;
     double yCor;
+    double mozzes;
     std::string locType;
     std::unique_ptr<std::vector<std::string>> closeLocs;
-    //std::unique_ptr<std::vector<std::unique_ptr<Human>>> humans;
+    // std::forward_list<std::unique_ptr<Human>> humansVisit;
+    std::set<Human *> humans;
 public:
     std::string getRandomCloseLoc(RandomNumGenerator&);
-    //void printHumans() const;
-    //void addHuman(std::unique_ptr<Human>);
+    // void printHumans() const;
+    void addHuman(Human *);
+    std::set<Human *>* getHumans(){return &humans;}
     void addCloseLoc(std::string);
     double getDistanceFromLoc(Location &) const;
     double getLocX() const;
     double getLocY() const;
+    double getMozzes() const;
     std::string getLocID() const;
     std::string getLocType() const;
     std::string toString() const;
     void writeNeighToFile(std::ofstream&) const;
-    Location(std::string, std::string, double, double);
+    Location(std::string, std::string, double, double, double);
     Location();
     Location(const Location& orig);
     virtual ~Location();
