@@ -71,7 +71,7 @@ writeSimControl.sobol = function(
   simControlFile = paste('../simulator/SimControl', simControlNum, '.csv', sep='')
 
   file.connection = file(simControlFile)
-	toWrite = 'SimulationName,Seed,NumDays,OutputPath,LocationFile,NeighborhoodFile,MortalityFile,TrajectoryFile,InitialInfectionsFile,HumanLatencyLow,HumanLatencyHigh,HumanInfectionDays,HumanImmunityDays,EmergenceFactor,MosquitoLifespan,MosquitoInfectiousness,MosquitoLatencyLow,MosquitoLatencyHigh,MosquitoMoveProbability,MosquitoRestDaysLow,MosquitoRestDaysHigh\n'
+	toWrite = 'SimulationName,Seed,NumDays,OutputPath,LocationFile,NeighborhoodFile,MortalityFile,TrajectoryFile,InitialInfectionsFile,ForceOfInfection,HumanLatencyLow,HumanLatencyHigh,HumanInfectionDays,HumanImmunityDays,EmergenceFactor,MosquitoLifespan,MosquitoInfectiousness,MosquitoLatencyLow,MosquitoLatencyHigh,MosquitoMoveProbability,MosquitoRestDaysLow,MosquitoRestDaysHigh\n'
 
 	TrajectoryFile = '../simulator/data/Input/trajectories.txt'
 
@@ -90,6 +90,7 @@ writeSimControl.sobol = function(
       MortalityFile,',',
 			TrajectoryFile, ',',
 			InitialInfectionsFile, ',',
+			scalars$ForceOfInfection[ii], ',',
 			scalars$HumanLatencyLow[ii], ',',
 			scalars$HumanLatencyHigh[ii], ',',
 			scalars$HumanInfectionDays[ii], ',',

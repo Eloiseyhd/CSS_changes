@@ -6,6 +6,7 @@ HumanLatencyLow = rep(4,2)
 HumanLatencyHigh = rep(7,2)
 HumanInfectionDays = rep(9,2)
 HumanImmunityDays = rep(686,2)
+ForceOfInfection = c(.019,.052)
 EmergenceFactor = c(.5,2)
 MosquitoLifespan = c(10,20)
 MosquitoInfectiousness = rep(0.5,2)
@@ -20,6 +21,7 @@ scalars = sobol(vars = list(
   HumanLatencyHigh = HumanLatencyHigh,
   HumanInfectionDays = HumanInfectionDays,
   HumanImmunityDays = HumanImmunityDays,
+  ForceOfInfection = ForceOfInfection,
   EmergenceFactor = EmergenceFactor,
   MosquitoLifespan = MosquitoLifespan,
   MosquitoInfectiousness = MosquitoInfectiousness,

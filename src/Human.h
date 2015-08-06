@@ -39,6 +39,7 @@ public:
     std::unique_ptr<Infection> infection;
     void reincarnate(unsigned);
     bool isImmune(unsigned) const;
+    bool isImmuneTemp(){return immunity_temp;}
     void setImmunityPerm(unsigned,bool);
     void setImmunityTemp(bool);
     void setImmStartDay(unsigned);
@@ -57,7 +58,7 @@ public:
     std::string toString() const;
     std::vector<std::pair<std::string,double>> const& getTrajectory(unsigned) const;
     std::string getCurrentLoc(double);
-    Human(std::string, int, int, double, char, std::unique_ptr<std::vector<std::vector<std::pair<std::string,double>>>>&,RandomNumGenerator&,unsigned);
+    Human(std::string, int, int, double, char, std::unique_ptr<std::vector<std::vector<std::pair<std::string,double>>>>&,RandomNumGenerator&,unsigned,double);
     Human();
     Human(const Human& orig);
     virtual ~Human();

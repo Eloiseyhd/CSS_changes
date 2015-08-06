@@ -52,6 +52,14 @@ unsigned RandomNumGenerator::getHumanImmunity() {
     return ceil(d(gen));
 }
 
+bool RandomNumGenerator::getHumanSeropositivity(double FOI, double age) {
+    if(getEventProbability() < 1 - pow(1 - FOI, age)){
+        return true;
+    } else {
+        return false;
+    }
+}
+
 unsigned RandomNumGenerator::getRandomNum(unsigned num) {
     uniform_int_distribution<> dis(0, num-1);
     return dis(gen);

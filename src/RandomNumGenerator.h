@@ -16,6 +16,7 @@ public:
     double getMozLifeSpan();
     unsigned getHumanTrajectory();
     unsigned getHumanImmunity();
+    bool getHumanSeropositivity(double, double);
     unsigned getRandomNum(unsigned);
     unsigned intialInfDaysLeft();
     double getEventProbability();

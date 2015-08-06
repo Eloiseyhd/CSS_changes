@@ -18,25 +18,7 @@
 using namespace std;
 
 void Simulation::simulate() {
-
-    // cout << "\n\n" << simName <<": Setting initial infection in humans ..." << endl;
-    // if ((dnv1IniProp + dnv1IniProp + dnv1IniProp) > 1) {
-    //     cout << "\n" << simName <<": Sum of proportions greater than 1. Exiting" << endl;
-    // }
     unsigned numHu = humans.size();
-    // unsigned numIniInfectedDnv1 = setInitialInfection(dnv1IniProp, Infection::InfType::DENV1);
-    // cout << "\n" << simName <<": " << numIniInfectedDnv1 << " humans infected with DNV1" << endl;
-    // //cout<<"\naddnv1:"<<dnv1IniProp*numHu/numHu << " " << dnv1IniProp;
-    
-    // double adjustedDnv2IniProp = dnv2IniProp * numHu / (numHu - numIniInfectedDnv1);
-    // unsigned numIniInfectedDnv2 = setInitialInfection(adjustedDnv2IniProp, Infection::InfType::DENV2);
-    // cout << "\n" << simName <<": "<< numIniInfectedDnv2 << " humans infected with DNV2" << endl;
-    // //cout<<"\nadjdnv2: "<<adjustedDnv2IniProp;
-    
-    // double adjustedDnv3IniProp = dnv3IniProp * numHu / (numHu - numIniInfectedDnv1 - numIniInfectedDnv2);
-    // unsigned numIniInfectedDnv3 = setInitialInfection(adjustedDnv3IniProp, Infection::InfType::DENV3);
-    // cout << "\n" << simName <<": " << numIniInfectedDnv3 << " humans infected with DNV3" << endl;
-    // //cout<<"\nadjdnv3: "<<adjustedDnv3IniProp;
 
     cout << "\n" << simName <<": Starting ... " << endl;
 
@@ -107,18 +89,22 @@ void Simulation::humanDynamics() {
             diff = currentDay - itInf->getStartDay();
             if (diff >= 0 && diff < 10) {
                 if (itInf->getInfectionType() == 1) {
-                    itInf->setInfectiousness(dnv[1][diff]);
+                    itInf->setInfectiousness(dnv[1-1][diff]);
                 } else if (itInf->getInfectionType() == 2) {
-                    itInf->setInfectiousness(dnv[2][diff]);
+                    itInf->setInfectiousness(dnv[2-1][diff]);
                 } else if (itInf->getInfectionType() == 3) {
-                    itInf->setInfectiousness(dnv[3][diff]);
-                // } else if (itInf->getInfectionType() == Infection::InfType::DENV4) {
-                //     itInf->setInfectiousness(dnv[Infection::InfType::DENV4][diff]);
-                } else if (diff == 10) {
-                    it->second->infection.reset(nullptr);
+                    itInf->setInfectiousness(dnv[3-1][diff]);
+                } else if (itInf->getInfectionType() == 4) {
+                    itInf->setInfectiousness(dnv[4-1][diff]);
                 }
+            } else if (diff == 10) {
+                it->second->infection.reset(nullptr);
             }
         }
+
+        // update immune status
+        if(it->second->isImmuneTemp() && currentDay == it->second->getImmEndDay())
+            it->second->setImmunityTemp(false);
 
         // select movement trajectory for the day
         (it->second)->setTrajDay(rGen.getRandomNum(5));
@@ -289,6 +275,8 @@ void Simulation::readSimControlFile(string line) {
     getline(infile, line, ',');
     initialInfectionsFile = line;
     getline(infile, line, ',');
+    FOI = strtod(line.c_str(),NULL);
+    getline(infile, line, ',');
     unsigned hllo = strtol(line.c_str(), NULL, 10);
     getline(infile, line, ',');
     unsigned hlhi = strtol(line.c_str(), NULL, 10);
@@ -445,7 +433,6 @@ void Simulation::readHumanFile(string humanFile) {
             age = strtol(line.c_str(), NULL, 10);
             getline(infile, line, ',');
             bodySize = strtod(line.c_str(), NULL);
-            //unique_ptr<vector<pair<string,double>>> path(new vector<pair<string,double>>());
             vector < pair<string, double >> path;
             getline(infile, line);
             stringstream ss;
@@ -457,12 +444,11 @@ void Simulation::readHumanFile(string humanFile) {
                 path.push_back(make_pair(hID, timeSpent));
             }
             trajectories->push_back(move(path));
-            //cout << "\n" << "housID:" << houseID << " hMemID:" << hMemID << " gen:" << gen << " age:" << age << " bSize:" << bodySize;
             if (i < 4)
                 getline(infile, line, ',');
         }
 
-        unique_ptr<Human> h(new Human(houseID, hMemID, age, bodySize, gen, trajectories, rGen, currentDay));
+        unique_ptr<Human> h(new Human(houseID, hMemID, age, bodySize, gen, trajectories, rGen, currentDay, FOI));
 
         std::set<std::string> locsVisited = h->getLocsVisited();
         for(std::set<std::string>::iterator itrSet = locsVisited.begin(); itrSet != locsVisited.end(); itrSet++)
