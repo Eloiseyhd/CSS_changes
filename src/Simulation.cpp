@@ -75,6 +75,8 @@ void Simulation::simEngine() {
     }
 }
 
+
+
 void Simulation::humanDynamics() {
     int diff;
 
@@ -102,7 +104,7 @@ void Simulation::humanDynamics() {
             }
         }
 
-        // update immune status
+        // update temporary cross-immunity status if necessary
         if(it->second->isImmuneTemp() && currentDay == it->second->getImmEndDay())
             it->second->setImmunityTemp(false);
 
@@ -222,6 +224,10 @@ void Simulation::readInitialInfectionsFile(string infectionsFile) {
             resident++;
 
         resident->second->infection.reset(new Infection(0, rGen.intialInfDaysLeft(), 0, serotype));
+        resident->second->setImmunityPerm(serotype,true);
+        resident->second->setImmunityTemp(true);
+        resident->second->setImmStartDay(currentDay);
+        resident->second->setImmEndDay(currentDay + 9 + rGen.getHumanImmunity());
 
         while (infile.peek() == '\n')
             infile.ignore(1, '\n');

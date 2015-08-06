@@ -2,8 +2,9 @@ initialInfections = function(
   simControlNum = 1,
 	num.1 = 0,
 	num.2 = 0,
-	num.3 = 1,
-	zone = 'MY',
+	num.3 = 0,
+  num.4 = 0,
+	zone = NA,
 	neighborhood = NA,
 	block = NA,
 	reps = 1)
@@ -13,7 +14,7 @@ initialInfections = function(
 	for(ii in 1:reps){
 		houses = character()
 
-		num.total = num.1 + num.2 + num.3
+		num.total = num.1 + num.2 + num.3 + num.4
 
 		if(!is.na(zone)){
 			houses = c(houses, as.character(sample(
@@ -40,7 +41,7 @@ initialInfections = function(
 			paste(
 				houses,
 				rep(1,num.total),
-				c(rep(1,num.1),rep(2,num.2),rep(3,num.3)),
+				c(rep(1,num.1),rep(2,num.2),rep(3,num.3),rep(4,num.4)),
 				sep=',',collapse='\n'),
 			file = paste('../simulator/data/Input/initialInfections_', simControlNum, '_1.csv', sep=''))	
 	}
@@ -61,6 +62,7 @@ writeSimControl.sobol = function(
 	num.1 = 0,
 	num.2 = 0,
 	num.3 = 0,
+  num.4 = 0,
 	zone = 'MY',
 	neighborhood = NA,
 	block = NA,
@@ -75,7 +77,7 @@ writeSimControl.sobol = function(
 
 	TrajectoryFile = '../simulator/data/Input/trajectories.txt'
 
-	initialInfections(simControlNum, num.1, num.2, num.3, zone, neighborhood, block, 1)
+	initialInfections(simControlNum, num.1, num.2, num.3, num.4, zone, neighborhood, block, 1)
 	InitialInfectionsFile = paste('../simulator/data/Input/initialInfections_', simControlNum, '_1.csv', sep='')
 
 	toWrite =
