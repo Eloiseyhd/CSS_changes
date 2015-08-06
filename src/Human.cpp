@@ -10,23 +10,44 @@
 
 using namespace std;
 
-Human::Human(string hID, int hMemID, int age, double bSize, char gen, unique_ptr<vector<vector<pair<string, double >> >> &paths, RandomNumGenerator& rGen) {
+Human::Human(string hID, int hMemID, int age, double bSize, char gen, unique_ptr<vector<vector<pair<string, double >> >> &paths, RandomNumGenerator& rGen, unsigned currDay){
     houseID = hID;
     houseMemNum = hMemID;
-    bday = -365 * age - rGen.getRandomNum(365);
+    bday = currDay - 365 * age - rGen.getRandomNum(365);
     bodySize = bSize;
     gender = gen;
     trajectories = move(paths);
     trajDay = 0;
     infection.reset(nullptr);
-    immunity = false;
     attractiveness = pow(bSize, 1.541);
+
+    if(bday < currDay - 180){
+        immunity_temp = false;
+        setImmunityPerm(1,false);
+        setImmunityPerm(2,false);
+        setImmunityPerm(3,false);
+        setImmunityPerm(4,false);
+    } else {
+        immunity_temp = true;
+        immStartDay = bday;
+        immEndDay = bday + 180;
+        setImmunityPerm(1,false);
+        setImmunityPerm(2,false);
+        setImmunityPerm(3,false);
+        setImmunityPerm(4,false);
+    }
 }
 
 void Human::reincarnate(unsigned currDay){
     bday = currDay;
     infection.reset(nullptr);
-    immunity = false;
+    immunity_temp = true;
+    immStartDay = bday;
+    immEndDay = bday + 180;
+    setImmunityPerm(1,false);
+    setImmunityPerm(2,false);
+    setImmunityPerm(3,false);
+    setImmunityPerm(4,false);
 }
 
 std::set<std::string> Human::getLocsVisited(){
@@ -84,12 +105,24 @@ void Human::setImmEndDay(unsigned d) {
     immEndDay = d;
 }
 
-bool Human::isImmune() const {
+bool Human::isImmune(unsigned serotype) const {
+    bool immunity = false;
+
+    if(immunity_temp){
+        immunity = true;
+    } else if(immunity_perm.at(serotype)) {
+        immunity = true;
+    }
+
     return immunity;
 }
 
-void Human::setImmunity(bool im) {
-    immunity = im;
+void Human::setImmunityPerm(unsigned serotype, bool status) {
+    immunity_perm.insert(make_pair(serotype,status));
+}
+
+void Human::setImmunityTemp(bool status) {
+    immunity_temp = status;
 }
 
 std::vector<std::pair<std::string, double >> const& Human::getTrajectory(unsigned i) const {

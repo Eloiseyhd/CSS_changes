@@ -12,14 +12,13 @@
 
 class Infection {
 public:
-    enum InfType {DENV1, DENV2, DENV3};
     int getStartDay() const;
     int getEndDay() const;
     double getInfectiousness() const;
-    InfType getInfectionType() const;
+    unsigned getInfectionType() const;
     void setInfectiousness(double);
     std::string toString() const;
-    Infection(unsigned, unsigned, double, InfType);
+    Infection(unsigned, unsigned, double, unsigned);
     Infection();
     Infection(const Infection& orig);
     virtual ~Infection();
@@ -27,7 +26,7 @@ private:
     int startDay;
     int endDay;
     double infectiousness;
-    InfType infType;
+    unsigned infType;
 };
 
 #endif	/* INFECTION_H */

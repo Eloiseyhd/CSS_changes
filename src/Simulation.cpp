@@ -70,7 +70,7 @@ string Simulation::readInputs() {
     return simName;
 }
 
-unsigned Simulation::setInitialInfection(double prop, Infection::InfType infType) {
+unsigned Simulation::setInitialInfection(double prop, unsigned infType) {
     unsigned i = 0;
     for (auto& h : humans) {
         if (rGen.getEventProbability() < prop) {
@@ -97,80 +97,32 @@ void Simulation::humanDynamics() {
     int diff;
 
     for (auto it = humans.begin(); it != humans.end(); ++it) {
+        // daily mortality for humans by age
         if(rGen.getEventProbability() < mortalityHuman[floor(it->second->getAge(currentDay) / 365)])
             it->second->reincarnate(currentDay);
 
+        // update infectiousness for the day if infected
         if (it->second->infection != nullptr) {
             auto& itInf = it->second->infection;
             diff = currentDay - itInf->getStartDay();
             if (diff >= 0 && diff < 10) {
-                if (itInf->getInfectionType() == Infection::InfType::DENV1) {
-                    itInf->setInfectiousness(dnv[Infection::InfType::DENV1][diff]);
-                } else if (itInf->getInfectionType() == Infection::InfType::DENV2) {
-                    itInf->setInfectiousness(dnv[Infection::InfType::DENV2][diff]);
-                } else if (itInf->getInfectionType() == Infection::InfType::DENV3) {
-                    itInf->setInfectiousness(dnv[Infection::InfType::DENV3][diff]);
+                if (itInf->getInfectionType() == 1) {
+                    itInf->setInfectiousness(dnv[1][diff]);
+                } else if (itInf->getInfectionType() == 2) {
+                    itInf->setInfectiousness(dnv[2][diff]);
+                } else if (itInf->getInfectionType() == 3) {
+                    itInf->setInfectiousness(dnv[3][diff]);
+                // } else if (itInf->getInfectionType() == Infection::InfType::DENV4) {
+                //     itInf->setInfectiousness(dnv[Infection::InfType::DENV4][diff]);
                 } else if (diff == 10) {
                     it->second->infection.reset(nullptr);
                 }
             }
         }
 
+        // select movement trajectory for the day
         (it->second)->setTrajDay(rGen.getRandomNum(5));
     }
-}
-
-void Simulation::humanVisit(std::unique_ptr<Human>& human, string location, double t) {
-    auto range = mosquitoes.equal_range(location);
-    for (auto it = range.first; it != range.second; ++it) {
-        if (it->second->getState() == Mosquito::MozState::BITE) {
-            attemptBite(human, it->second, t, location);
-        }
-    }
-}
-
-void Simulation::attemptBite(std::unique_ptr<Human>& human, std::unique_ptr<Mosquito>& mosquito, double t, string location) {
-    //cout<<"\n\nattempt bite:\n";
-    //cout << human->toString() <<"\n";
-    //cout << mosquito->toString() <<"\n";
-
-    //cout<<"\n\nhuman not immune:\n";
-    if (rGen.getEventProbability() < t) { // check
-
-        mosquito->setState(Mosquito::MozState::REST);
-        mosquito->setBiteStartDay(currentDay + rGen.getMozRestDays());
-
-        if (human->infection != nullptr && mosquito->infection == nullptr) {
-            auto& inf = human->infection;
-            if (rGen.getEventProbability() < inf->getInfectiousness()) {
-                int sday = currentDay + rGen.getMozLatencyDays();
-                int eday = numDays + 1;
-                mosquito->infection.reset(new Infection(sday, eday, 0, inf->getInfectionType()));
-            }
-
-        }
-        if (mosquito->infection != nullptr && human->infection == nullptr && !human->isImmune()) {
-            auto& inf = mosquito->infection;
-
-            if (rGen.getEventProbability() < inf->getInfectiousness()) {
-                int sday = currentDay + rGen.getHuLatencyDays();
-                int eday = sday + 9;
-                human->infection.reset(new Infection(sday, eday, 0, inf->getInfectionType()));
-                human->setImmunity(true);
-                human->setImmStartDay(currentDay);
-                human->setImmEndDay(currentDay + 9 + rGen.getHumanImmunity());
-                out << currentDay << "," << inf->getInfectionType() << "," << human->getHouseID() << "," << human->getHouseMemNum();                        
-                out << "," << human->getAge(currentDay) << "," << human->getGender() << "," << sday << "," << location << "\n";
-                //cout << currentDay << "," << inf->getInfectionType() << "," << human->getHouseID() << "," << human->getHouseMemNum();                        
-                //cout << "," << human->getAge(currentDay) << "," << human->getGender() << "," << sday << "," << location << "\n";
-            }
-        }
-    }
-    //cout<<"\nafter:";
-    //cout << human->toString()<<"\n";
-    //cout << mosquito->toString()<<"\n";
-    //if (mosquito.)
-    //cout << "\n bite occurs";
 }
 
 
@@ -283,17 +235,7 @@ void Simulation::readInitialInfectionsFile(string infectionsFile) {
         for(int i = 1; i < hMemID; i++)
             resident++;
 
-        switch(serotype){
-            case 1:
-                resident->second->infection.reset(new Infection(0, rGen.intialInfDaysLeft(), 0, Infection::InfType::DENV1));
-                break;
-            case 2:
-                resident->second->infection.reset(new Infection(0, rGen.intialInfDaysLeft(), 0, Infection::InfType::DENV2));
-                break;
-            case 3:
-                resident->second->infection.reset(new Infection(0, rGen.intialInfDaysLeft(), 0, Infection::InfType::DENV3));
-                break;
-        }
+        resident->second->infection.reset(new Infection(0, rGen.intialInfDaysLeft(), 0, serotype));
 
         while (infile.peek() == '\n')
             infile.ignore(1, '\n');
@@ -520,7 +462,7 @@ void Simulation::readHumanFile(string humanFile) {
                 getline(infile, line, ',');
         }
 
-        unique_ptr<Human> h(new Human(houseID, hMemID, age, bodySize, gen, trajectories, rGen));
+        unique_ptr<Human> h(new Human(houseID, hMemID, age, bodySize, gen, trajectories, rGen, currentDay));
 
         std::set<std::string> locsVisited = h->getLocsVisited();
         for(std::set<std::string>::iterator itrSet = locsVisited.begin(); itrSet != locsVisited.end(); itrSet++)

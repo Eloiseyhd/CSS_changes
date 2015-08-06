@@ -80,40 +80,6 @@ void Mosquito::takeBite(
 
 }
 
-void Mosquito::infectingBite(
-    double time,
-    Location * locNow,
-    RandomNumGenerator * rGen,
-    int currentDay,
-    int numDays)
-{
-    // cout << rGen->getEventProbability() << endl;
-    // cout << "infecting bite ...";
-    // bool biteTaken;
-    Human * humBite = whoBite(time, locNow, rGen);
-    // cout << (humBite == NULL) << "--- ";
-    // cout << biteTaken;
-    // if(!biteTaken){return;}
-// cout << "bite taken" << endl;
-    if(humBite != NULL){
-            // cout << humBite->getHouseID() << " --- " << humBite->getCurrentLoc(time)->first << " --- " << locationID << endl;
-        // cout << endl << endl << (humBite->infection != nullptr) << endl << endl;
-        if(humBite->infection != nullptr){
-            if(rGen->getEventProbability() < humBite->infection->getInfectiousness()){
-                // cout << "results in infected mosquito!" << endl;
-
-                int sday = currentDay + rGen->getMozLatencyDays();
-                int eday = numDays + 1;
-                infection.reset(new Infection(sday, eday, 0, humBite->infection->getInfectionType()));
-                // cout << "mosquito infected!" << endl;
-            }
-        }        
-
-        setState(Mosquito::MozState::REST);
-        setBiteStartDay(currentDay + rGen->getMozRestDays());
-    }
-}
-
 
 
 Human * Mosquito::whoBite(
@@ -151,6 +117,31 @@ Human * Mosquito::whoBite(
 
 
 
+void Mosquito::infectingBite(
+    double time,
+    Location * locNow,
+    RandomNumGenerator * rGen,
+    int currentDay,
+    int numDays)
+{
+    Human * humBite = whoBite(time, locNow, rGen);
+
+    if(humBite != NULL){
+        if(humBite->infection != nullptr){
+            if(rGen->getEventProbability() < humBite->infection->getInfectiousness()){
+                int sday = currentDay + rGen->getMozLatencyDays();
+                int eday = numDays + 1;
+                infection.reset(new Infection(sday, eday, 0, humBite->infection->getInfectionType()));
+            }
+        }        
+
+        setState(Mosquito::MozState::REST);
+        setBiteStartDay(currentDay + rGen->getMozRestDays());
+    }
+}
+
+
+
 void Mosquito::infectiousBite(
     double time,
     Location * locNow,
@@ -159,18 +150,16 @@ void Mosquito::infectiousBite(
     int numDays,
     std::ofstream * out)
 {
-    // bool biteTaken;
     Human * humBite = whoBite(time, locNow, rGen);
-    // cout << biteTaken;
-    // if(!biteTaken){return;}
-// cout << "infectious bite " << endl;
+
     if(humBite != NULL){
-        if(infection != nullptr && humBite->infection == nullptr && !humBite->isImmune()){
+        if(infection != nullptr && humBite->infection == nullptr && !humBite->isImmune(infection->getInfectionType())){
             if(rGen->getEventProbability() < infection->getInfectiousness()){
                 int sday = currentDay + rGen->getHuLatencyDays();
                 int eday = sday + 9;
                 humBite->infection.reset(new Infection(sday, eday, 0, infection->getInfectionType()));
-                humBite->setImmunity(true);
+                humBite->setImmunityPerm(infection->getInfectionType(),true);
+                humBite->setImmunityTemp(true);
                 humBite->setImmStartDay(currentDay);
                 humBite->setImmEndDay(currentDay + 9 + rGen->getHumanImmunity());
                 *out << currentDay << "," << infection->getInfectionType() << "," << humBite->getHouseID() << "," << humBite->getHouseMemNum();                        

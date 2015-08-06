@@ -11,6 +11,7 @@
 #include <string>
 #include <vector>
 #include <set>
+#include <map>
 #include <iostream>
 #include <utility>
 #include <memory>
@@ -29,15 +30,17 @@ private:
     double bodySize;
     double attractiveness;
     char gender;
-    bool immunity;
+    std::map<unsigned,bool> immunity_perm;
+    bool immunity_temp;
     unsigned immStartDay;
     unsigned immEndDay;
-    
+
 public:
     std::unique_ptr<Infection> infection;
     void reincarnate(unsigned);
-    bool isImmune() const;
-    void setImmunity(bool);
+    bool isImmune(unsigned) const;
+    void setImmunityPerm(unsigned,bool);
+    void setImmunityTemp(bool);
     void setImmStartDay(unsigned);
     void setImmEndDay(unsigned);
     unsigned getImmStartDay() const;
@@ -54,7 +57,7 @@ public:
     std::string toString() const;
     std::vector<std::pair<std::string,double>> const& getTrajectory(unsigned) const;
     std::string getCurrentLoc(double);
-    Human(std::string, int, int, double, char, std::unique_ptr<std::vector<std::vector<std::pair<std::string,double>>>>&,RandomNumGenerator&);
+    Human(std::string, int, int, double, char, std::unique_ptr<std::vector<std::vector<std::pair<std::string,double>>>>&,RandomNumGenerator&,unsigned);
     Human();
     Human(const Human& orig);
     virtual ~Human();

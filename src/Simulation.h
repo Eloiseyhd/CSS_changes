@@ -40,11 +40,9 @@ public:
     void simEngine();
     void humanDynamics();
     void tests();
-    void humanVisit(std::unique_ptr<Human>&, std::string, double);
-    void attemptBite(std::unique_ptr<Human>&, std::unique_ptr<Mosquito>&, double, std::string);
     void mosquitoDynamics();
     void generateMosquitoes();
-    unsigned setInitialInfection(double, Infection::InfType);
+    unsigned setInitialInfection(double, unsigned);
     void printSimulationParams() const;
     void writeNeighborhoodFile(std::string file) const;
     void createNeighborhoodFile(std::string, std::string, std::string);

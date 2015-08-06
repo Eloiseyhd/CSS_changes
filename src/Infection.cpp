@@ -19,7 +19,8 @@ int Infection::getEndDay() const {
 double Infection::getInfectiousness() const {
     return infectiousness;
 }
-Infection::InfType Infection::getInfectionType() const {
+
+unsigned Infection::getInfectionType() const {
     return infType;
 }
 void Infection::setInfectiousness(double in) {
@@ -32,7 +33,7 @@ string Infection::toString() const {
     return ss.str();
 }
 
-Infection::Infection(unsigned sd, unsigned ed, double infn, Infection::InfType ityp) {
+Infection::Infection(unsigned sd, unsigned ed, double infn, unsigned ityp) {
     startDay = sd;
     endDay = ed;
     infectiousness = infn;
