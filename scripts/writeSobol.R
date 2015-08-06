@@ -38,6 +38,7 @@ for(ii in 1 : reps){
     OutputPath = '../simulator/data/Output',
     LocationFile = '../simulator/data/Input/locations_20150801.csv',
     NeighborhoodFile = '../simulator/data/Input/neighborhoods.csv',
+    MortalityFile = '../simulator/data/Input/age_specific_mortality.csv',
     num.1 = 0,
     num.2 = 0,
     num.3 = 50,

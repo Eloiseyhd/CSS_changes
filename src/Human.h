@@ -16,6 +16,7 @@
 #include <memory>
 #include <cmath>
 #include "Infection.h"
+#include "RandomNumGenerator.h"
 
 class Human {
 private:
@@ -34,6 +35,7 @@ private:
     
 public:
     std::unique_ptr<Infection> infection;
+    void reincarnate(unsigned);
     bool isImmune() const;
     void setImmunity(bool);
     void setImmStartDay(unsigned);
@@ -52,7 +54,7 @@ public:
     std::string toString() const;
     std::vector<std::pair<std::string,double>> const& getTrajectory(unsigned) const;
     std::string getCurrentLoc(double);
-    Human(std::string, int, int, double, char, std::unique_ptr<std::vector<std::vector<std::pair<std::string,double>>>>&);
+    Human(std::string, int, int, double, char, std::unique_ptr<std::vector<std::vector<std::pair<std::string,double>>>>&,RandomNumGenerator&);
     Human();
     Human(const Human& orig);
     virtual ~Human();

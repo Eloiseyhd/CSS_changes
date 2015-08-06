@@ -10,10 +10,10 @@
 
 using namespace std;
 
-Human::Human(string hID, int hMemID, int age, double bSize, char gen, unique_ptr<vector<vector<pair<string, double >> >> &paths) {
+Human::Human(string hID, int hMemID, int age, double bSize, char gen, unique_ptr<vector<vector<pair<string, double >> >> &paths, RandomNumGenerator& rGen) {
     houseID = hID;
     houseMemNum = hMemID;
-    bday = -365 * age;
+    bday = -365 * age - rGen.getRandomNum(365);
     bodySize = bSize;
     gender = gen;
     trajectories = move(paths);
@@ -21,6 +21,12 @@ Human::Human(string hID, int hMemID, int age, double bSize, char gen, unique_ptr
     infection.reset(nullptr);
     immunity = false;
     attractiveness = pow(bSize, 1.541);
+}
+
+void Human::reincarnate(unsigned currDay){
+    bday = currDay;
+    infection.reset(nullptr);
+    immunity = false;
 }
 
 std::set<std::string> Human::getLocsVisited(){

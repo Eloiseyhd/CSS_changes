@@ -61,6 +61,8 @@ string Simulation::readInputs() {
     readLocationFile(locationFile);
     cout << "\n\n" << simName << ": Reading neighborhoods file ..." << endl;
     readNeighborhoodFile(neighborhoodFile);
+    cout << "\n\n" << simName << ": Reading mortality file ..." << endl;
+    readMortalityFile(mortalityFile);
     cout << "\n\n" << simName << ": Reading trajectories file ..." << endl;
     readHumanFile(trajectoryFile);
     cout << "\n\n" << simName << ": Reading initial infections file ..." << endl;
@@ -95,7 +97,9 @@ void Simulation::humanDynamics() {
     int diff;
 
     for (auto it = humans.begin(); it != humans.end(); ++it) {
-        //for (auto itInf = it->second->infections->begin(); itInf != it->second->infections->end();) {
+        if(rGen.getEventProbability() < mortalityHuman[floor(it->second->getAge(currentDay) / 365)])
+            it->second->reincarnate(currentDay);
+
         if (it->second->infection != nullptr) {
             auto& itInf = it->second->infection;
             diff = currentDay - itInf->getStartDay();
@@ -337,6 +341,8 @@ void Simulation::readSimControlFile(string line) {
     getline(infile, line, ',');
     neighborhoodFile = line;
     getline(infile, line, ',');
+    mortalityFile = line;
+    getline(infile, line, ',');
     trajectoryFile = line;
     getline(infile, line, ',');
     initialInfectionsFile = line;
@@ -430,7 +436,6 @@ void Simulation::readNeighborhoodFile(std::string nFile) {
         getline(ss, line, ',');
         auto loc = locations.find(line);
         while (getline(ss, line, ',')) {
-
             loc->second->addCloseLoc(line);
         }
         while (infile.peek() == '\n')
@@ -439,6 +444,35 @@ void Simulation::readNeighborhoodFile(std::string nFile) {
     infile.close();
     cout << "\n" << simName << ": Done reading neighborhoods!" << endl;
 }
+
+void Simulation::readMortalityFile(std::string nFile) {
+    if (mortalityFile.length() == 0) {
+        cout << "\n" << simName << ": Mortality file not specified! Exiting." << endl;
+        exit(1);
+    }
+    string line;
+    int age;
+    double mort;
+
+    ifstream infile(mortalityFile);
+    if(!infile.good()){
+        cout << "\n\n" << simName << ": Can't open file:" << mortalityFile << ". Exiting.\n" << endl;
+        exit(1);
+    }
+    while(getline(infile, line, ',')){
+        age = strtol(line.c_str(), NULL, 10);
+        getline(infile, line, ',');
+        mort = strtod(line.c_str(), NULL);
+
+        mortalityHuman.insert(make_pair(age,mort));
+
+        while (infile.peek() == '\n')
+            infile.ignore(1, '\n');
+    }
+    infile.close();
+    cout << "\n" << simName << ": Done reading mortalities!" << endl;
+}
+
 
 void Simulation::readHumanFile(string humanFile) {
     if (humanFile.length() == 0) {
@@ -486,7 +520,7 @@ void Simulation::readHumanFile(string humanFile) {
                 getline(infile, line, ',');
         }
 
-        unique_ptr<Human> h(new Human(houseID, hMemID, age, bodySize, gen, trajectories));
+        unique_ptr<Human> h(new Human(houseID, hMemID, age, bodySize, gen, trajectories, rGen));
 
         std::set<std::string> locsVisited = h->getLocsVisited();
         for(std::set<std::string>::iterator itrSet = locsVisited.begin(); itrSet != locsVisited.end(); itrSet++)

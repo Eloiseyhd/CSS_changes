@@ -32,6 +32,7 @@ public:
     void readSimControlFile(std::string);
     void readLocationFile(std::string);
     void readNeighborhoodFile(std::string);
+    void readMortalityFile(std::string);
     void setLocNeighborhood(double);
     void printLocations() const;
     void printHumans() const;
@@ -53,6 +54,7 @@ private:
     std::map <std::string,std::unique_ptr<Location>> locations;
     std::multimap<std::string,std::unique_ptr<Mosquito>> mosquitoes;
     std::multimap<std::string,std::unique_ptr<Human>> humans;
+    std::map<int,double> mortalityHuman;
     unsigned currentDay;
     unsigned numDays;
     unsigned long mozID=0;
@@ -60,6 +62,7 @@ private:
     std::string configLine;
     std::string locationFile;
     std::string neighborhoodFile;
+    std::string mortalityFile;
     std::string initialInfectionsFile;
     std::string outputFile;
     std::string simName;
