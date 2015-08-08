@@ -115,16 +115,33 @@ void Simulation::humanDynamics() {
         (it->second)->setTrajDay(rGen.getRandomNum(5));
 
         // vaccinate if appropriate according to age
-        // age = it->second->getAge(currentDay);
-        // if(rGen.getEventProbability() < .8 || it->second->isVaccinated()){
-        //     if(age == 9 * 365){
-        //         it->second->vaccinate(&VE_pos, &VE_neg, 1.0/3.0, currentDay);
-        //     } else if(it->second->isVaccinated() && age == 9 * 365 + 183){
-        //         it->second->vaccinate(&VE_pos, &VE_neg, 2.0/3.0, currentDay);
-        //     } else if(it->second->isVaccinated() && age == 10 * 365){
-        //         it->second->vaccinate(&VE_pos, &VE_neg, 1.0, currentDay);
-        //     }
-        // }
+        age = it->second->getAge(currentDay);
+        if(rGen.getEventProbability() < .8 || it->second->isVaccinated()){
+            if(age == 9 * 365){
+                it->second->vaccinate(&VE_pos, &VE_neg, 1.0/3.0, currentDay);
+            } else if(it->second->isVaccinated() && age == 2 * 365 + 183){
+                it->second->vaccinate(&VE_pos, &VE_neg, 2.0/3.0, currentDay);
+            } else if(it->second->isVaccinated() && age == 3 * 365){
+                it->second->vaccinate(&VE_pos, &VE_neg, 1.0, currentDay);
+            }
+        }
+        if(currentDay <= 365){
+            if(rGen.getEventProbability() < .8 / 365.0 || it->second->isVaccinated()){
+                if(!it->second->isVaccinated() && age >= 10 * 365 && age < 15 * 365){
+                    it->second->vaccinate(&VE_pos, &VE_neg, 1.0/3.0, currentDay);
+                }
+            }
+        }
+        if(currentDay <= 365 + 183 && currentDay > 182){
+            if(it->second->isVaccinated() && age >= 10 * 365 + 183 && age < 15 * 365 + 183){
+                    it->second->vaccinate(&VE_pos, &VE_neg, 2.0/3.0, currentDay);
+            }
+        }
+        if(currentDay <= 365 * 2 && currentDay > 365){
+            if(it->second->isVaccinated() && age >= 11 * 365 && age < 16 * 365){
+                    it->second->vaccinate(&VE_pos, &VE_neg, 1.0, currentDay);
+            }
+        }
     }
 }
 
