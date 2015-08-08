@@ -9,9 +9,11 @@
 #define	RANDOMNUMGENERATOR_H
 
 #include <random>
+#include <map>
 
 class RandomNumGenerator {
 public:
+    double getWaningTime(unsigned);
     unsigned getMozEmerge(double);
     double getMozLifeSpan();
     unsigned getHumanTrajectory();
@@ -26,7 +28,7 @@ public:
     unsigned getMozNextLoc(unsigned);
     void setSeed(unsigned);
     std::string toString() const;
-    RandomNumGenerator(unsigned, unsigned, unsigned, unsigned, double, double, unsigned, unsigned, unsigned, unsigned);
+    RandomNumGenerator(unsigned, unsigned, unsigned, unsigned, double, double, unsigned, unsigned, unsigned, unsigned, std::map<unsigned,double>);
     RandomNumGenerator();
     RandomNumGenerator(const RandomNumGenerator& orig);
     virtual ~RandomNumGenerator();
@@ -42,6 +44,7 @@ private:
     unsigned mozLatencyHi;
     double mozRestLo;
     double mozRestHi;
+    std::map<unsigned,double> halflife;
 };
 
 #endif	/* RANDOMNUMGENERATOR_H */

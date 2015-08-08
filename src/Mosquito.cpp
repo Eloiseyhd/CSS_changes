@@ -127,16 +127,15 @@ void Mosquito::infectingBite(
     Human * humBite = whoBite(time, locNow, rGen);
 
     if(humBite != NULL){
+        setState(Mosquito::MozState::REST);
+        setBiteStartDay(currentDay + rGen->getMozRestDays());
         if(humBite->infection != nullptr){
-            if(rGen->getEventProbability() < humBite->infection->getInfectiousness()){
+            // if(rGen->getEventProbability() < humBite->infection->getInfectiousness()){
                 int sday = currentDay + rGen->getMozLatencyDays();
                 int eday = numDays + 1;
                 infection.reset(new Infection(sday, eday, 0, humBite->infection->getInfectionType()));
-            }
+            // }
         }        
-
-        setState(Mosquito::MozState::REST);
-        setBiteStartDay(currentDay + rGen->getMozRestDays());
     }
 }
 
@@ -152,9 +151,36 @@ void Mosquito::infectiousBite(
 {
     Human * humBite = whoBite(time, locNow, rGen);
 
+    // if someone is found to bite
     if(humBite != NULL){
+        // update the mosquito's status
+        setState(Mosquito::MozState::REST);
+        setBiteStartDay(currentDay + rGen->getMozRestDays());
+
+        // if the mosquito is infected, the human susceptible, and the infection successful
         if(infection != nullptr && humBite->infection == nullptr && !humBite->isImmune(infection->getInfectionType())){
             if(rGen->getEventProbability() < infection->getInfectiousness()){
+                // clinical disease state
+                int disease = 0;
+                if(rGen->getEventProbability() < .246)
+                    disease = infection->getInfectionType();
+
+                // effect of vaccine on preventing infection and disease
+                if(humBite->isVaccinated()){
+                            cout << "VACCINE!!!!!" << endl;
+                    if(rGen->getEventProbability() < humBite->getVE(infection->getInfectionType())){
+                        if(humBite->getVaccinationDay() + rGen->getWaningTime(infection->getInfectionType()) < currentDay){
+                            return;
+                        } else {
+                            humBite->waneVaccination();
+                        }
+                    } else {
+                        if(disease == 1 && rGen->getEventProbability() < humBite->getVE(infection->getInfectionType()))
+                            disease = 0;   
+                    }
+                }
+
+                // record infection and update immune status
                 int sday = currentDay + rGen->getHuLatencyDays();
                 int eday = sday + 9;
                 humBite->infection.reset(new Infection(sday, eday, 0, infection->getInfectionType()));
@@ -162,13 +188,14 @@ void Mosquito::infectiousBite(
                 humBite->setImmunityTemp(true);
                 humBite->setImmStartDay(currentDay);
                 humBite->setImmEndDay(currentDay + 9 + rGen->getHumanImmunity());
-                *out << currentDay << "," << infection->getInfectionType() << "," << humBite->getHouseID() << "," << humBite->getHouseMemNum();                        
-                *out << "," << humBite->getAge(currentDay) << "," << humBite->getGender() << "," << sday << "," << locNow->getLocID() << "\n";
+
+                // write data about infection to output file
+                *out << currentDay << "," << infection->getInfectionType() << "," << disease;
+                *out << "," << humBite->getHouseID() << "," << humBite->getHouseMemNum();                        
+                *out << "," << humBite->getAge(currentDay) << "," << humBite->getGender();
+                *out << "," << sday << "," << locNow->getLocID() << "\n";
             }
         }
-
-        setState(Mosquito::MozState::REST);
-        setBiteStartDay(currentDay + rGen->getMozRestDays());
     }
 }
 

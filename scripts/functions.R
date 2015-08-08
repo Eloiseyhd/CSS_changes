@@ -59,7 +59,8 @@ writeSimControl.sobol = function(
 	LocationFile = '../simulator/data/Input/locations_20150801.csv',
 	NeighborhoodFile = '../simulator/data/Input/neighborhoods.csv',
   MortalityFile = '../simulator/data/Input/age_specific_mortality.csv',
-	num.1 = 0,
+  VaccineProfileFile = '../simulator/data/Input/vaccine_profile_CYD15.csv',
+  num.1 = 0,
 	num.2 = 0,
 	num.3 = 0,
   num.4 = 0,
@@ -70,10 +71,10 @@ writeSimControl.sobol = function(
 {  
   ii = simControlNum
   
-  simControlFile = paste('../simulator/SimControl', simControlNum, '.csv', sep='')
+  simControlFile = paste('../simulator/SimControl_Brazil_', simControlNum, '.csv', sep='')
 
   file.connection = file(simControlFile)
-	toWrite = 'SimulationName,Seed,NumDays,OutputPath,LocationFile,NeighborhoodFile,MortalityFile,TrajectoryFile,InitialInfectionsFile,ForceOfInfection,HumanLatencyLow,HumanLatencyHigh,HumanInfectionDays,HumanImmunityDays,EmergenceFactor,MosquitoLifespan,MosquitoInfectiousness,MosquitoLatencyLow,MosquitoLatencyHigh,MosquitoMoveProbability,MosquitoRestDaysLow,MosquitoRestDaysHigh\n'
+	toWrite = 'SimulationName,Seed,NumDays,OutputPath,LocationFile,NeighborhoodFile,MortalityFile,TrajectoryFile,InitialInfectionsFile,VaccineProfileFile,ForceOfInfection,HumanLatencyLow,HumanLatencyHigh,HumanInfectionDays,HumanImmunityDays,EmergenceFactor,MosquitoLifespan,MosquitoInfectiousness,MosquitoLatencyLow,MosquitoLatencyHigh,MosquitoMoveProbability,MosquitoRestDaysLow,MosquitoRestDaysHigh\n'
 
 	TrajectoryFile = '../simulator/data/Input/trajectories.txt'
 
@@ -83,7 +84,7 @@ writeSimControl.sobol = function(
 	toWrite =
 		paste(
 			toWrite,
-			'temp_', ii, '_1,',
+			'temp_Brazil_', ii, '_1,',
 			as.integer(Sys.time()), ',',
 			NumDays, ',',
 			OutputPath, ',',
@@ -92,6 +93,7 @@ writeSimControl.sobol = function(
       MortalityFile,',',
 			TrajectoryFile, ',',
 			InitialInfectionsFile, ',',
+      VaccineProfileFile, ',',
 			scalars$ForceOfInfection[ii], ',',
 			scalars$HumanLatencyLow[ii], ',',
 			scalars$HumanLatencyHigh[ii], ',',

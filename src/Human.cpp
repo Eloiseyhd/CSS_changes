@@ -30,6 +30,7 @@ Human::Human(
     trajDay = 0;
     infection.reset(nullptr);
     attractiveness = pow(bSize, 1.541);
+    vaccinated = false;
 
     if(bday < currDay - 180){
         immunity_temp = false;
@@ -58,6 +59,31 @@ void Human::reincarnate(unsigned currDay){
     setImmunityPerm(2,false);
     setImmunityPerm(3,false);
     setImmunityPerm(4,false);
+}
+
+void Human::vaccinate(
+    std::map<unsigned,double> * vepos,
+    std::map<unsigned,double> * veneg,
+    double partialEfficacy,
+    int currDay)
+{
+    vaccinated = true;
+    vday = currDay;
+
+    unsigned infectionCount = 0;
+    for(auto it = immunity_perm.begin(); it != immunity_perm.end(); it++){
+        if(it->second){infectionCount++;}
+    }
+
+    if(infectionCount == 0){
+        for(auto it = veneg->begin(); it != veneg->end(); it++){
+            VE.insert(make_pair(it->first,pow(partialEfficacy * it->second, .5)));
+        }
+    } else {
+        for(auto it = vepos->begin(); it != vepos->end(); it++){
+            VE.insert(make_pair(it->first,pow(partialEfficacy * it->second, .5)));
+        }
+    }
 }
 
 std::set<std::string> Human::getLocsVisited(){

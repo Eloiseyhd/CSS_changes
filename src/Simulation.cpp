@@ -37,18 +37,21 @@ string Simulation::readInputs() {
         cout << "\n\n" << simName <<": " << "Can't open output file:" << outputFile << ". Exiting.\n\n";
         exit(1);
     }
-    //out.open("test1.csv");
-    out << "day,type,house,member_no,age,sex,startday,bite_location\n";
+    out << "day,infection,disease,house,member_no,age,sex,startday,bite_location\n";
     cout << "\n\n" << simName << ": Reading locations file ..." << endl;
     readLocationFile(locationFile);
     cout << "\n\n" << simName << ": Reading neighborhoods file ..." << endl;
     readNeighborhoodFile(neighborhoodFile);
     cout << "\n\n" << simName << ": Reading mortality file ..." << endl;
-    readMortalityFile(mortalityFile);
+    readMortalityFile();
     cout << "\n\n" << simName << ": Reading trajectories file ..." << endl;
     readHumanFile(trajectoryFile);
     cout << "\n\n" << simName << ": Reading initial infections file ..." << endl;
     readInitialInfectionsFile(initialInfectionsFile);
+    cout << "\n\n" << simName << ": Reading vaccine profile file ..." << endl;
+    readVaccineProfileFile();
+    RandomNumGenerator rgen(rSeed, hllo, hlhi, huImm, emergeFactor, mlife, mlho, mlhi, mrestlo, mresthi, halflife);
+    rGen = rgen;
     return simName;
 }
 
@@ -78,18 +81,18 @@ void Simulation::simEngine() {
 
 
 void Simulation::humanDynamics() {
-    int diff;
+    int diff, age;
 
     for (auto it = humans.begin(); it != humans.end(); ++it) {
         // daily mortality for humans by age
         if(rGen.getEventProbability() < mortalityHuman[floor(it->second->getAge(currentDay) / 365)])
             it->second->reincarnate(currentDay);
 
-        // update infectiousness for the day if infected
+        // update infectiousness for the day, if infected
         if (it->second->infection != nullptr) {
             auto& itInf = it->second->infection;
             diff = currentDay - itInf->getStartDay();
-            if (diff >= 0 && diff < 10) {
+            if (diff >= 0 && diff < 9) {
                 if (itInf->getInfectionType() == 1) {
                     itInf->setInfectiousness(dnv[1-1][diff]);
                 } else if (itInf->getInfectionType() == 2) {
@@ -105,11 +108,23 @@ void Simulation::humanDynamics() {
         }
 
         // update temporary cross-immunity status if necessary
-        if(it->second->isImmuneTemp() && currentDay == it->second->getImmEndDay())
+        if(currentDay == it->second->getImmEndDay())
             it->second->setImmunityTemp(false);
 
         // select movement trajectory for the day
         (it->second)->setTrajDay(rGen.getRandomNum(5));
+
+        // vaccinate if appropriate according to age
+        // age = it->second->getAge(currentDay);
+        // if(rGen.getEventProbability() < .8 || it->second->isVaccinated()){
+        //     if(age == 9 * 365){
+        //         it->second->vaccinate(&VE_pos, &VE_neg, 1.0/3.0, currentDay);
+        //     } else if(it->second->isVaccinated() && age == 9 * 365 + 183){
+        //         it->second->vaccinate(&VE_pos, &VE_neg, 2.0/3.0, currentDay);
+        //     } else if(it->second->isVaccinated() && age == 10 * 365){
+        //         it->second->vaccinate(&VE_pos, &VE_neg, 1.0, currentDay);
+        //     }
+        // }
     }
 }
 
@@ -259,13 +274,7 @@ void Simulation::readSimControlFile(string line) {
     getline(infile, line, ',');
     simName = line;
     getline(infile, line, ',');
-    if (line == "") {
-        random_device rd;
-        rSeed = rd();
-        //cout << "random seed: " << rSeed;
-    } else {
-        rSeed = strtol(line.c_str(), NULL, 10);
-    }
+    rSeed = strtol(line.c_str(), NULL, 10);
     getline(infile, line, ',');
     numDays = strtol(line.c_str(), NULL, 10);
     getline(infile, line, ',');
@@ -281,33 +290,33 @@ void Simulation::readSimControlFile(string line) {
     getline(infile, line, ',');
     initialInfectionsFile = line;
     getline(infile, line, ',');
+    vaccineProfileFile = line;
+    getline(infile, line, ',');
     FOI = strtod(line.c_str(),NULL);
     getline(infile, line, ',');
-    unsigned hllo = strtol(line.c_str(), NULL, 10);
+    hllo = strtol(line.c_str(), NULL, 10);
     getline(infile, line, ',');
-    unsigned hlhi = strtol(line.c_str(), NULL, 10);
+    hlhi = strtol(line.c_str(), NULL, 10);
     getline(infile, line, ',');
     humanInfectionDays = strtol(line.c_str(), NULL, 10);
     getline(infile, line, ',');
-    unsigned huImm = strtol(line.c_str(), NULL, 10);
+    huImm = strtol(line.c_str(), NULL, 10);
     getline(infile, line, ',');
     emergeFactor = strtod(line.c_str(), NULL);    
     getline(infile, line, ',');
-    double mlife = strtod(line.c_str(), NULL);
+    mlife = strtod(line.c_str(), NULL);
     getline(infile, line, ',');
     mozInfectiousness = strtod(line.c_str(), NULL);
     getline(infile, line, ',');
-    unsigned mlho = strtol(line.c_str(), NULL, 10);
+    mlho = strtol(line.c_str(), NULL, 10);
     getline(infile, line, ',');
-    unsigned mlhi = strtol(line.c_str(), NULL, 10);
+    mlhi = strtol(line.c_str(), NULL, 10);
     getline(infile, line, ',');
     mozMoveProbability = strtod(line.c_str(), NULL);
     getline(infile, line, ',');
-    unsigned mrestlo = strtol(line.c_str(), NULL, 10);
+    mrestlo = strtol(line.c_str(), NULL, 10);
     getline(infile, line, ',');
-    unsigned mresthi = strtol(line.c_str(), NULL, 10);
-    RandomNumGenerator rgen(rSeed, hllo, hlhi, huImm, emergeFactor, mlife, mlho, mlhi, mrestlo, mresthi);
-    rGen = rgen;
+    mresthi = strtol(line.c_str(), NULL, 10);
 }
 
 void Simulation::readLocationFile(string locFile) {
@@ -381,7 +390,7 @@ void Simulation::readNeighborhoodFile(std::string nFile) {
     cout << "\n" << simName << ": Done reading neighborhoods!" << endl;
 }
 
-void Simulation::readMortalityFile(std::string nFile) {
+void Simulation::readMortalityFile() {
     if (mortalityFile.length() == 0) {
         cout << "\n" << simName << ": Mortality file not specified! Exiting." << endl;
         exit(1);
@@ -408,6 +417,42 @@ void Simulation::readMortalityFile(std::string nFile) {
     infile.close();
     cout << "\n" << simName << ": Done reading mortalities!" << endl;
 }
+
+
+
+void Simulation::readVaccineProfileFile() {
+    if (vaccineProfileFile.length() == 0) {
+        cout << "\n" << simName << ": Vaccine profile file not specified! Exiting." << endl;
+        exit(1);
+    }
+    string line;
+    unsigned sero;
+    double vep;
+    double ven;
+    double hl;
+
+    ifstream infile(vaccineProfileFile);
+    if(!infile.good()){
+        cout << "\n\n" << simName << ": Can't open file:" << vaccineProfileFile << ". Exiting.\n" << endl;
+        exit(1);
+    }
+    while(getline(infile, line, ',')){
+        sero = strtol(line.c_str(), NULL, 10);
+        getline(infile, line, ',');
+        vep = strtod(line.c_str(), NULL);
+        getline(infile, line, ',');
+        ven = strtod(line.c_str(), NULL);
+        getline(infile, line, '\n');
+        hl = strtod(line.c_str(), NULL);
+
+        VE_pos.insert(make_pair(sero,vep));
+        VE_neg.insert(make_pair(sero,ven));
+        halflife.insert(make_pair(sero,hl));
+    }
+    infile.close();
+    cout << "\n" << simName << ": Done reading the vaccine profile!" << endl;
+}
+
 
 
 void Simulation::readHumanFile(string humanFile) {

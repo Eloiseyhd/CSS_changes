@@ -12,6 +12,11 @@
 
 using namespace std;
 
+double RandomNumGenerator::getWaningTime(unsigned sero) {
+    exponential_distribution<> d(1./(log(2) * halflife.at(sero)));
+    return d(gen);
+}
+
 unsigned RandomNumGenerator::getMozEmerge(double mozMean) {    
     poisson_distribution<> dis(emergeFactor * mozMean);
     return dis(gen);
@@ -96,7 +101,7 @@ string RandomNumGenerator::toString() const {
 
 RandomNumGenerator::RandomNumGenerator(
     unsigned s, unsigned hllo, unsigned hlhi, unsigned huImm, double efactor, double mlife,
-    unsigned mllo, unsigned mlhi, unsigned mrestlo, unsigned mresthi)
+    unsigned mllo, unsigned mlhi, unsigned mrestlo, unsigned mresthi, std::map<unsigned,double> hlife)
 {
     seed = s;
     gen.seed(s);
@@ -108,7 +113,8 @@ RandomNumGenerator::RandomNumGenerator(
     mozLatencyLo = mllo;
     mozLatencyHi = mlhi;
     mozRestLo = mrestlo;
-    mozRestHi = mresthi;    
+    mozRestHi = mresthi;
+    halflife = hlife;
 }
 
 RandomNumGenerator::RandomNumGenerator() {

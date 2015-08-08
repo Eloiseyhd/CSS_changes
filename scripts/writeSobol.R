@@ -1,12 +1,12 @@
 source('functions.R')
 
-reps = 100
+reps = 50
 
 HumanLatencyLow = rep(4,2)
 HumanLatencyHigh = rep(7,2)
 HumanInfectionDays = rep(9,2)
 HumanImmunityDays = rep(686,2)
-ForceOfInfection = c(.019,.052)
+ForceOfInfection = rep(.052,2)
 EmergenceFactor = c(.5,2)
 MosquitoLifespan = c(10,20)
 MosquitoInfectiousness = rep(0.5,2)
@@ -41,11 +41,12 @@ for(ii in 1 : reps){
     LocationFile = '../simulator/data/Input/locations_20150801.csv',
     NeighborhoodFile = '../simulator/data/Input/neighborhoods.csv',
     MortalityFile = '../simulator/data/Input/age_specific_mortality.csv',
+    VaccineProfileFile = '../simulator/data/Input/vaccine_profile_CYD15.csv',
     num.1 = 10,
     num.2 = 10,
     num.3 = 10,
     num.4 = 10,
-    zone = 'MY',
+    zone = NA,
     neighborhood = NA,
     block = NA,
     scalars = scalars)

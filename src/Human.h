@@ -34,6 +34,9 @@ private:
     bool immunity_temp;
     unsigned immStartDay;
     unsigned immEndDay;
+    bool vaccinated;
+    int vday;
+    std::map<unsigned,double> VE;
 
 public:
     std::unique_ptr<Infection> infection;
@@ -46,8 +49,13 @@ public:
     void setImmEndDay(unsigned);
     unsigned getImmStartDay() const;
     unsigned getImmEndDay() const;
+    int getVaccinationDay(){return vday;}
+    double getVE(unsigned sero){return VE.at(sero);}
     int getTrajDay(){return trajDay;}
     void setTrajDay(int dayIn){trajDay = dayIn;}
+    void vaccinate(std::map<unsigned,double> *,std::map<unsigned,double> *,double,int);
+    void waneVaccination(){vaccinated = false;}
+    bool isVaccinated(){return vaccinated;}
     std::set<std::string> getLocsVisited();
     std::string getHouseID() const;
     int getHouseMemNum() const;
@@ -62,7 +70,6 @@ public:
     Human();
     Human(const Human& orig);
     virtual ~Human();
-private:
 
 };
 

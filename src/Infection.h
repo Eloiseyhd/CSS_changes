@@ -9,6 +9,7 @@
 #define	INFECTION_H
 
 #include <string>
+#include <iostream>
 
 class Infection {
 public:
