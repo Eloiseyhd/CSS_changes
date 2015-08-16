@@ -65,19 +65,6 @@ void Mosquito::takeBite(
     else if(infection->getInfectiousness() > 0){
         infectiousBite(time, locNow, rGen, currentDay, numDays, out);
     }
-        // else{
-        //     if(infection != nullptr)
-
-
-
-
-
-
-        //     setState(Mosquito::MozState::REST);
-        //     setBiteStartDay(currentDay + rGen->getMozRestDays());
-        //     return;
-        // }
-
 }
 
 
@@ -167,7 +154,6 @@ void Mosquito::infectiousBite(
 
                 // effect of vaccine on preventing infection and disease
                 if(humBite->isVaccinated()){
-                            cout << "VACCINE!!!!!" << endl;
                     if(rGen->getEventProbability() < humBite->getVE(infection->getInfectionType())){
                         if(humBite->getVaccinationDay() + rGen->getWaningTime(infection->getInfectionType()) < currentDay){
                             return;
@@ -180,20 +166,25 @@ void Mosquito::infectiousBite(
                     }
                 }
 
+                // check to see whether the human is immune
+                if(humBite->isImmune(infection->getInfectionType()))
+                    return;
+
                 // record infection and update immune status
                 int sday = currentDay + rGen->getHuLatencyDays();
                 int eday = sday + 9;
                 humBite->infection.reset(new Infection(sday, eday, 0, infection->getInfectionType()));
-                humBite->setImmunityPerm(infection->getInfectionType(),true);
+                humBite->updateImmunityPerm(infection->getInfectionType(),true);
                 humBite->setImmunityTemp(true);
                 humBite->setImmStartDay(currentDay);
                 humBite->setImmEndDay(currentDay + 9 + rGen->getHumanImmunity());
 
                 // write data about infection to output file
-                *out << currentDay << "," << infection->getInfectionType() << "," << disease;
-                *out << "," << humBite->getHouseID() << "," << humBite->getHouseMemNum();                        
-                *out << "," << humBite->getAge(currentDay) << "," << humBite->getGender();
-                *out << "," << sday << "," << locNow->getLocID() << "\n";
+                *out << currentDay << "," << infection->getInfectionType() << "," << disease << ",";
+                *out << humBite->getAge(currentDay) << "," << humBite->getPreviousInfections() << "\n";
+                // *out << "," << humBite->getHouseID() << "," << humBite->getHouseMemNum();                        
+                // *out << "," << humBite->getAge(currentDay) << "," << humBite->getGender();
+                // *out << "," << sday << "," << locNow->getLocID() << "\n";
             }
         }
     }

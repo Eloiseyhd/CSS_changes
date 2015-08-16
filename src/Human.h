@@ -35,6 +35,7 @@ private:
     unsigned immStartDay;
     unsigned immEndDay;
     bool vaccinated;
+    unsigned doses;
     int vday;
     std::map<unsigned,double> VE;
 
@@ -42,13 +43,16 @@ public:
     std::unique_ptr<Infection> infection;
     void reincarnate(unsigned);
     bool isImmune(unsigned) const;
+    int getPreviousInfections();
     bool isImmuneTemp(){return immunity_temp;}
-    void setImmunityPerm(unsigned,bool);
     void setImmunityTemp(bool);
+    void setImmunityPerm(unsigned,bool);
+    void updateImmunityPerm(unsigned,bool);
     void setImmStartDay(unsigned);
     void setImmEndDay(unsigned);
     unsigned getImmStartDay() const;
     unsigned getImmEndDay() const;
+    unsigned getDoses();
     int getVaccinationDay(){return vday;}
     double getVE(unsigned sero){return VE.at(sero);}
     int getTrajDay(){return trajDay;}

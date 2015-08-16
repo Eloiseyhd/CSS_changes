@@ -43,7 +43,7 @@ initialInfections = function(
 				rep(1,num.total),
 				c(rep(1,num.1),rep(2,num.2),rep(3,num.3),rep(4,num.4)),
 				sep=',',collapse='\n'),
-			file = paste('../simulator/data/Input/initialInfections_', simControlNum, '_1.csv', sep=''))	
+			file = paste('../simulator/data/Input/initialInfections_', simControlNum, '.csv', sep=''))	
 	}
 }
 
@@ -64,14 +64,14 @@ writeSimControl.sobol = function(
 	num.2 = 0,
 	num.3 = 0,
   num.4 = 0,
-	zone = 'MY',
+	zone = NA,
 	neighborhood = NA,
 	block = NA,
   scalars = scalars)
 {  
   ii = simControlNum
   
-  simControlFile = paste('../simulator/SimControl_Brazil_', simControlNum, '.csv', sep='')
+  simControlFile = paste('../simulator/SimControl_', simControlNum, '.csv', sep='')
 
   file.connection = file(simControlFile)
 	toWrite = 'SimulationName,Seed,NumDays,OutputPath,LocationFile,NeighborhoodFile,MortalityFile,TrajectoryFile,InitialInfectionsFile,VaccineProfileFile,ForceOfInfection,HumanLatencyLow,HumanLatencyHigh,HumanInfectionDays,HumanImmunityDays,EmergenceFactor,MosquitoLifespan,MosquitoInfectiousness,MosquitoLatencyLow,MosquitoLatencyHigh,MosquitoMoveProbability,MosquitoRestDaysLow,MosquitoRestDaysHigh\n'
@@ -79,12 +79,12 @@ writeSimControl.sobol = function(
 	TrajectoryFile = '../simulator/data/Input/trajectories.txt'
 
 	initialInfections(simControlNum, num.1, num.2, num.3, num.4, zone, neighborhood, block, 1)
-	InitialInfectionsFile = paste('../simulator/data/Input/initialInfections_', simControlNum, '_1.csv', sep='')
+	InitialInfectionsFile = paste('../simulator/data/Input/initialInfections_', simControlNum, '.csv', sep='')
 
 	toWrite =
 		paste(
 			toWrite,
-			'temp_Brazil_', ii, '_1,',
+			'brazil_baseline_', ii, ',',
 			as.integer(Sys.time()), ',',
 			NumDays, ',',
 			OutputPath, ',',

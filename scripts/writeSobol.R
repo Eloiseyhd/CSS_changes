@@ -1,13 +1,13 @@
 source('functions.R')
 
-reps = 50
+reps = 10
 
 HumanLatencyLow = rep(4,2)
 HumanLatencyHigh = rep(7,2)
 HumanInfectionDays = rep(9,2)
 HumanImmunityDays = rep(686,2)
 ForceOfInfection = rep(.052,2)
-EmergenceFactor = c(.5,2)
+EmergenceFactor = c(.5,1.5)
 MosquitoLifespan = c(10,20)
 MosquitoInfectiousness = rep(0.5,2)
 MosquitoLatencyLow = rep(6,2)
@@ -46,7 +46,7 @@ for(ii in 1 : reps){
     num.2 = 10,
     num.3 = 10,
     num.4 = 10,
-    zone = NA,
+    zone = 'MY',
     neighborhood = NA,
     block = NA,
     scalars = scalars)

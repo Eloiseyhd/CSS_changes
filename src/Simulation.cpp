@@ -24,6 +24,7 @@ void Simulation::simulate() {
 
     simEngine();
     out.close();
+    outpop.close();
 }
 
 string Simulation::readInputs() {
@@ -37,7 +38,19 @@ string Simulation::readInputs() {
         cout << "\n\n" << simName <<": " << "Can't open output file:" << outputFile << ". Exiting.\n\n";
         exit(1);
     }
-    out << "day,infection,disease,house,member_no,age,sex,startday,bite_location\n";
+    out << "day,infection,disease,age,previous_infections\n";
+    outputPopFile = outputPath + "/" + simName + "_pop.csv";
+    cout << "\n" << simName <<": outputPopFile:" << outputPopFile << endl;
+    outpop.open(outputPopFile);
+    if (!outpop.good()) {
+        cout << "\n\n" << simName <<": " << "Can't open outputPop file:" << outputPopFile << ". Exiting.\n\n";
+        exit(1);
+    }
+    outpop << "year,age,seropos,population,doses\n";
+    cout << "\n\n" << simName << ": Reading vaccine profile file ..." << endl;
+    readVaccineProfileFile();
+    RandomNumGenerator rgen(rSeed, hllo, hlhi, huImm, emergeFactor, mlife, mlho, mlhi, mrestlo, mresthi, halflife);
+    rGen = rgen;
     cout << "\n\n" << simName << ": Reading locations file ..." << endl;
     readLocationFile(locationFile);
     cout << "\n\n" << simName << ": Reading neighborhoods file ..." << endl;
@@ -48,10 +61,6 @@ string Simulation::readInputs() {
     readHumanFile(trajectoryFile);
     cout << "\n\n" << simName << ": Reading initial infections file ..." << endl;
     readInitialInfectionsFile(initialInfectionsFile);
-    cout << "\n\n" << simName << ": Reading vaccine profile file ..." << endl;
-    readVaccineProfileFile();
-    RandomNumGenerator rgen(rSeed, hllo, hlhi, huImm, emergeFactor, mlife, mlho, mlhi, mrestlo, mresthi, halflife);
-    rGen = rgen;
     return simName;
 }
 
@@ -69,23 +78,68 @@ unsigned Simulation::setInitialInfection(double prop, unsigned infType) {
 }
 
 void Simulation::simEngine() {
+    resetPop();
+
     while (currentDay < numDays) {
-        //cout << "\n" << simName <<": Day:" << currentDay << endl;
         cout << currentDay << endl;
+
         humanDynamics();
         mosquitoDynamics();
+
+        if(ceil((currentDay + 1) / 365) != ceil(currentDay / 365)){
+            year++;
+            updatePop();
+            writePop();
+            resetPop();
+        }
+
         currentDay++;
     }
 }
 
+void Simulation::updatePop(){
+    auto itPop = seroage_pop.begin();
+    int pop;
 
+    for(auto itHum = humans.begin(); itHum != humans.end(); itHum++){
+        itPop = seroage_pop.find(make_pair(floor(itHum->second->getAge(currentDay)/365),itHum->second->getPreviousInfections()));
+        pop = seroage_pop.at(make_pair(floor(itHum->second->getAge(currentDay)/365),itHum->second->getPreviousInfections()));
+        seroage_pop.erase(itPop);
+        seroage_pop.insert(make_pair(
+            make_pair(floor(itHum->second->getAge(currentDay)/365),itHum->second->getPreviousInfections()), pop + 1));
+    }
+}
+
+void Simulation::resetPop(){
+    seroage_pop.clear();
+    seroage_doses.clear();
+
+    for(unsigned a = 0; a < 100; a++){
+        for(unsigned s = 0; s < 5; s++){
+            seroage_pop.insert(make_pair(make_pair(a,s),0));
+            seroage_doses.insert(make_pair(make_pair(a,s),0));
+        }
+    }
+}
+
+void Simulation::writePop(){
+    for(unsigned a = 0; a < 100; a++){
+        for(unsigned s = 0; s < 5; s++){
+            outpop << year << "," << a << "," << s << "," <<
+            seroage_pop.at(make_pair(a,s)) << "," <<
+            seroage_doses.at(make_pair(a,s)) << "\n";
+        }
+    }
+}
 
 void Simulation::humanDynamics() {
-    int diff, age;
+    auto itDose = seroage_doses.begin();
+    int diff, age, dose;
+    bool vaxd = false;
 
     for (auto it = humans.begin(); it != humans.end(); ++it) {
         // daily mortality for humans by age
-        if(rGen.getEventProbability() < mortalityHuman[floor(it->second->getAge(currentDay) / 365)])
+        if(rGen.getEventProbability() < mortalityHuman[floor(it->second->getAge(currentDay) / 365.0)])
             it->second->reincarnate(currentDay);
 
         // update infectiousness for the day, if infected
@@ -115,32 +169,51 @@ void Simulation::humanDynamics() {
         (it->second)->setTrajDay(rGen.getRandomNum(5));
 
         // vaccinate if appropriate according to age
-        age = it->second->getAge(currentDay);
-        if(rGen.getEventProbability() < .8 || it->second->isVaccinated()){
-            if(age == 9 * 365){
-                it->second->vaccinate(&VE_pos, &VE_neg, 1.0/3.0, currentDay);
-            } else if(it->second->isVaccinated() && age == 2 * 365 + 183){
-                it->second->vaccinate(&VE_pos, &VE_neg, 2.0/3.0, currentDay);
-            } else if(it->second->isVaccinated() && age == 3 * 365){
-                it->second->vaccinate(&VE_pos, &VE_neg, 1.0, currentDay);
-            }
-        }
-        if(currentDay <= 365){
-            if(rGen.getEventProbability() < .8 / 365.0 || it->second->isVaccinated()){
-                if(!it->second->isVaccinated() && age >= 10 * 365 && age < 15 * 365){
+        if(vaccinationStrategy == "catchup" || vaccinationStrategy == "nocatchup"){
+            age = it->second->getAge(currentDay);
+            if(rGen.getEventProbability() < .8 || it->second->isVaccinated()){
+                if(age == 9 * 365){
                     it->second->vaccinate(&VE_pos, &VE_neg, 1.0/3.0, currentDay);
+                    vaxd = true;
+                } else if(it->second->isVaccinated() && age == 9 * 365 + 183){
+                    it->second->vaccinate(&VE_pos, &VE_neg, 2.0/3.0, currentDay);
+                    vaxd = true;
+                } else if(it->second->isVaccinated() && age == 10 * 365){
+                    it->second->vaccinate(&VE_pos, &VE_neg, 1.0, currentDay);
+                    vaxd = true;
+                }
+            }            
+        }
+        if(vaccinationStrategy == "catchup"){
+            if(currentDay <= 365){
+                if(rGen.getEventProbability() < .8 / 365.0 || it->second->isVaccinated()){
+                    if(!it->second->isVaccinated() && age >= 10 * 365 && age < 15 * 365){
+                        it->second->vaccinate(&VE_pos, &VE_neg, 1.0/3.0, currentDay);
+                        vaxd = true;
+                    }
+                }
+            }
+            if(currentDay <= 365 + 183 && currentDay > 182){
+                if(it->second->isVaccinated() && age >= 10 * 365 + 183 && age < 15 * 365 + 183){
+                        it->second->vaccinate(&VE_pos, &VE_neg, 2.0/3.0, currentDay);
+                        vaxd = true;
+                }
+            }
+            if(currentDay <= 365 * 2 && currentDay > 365){
+                if(it->second->isVaccinated() && age >= 11 * 365 && age < 16 * 365){
+                        it->second->vaccinate(&VE_pos, &VE_neg, 1.0, currentDay);
+                        vaxd = true;
                 }
             }
         }
-        if(currentDay <= 365 + 183 && currentDay > 182){
-            if(it->second->isVaccinated() && age >= 10 * 365 + 183 && age < 15 * 365 + 183){
-                    it->second->vaccinate(&VE_pos, &VE_neg, 2.0/3.0, currentDay);
-            }
-        }
-        if(currentDay <= 365 * 2 && currentDay > 365){
-            if(it->second->isVaccinated() && age >= 11 * 365 && age < 16 * 365){
-                    it->second->vaccinate(&VE_pos, &VE_neg, 1.0, currentDay);
-            }
+
+        if(vaxd){
+            itDose = seroage_doses.find(make_pair(floor(it->second->getAge(currentDay)/365),it->second->getPreviousInfections()));
+            dose = seroage_pop.at(make_pair(floor(it->second->getAge(currentDay)/365),it->second->getPreviousInfections()));
+            seroage_doses.erase(itDose);
+            seroage_doses.insert(make_pair(
+                make_pair(floor(it->second->getAge(currentDay)/365),it->second->getPreviousInfections()), dose + 1));
+            vaxd = false;
         }
     }
 }
@@ -334,6 +407,8 @@ void Simulation::readSimControlFile(string line) {
     mrestlo = strtol(line.c_str(), NULL, 10);
     getline(infile, line, ',');
     mresthi = strtol(line.c_str(), NULL, 10);
+    getline(infile, line, ',');
+    vaccinationStrategy = line;
 }
 
 void Simulation::readLocationFile(string locFile) {
@@ -603,6 +678,7 @@ void Simulation::printSimulationParams() const {
 
 Simulation::Simulation(string line) {
     currentDay = 0;
+    year = 0;
     configLine = line;
 }
 

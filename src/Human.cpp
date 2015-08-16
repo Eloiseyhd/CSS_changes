@@ -31,13 +31,14 @@ Human::Human(
     infection.reset(nullptr);
     attractiveness = pow(bSize, 1.541);
     vaccinated = false;
+    doses = 0;
 
     if(bday < currDay - 180){
         immunity_temp = false;
-        setImmunityPerm(1,rGen.getHumanSeropositivity(FOI, double(age / 365)));
-        setImmunityPerm(2,rGen.getHumanSeropositivity(FOI, double(age / 365)));
-        setImmunityPerm(3,rGen.getHumanSeropositivity(FOI, double(age / 365)));
-        setImmunityPerm(4,rGen.getHumanSeropositivity(FOI, double(age / 365)));
+        setImmunityPerm(1,rGen.getHumanSeropositivity(FOI, (currDay - bday) / 365.0));
+        setImmunityPerm(2,rGen.getHumanSeropositivity(FOI, (currDay - bday) / 365.0));
+        setImmunityPerm(3,rGen.getHumanSeropositivity(FOI, (currDay - bday) / 365.0));
+        setImmunityPerm(4,rGen.getHumanSeropositivity(FOI, (currDay - bday) / 365.0));
     } else {
         immunity_temp = true;
         immStartDay = bday;
@@ -59,6 +60,8 @@ void Human::reincarnate(unsigned currDay){
     setImmunityPerm(2,false);
     setImmunityPerm(3,false);
     setImmunityPerm(4,false);
+    vaccinated = false;
+    doses = 0;
 }
 
 void Human::vaccinate(
@@ -68,6 +71,7 @@ void Human::vaccinate(
     int currDay)
 {
     vaccinated = true;
+    doses++;
     vday = currDay;
 
     unsigned infectionCount = 0;
@@ -153,7 +157,27 @@ bool Human::isImmune(unsigned serotype) const {
     return immunity;
 }
 
+int Human::getPreviousInfections(){
+    int previnf = 0;
+
+    if(immunity_perm[1])
+        previnf++;
+    if(immunity_perm[2])
+        previnf++;
+    if(immunity_perm[3])
+        previnf++;
+    if(immunity_perm[4])
+        previnf++;
+
+    return previnf;
+}
+
 void Human::setImmunityPerm(unsigned serotype, bool status) {
+    immunity_perm.insert(make_pair(serotype,status));
+}
+
+void Human::updateImmunityPerm(unsigned serotype, bool status) {
+    immunity_perm.erase(serotype);
     immunity_perm.insert(make_pair(serotype,status));
 }
 

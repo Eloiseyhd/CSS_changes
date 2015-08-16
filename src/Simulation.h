@@ -48,6 +48,9 @@ public:
     void printSimulationParams() const;
     void writeNeighborhoodFile(std::string file) const;
     void createNeighborhoodFile(std::string, std::string, std::string);
+    void updatePop();
+    void writePop();
+    void resetPop();
     void simulate();
     virtual ~Simulation();
 private:
@@ -67,8 +70,10 @@ private:
     std::string neighborhoodFile;
     std::string mortalityFile;
     std::string vaccineProfileFile;
+    std::string vaccinationStrategy;
     std::string initialInfectionsFile;
     std::string outputFile;
+    std::string outputPopFile;
     std::string simName;
     unsigned rSeed;
     std::string outputPath;
@@ -86,7 +91,11 @@ private:
     double mozInfectiousness;   
     double mozMoveProbability;
     double FOI;
+    unsigned year;
     std::ofstream out;
+    std::ofstream outpop;    
+    std::map<std::pair<unsigned,unsigned>,unsigned> seroage_pop;
+    std::map<std::pair<unsigned,unsigned>,unsigned> seroage_doses;
 };
 
 #endif  /* SIMULATION_H */
