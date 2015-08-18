@@ -172,13 +172,13 @@ void Simulation::humanDynamics() {
         if(vaccinationStrategy == "catchup" || vaccinationStrategy == "nocatchup"){
             age = it->second->getAge(currentDay);
             if(rGen.getEventProbability() < .8 || it->second->isVaccinated()){
-                if(age == 9 * 365){
+                if(age == 2 * 365){
                     it->second->vaccinate(&VE_pos, &VE_neg, 1.0/3.0, currentDay);
                     vaxd = true;
-                } else if(it->second->isVaccinated() && age == 9 * 365 + 183){
+                } else if(it->second->isVaccinated() && age == 2 * 365 + 183){
                     it->second->vaccinate(&VE_pos, &VE_neg, 2.0/3.0, currentDay);
                     vaxd = true;
-                } else if(it->second->isVaccinated() && age == 10 * 365){
+                } else if(it->second->isVaccinated() && age == 3 * 365){
                     it->second->vaccinate(&VE_pos, &VE_neg, 1.0, currentDay);
                     vaxd = true;
                 }
@@ -187,20 +187,20 @@ void Simulation::humanDynamics() {
         if(vaccinationStrategy == "catchup"){
             if(currentDay <= 365){
                 if(rGen.getEventProbability() < .8 / 365.0 || it->second->isVaccinated()){
-                    if(!it->second->isVaccinated() && age >= 10 * 365 && age < 15 * 365){
+                    if(!it->second->isVaccinated() && age >= 3 * 365 && age < 8 * 365){
                         it->second->vaccinate(&VE_pos, &VE_neg, 1.0/3.0, currentDay);
                         vaxd = true;
                     }
                 }
             }
             if(currentDay <= 365 + 183 && currentDay > 182){
-                if(it->second->isVaccinated() && age >= 10 * 365 + 183 && age < 15 * 365 + 183){
+                if(it->second->isVaccinated() && age >= 3 * 365 + 183 && age < 8 * 365 + 183){
                         it->second->vaccinate(&VE_pos, &VE_neg, 2.0/3.0, currentDay);
                         vaxd = true;
                 }
             }
             if(currentDay <= 365 * 2 && currentDay > 365){
-                if(it->second->isVaccinated() && age >= 11 * 365 && age < 16 * 365){
+                if(it->second->isVaccinated() && age >= 4 * 365 && age < 9 * 365){
                         it->second->vaccinate(&VE_pos, &VE_neg, 1.0, currentDay);
                         vaxd = true;
                 }
@@ -208,11 +208,11 @@ void Simulation::humanDynamics() {
         }
 
         if(vaxd){
-            itDose = seroage_doses.find(make_pair(floor(it->second->getAge(currentDay)/365),it->second->getPreviousInfections()));
-            dose = seroage_pop.at(make_pair(floor(it->second->getAge(currentDay)/365),it->second->getPreviousInfections()));
+            itDose = seroage_doses.find(make_pair(floor(it->second->getAge(currentDay)/365.0),it->second->getPreviousInfections()));
+            dose = seroage_pop.at(make_pair(floor(it->second->getAge(currentDay)/365.0),it->second->getPreviousInfections()));
             seroage_doses.erase(itDose);
             seroage_doses.insert(make_pair(
-                make_pair(floor(it->second->getAge(currentDay)/365),it->second->getPreviousInfections()), dose + 1));
+                make_pair(floor(it->second->getAge(currentDay)/365.0),it->second->getPreviousInfections()), dose + 1));
             vaxd = false;
         }
     }
