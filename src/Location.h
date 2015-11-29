@@ -1,11 +1,3 @@
-/* 
- * File:   Location.h
- * Author: amit
- *
- * Created on August 25, 2014, 12:55 AM
- */
-
-
 #ifndef LOCATION_H
 #define	LOCATION_H
 

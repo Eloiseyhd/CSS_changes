@@ -1,10 +1,3 @@
-/* 
- * File:   Human.cpp
- * Author: amit
- * 
- * Created on August 25, 2014, 12:53 AM
- */
-
 #include "Human.h"
 #include <sstream>
 

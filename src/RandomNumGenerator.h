@@ -22,8 +22,7 @@ public:
     unsigned getRandomNum(unsigned);
     unsigned intialInfDaysLeft();
     double getEventProbability();
-    unsigned getMozLatencyDays();
-    unsigned getHuLatencyDays();
+    double getMozLatencyDays();
     double getMozRestDays();
     unsigned getMozNextLoc(unsigned);
     void setSeed(unsigned);

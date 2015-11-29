@@ -1,10 +1,3 @@
-/* 
- * File:   Simulation.cpp
- * Author: amit
- * 
- * Created on August 25, 2014, 12:52 AM
- */
-
 #include <fstream>
 #include <string>
 #include <iostream>
@@ -17,6 +10,8 @@
 
 using namespace std;
 
+
+
 void Simulation::simulate() {
     unsigned numHu = humans.size();
 
@@ -26,6 +21,8 @@ void Simulation::simulate() {
     out.close();
     outpop.close();
 }
+
+
 
 string Simulation::readInputs() {
     readSimControlFile(configLine);
@@ -38,7 +35,7 @@ string Simulation::readInputs() {
         cout << "\n\n" << simName <<": " << "Can't open output file:" << outputFile << ". Exiting.\n\n";
         exit(1);
     }
-    out << "day,infection,disease,age,previous_infections\n";
+    out << "day,infection,disease,age,previous_infections,vaccinated\n";
     outputPopFile = outputPath + "/" + simName + "_pop.csv";
     cout << "\n" << simName <<": outputPopFile:" << outputPopFile << endl;
     outpop.open(outputPopFile);
@@ -53,8 +50,6 @@ string Simulation::readInputs() {
     rGen = rgen;
     cout << "\n\n" << simName << ": Reading locations file ..." << endl;
     readLocationFile(locationFile);
-    cout << "\n\n" << simName << ": Reading neighborhoods file ..." << endl;
-    readNeighborhoodFile(neighborhoodFile);
     cout << "\n\n" << simName << ": Reading mortality file ..." << endl;
     readMortalityFile();
     cout << "\n\n" << simName << ": Reading trajectories file ..." << endl;
@@ -64,18 +59,23 @@ string Simulation::readInputs() {
     return simName;
 }
 
+
+
 unsigned Simulation::setInitialInfection(double prop, unsigned infType) {
     unsigned i = 0;
     for (auto& h : humans) {
         if (rGen.getEventProbability() < prop) {
             if (h.second->infection == nullptr) {
-                h.second->infection.reset(new Infection(0, rGen.intialInfDaysLeft(), 0, infType));
+                h.second->infection.reset(new Infection(
+                    0, rGen.intialInfDaysLeft(), 0, infType, h.second->getPreviousInfections() == 0, rGen.getEventProbability() < .246));
                 i++;
             }
         }
     }
     return i;
 }
+
+
 
 void Simulation::simEngine() {
     resetPop();
@@ -97,6 +97,8 @@ void Simulation::simEngine() {
     }
 }
 
+
+
 void Simulation::updatePop(){
     auto itPop = seroage_pop.begin();
     int pop;
@@ -110,6 +112,8 @@ void Simulation::updatePop(){
     }
 }
 
+
+
 void Simulation::resetPop(){
     seroage_pop.clear();
     seroage_doses.clear();
@@ -122,6 +126,8 @@ void Simulation::resetPop(){
     }
 }
 
+
+
 void Simulation::writePop(){
     for(unsigned a = 0; a < 100; a++){
         for(unsigned s = 0; s < 5; s++){
@@ -131,6 +137,8 @@ void Simulation::writePop(){
         }
     }
 }
+
+
 
 void Simulation::humanDynamics() {
     auto itDose = seroage_doses.begin();
@@ -142,25 +150,6 @@ void Simulation::humanDynamics() {
         if(rGen.getEventProbability() < mortalityHuman[floor(it->second->getAge(currentDay) / 365.0)])
             it->second->reincarnate(currentDay);
 
-        // update infectiousness for the day, if infected
-        if (it->second->infection != nullptr) {
-            auto& itInf = it->second->infection;
-            diff = currentDay - itInf->getStartDay();
-            if (diff >= 0 && diff < 9) {
-                if (itInf->getInfectionType() == 1) {
-                    itInf->setInfectiousness(dnv[1-1][diff]);
-                } else if (itInf->getInfectionType() == 2) {
-                    itInf->setInfectiousness(dnv[2-1][diff]);
-                } else if (itInf->getInfectionType() == 3) {
-                    itInf->setInfectiousness(dnv[3-1][diff]);
-                } else if (itInf->getInfectionType() == 4) {
-                    itInf->setInfectiousness(dnv[4-1][diff]);
-                }
-            } else if (diff == 10) {
-                it->second->infection.reset(nullptr);
-            }
-        }
-
         // update temporary cross-immunity status if necessary
         if(currentDay == it->second->getImmEndDay())
             it->second->setImmunityTemp(false);
@@ -168,53 +157,53 @@ void Simulation::humanDynamics() {
         // select movement trajectory for the day
         (it->second)->setTrajDay(rGen.getRandomNum(5));
 
-        // vaccinate if appropriate according to age
-        if(vaccinationStrategy == "catchup" || vaccinationStrategy == "nocatchup"){
-            age = it->second->getAge(currentDay);
-            if(rGen.getEventProbability() < .8 || it->second->isVaccinated()){
-                if(age == 2 * 365){
-                    it->second->vaccinate(&VE_pos, &VE_neg, 1.0/3.0, currentDay);
-                    vaxd = true;
-                } else if(it->second->isVaccinated() && age == 2 * 365 + 183){
-                    it->second->vaccinate(&VE_pos, &VE_neg, 2.0/3.0, currentDay);
-                    vaxd = true;
-                } else if(it->second->isVaccinated() && age == 3 * 365){
-                    it->second->vaccinate(&VE_pos, &VE_neg, 1.0, currentDay);
-                    vaxd = true;
-                }
-            }            
-        }
-        if(vaccinationStrategy == "catchup"){
-            if(currentDay <= 365){
-                if(rGen.getEventProbability() < .8 / 365.0 || it->second->isVaccinated()){
-                    if(!it->second->isVaccinated() && age >= 3 * 365 && age < 8 * 365){
-                        it->second->vaccinate(&VE_pos, &VE_neg, 1.0/3.0, currentDay);
-                        vaxd = true;
-                    }
-                }
-            }
-            if(currentDay <= 365 + 183 && currentDay > 182){
-                if(it->second->isVaccinated() && age >= 3 * 365 + 183 && age < 8 * 365 + 183){
-                        it->second->vaccinate(&VE_pos, &VE_neg, 2.0/3.0, currentDay);
-                        vaxd = true;
-                }
-            }
-            if(currentDay <= 365 * 2 && currentDay > 365){
-                if(it->second->isVaccinated() && age >= 4 * 365 && age < 9 * 365){
-                        it->second->vaccinate(&VE_pos, &VE_neg, 1.0, currentDay);
-                        vaxd = true;
-                }
-            }
-        }
+        // // vaccinate if appropriate according to age
+        // if(vaccinationStrategy == "catchup" || vaccinationStrategy == "nocatchup"){
+        //     age = it->second->getAge(currentDay);
+        //     if(rGen.getEventProbability() < .8 || it->second->isVaccinated()){
+        //         if(age == 2 * 365){
+        //             it->second->vaccinate(&VE_pos, &VE_neg, 1.0/3.0, currentDay);
+        //             vaxd = true;
+        //         } else if(it->second->isVaccinated() && age == 2 * 365 + 183){
+        //             it->second->vaccinate(&VE_pos, &VE_neg, 2.0/3.0, currentDay);
+        //             vaxd = true;
+        //         } else if(it->second->isVaccinated() && age == 3 * 365){
+        //             it->second->vaccinate(&VE_pos, &VE_neg, 1.0, currentDay);
+        //             vaxd = true;
+        //         }
+        //     }            
+        // }
+        // if(vaccinationStrategy == "catchup"){
+        //     if(currentDay <= 365){
+        //         if(rGen.getEventProbability() < .8 / 365.0 || it->second->isVaccinated()){
+        //             if(!it->second->isVaccinated() && age >= 3 * 365 && age < 8 * 365){
+        //                 it->second->vaccinate(&VE_pos, &VE_neg, 1.0/3.0, currentDay);
+        //                 vaxd = true;
+        //             }
+        //         }
+        //     }
+        //     if(currentDay <= 365 + 183 && currentDay > 182){
+        //         if(it->second->isVaccinated() && age >= 3 * 365 + 183 && age < 8 * 365 + 183){
+        //                 it->second->vaccinate(&VE_pos, &VE_neg, 2.0/3.0, currentDay);
+        //                 vaxd = true;
+        //         }
+        //     }
+        //     if(currentDay <= 365 * 2 && currentDay > 365){
+        //         if(it->second->isVaccinated() && age >= 4 * 365 && age < 9 * 365){
+        //                 it->second->vaccinate(&VE_pos, &VE_neg, 1.0, currentDay);
+        //                 vaxd = true;
+        //         }
+        //     }
+        // }
 
-        if(vaxd){
-            itDose = seroage_doses.find(make_pair(floor(it->second->getAge(currentDay)/365.0),it->second->getPreviousInfections()));
-            dose = seroage_pop.at(make_pair(floor(it->second->getAge(currentDay)/365.0),it->second->getPreviousInfections()));
-            seroage_doses.erase(itDose);
-            seroage_doses.insert(make_pair(
-                make_pair(floor(it->second->getAge(currentDay)/365.0),it->second->getPreviousInfections()), dose + 1));
-            vaxd = false;
-        }
+        // if(vaxd){
+        //     itDose = seroage_doses.find(make_pair(floor(it->second->getAge(currentDay)/365.0),it->second->getPreviousInfections()));
+        //     dose = seroage_pop.at(make_pair(floor(it->second->getAge(currentDay)/365.0),it->second->getPreviousInfections()));
+        //     seroage_doses.erase(itDose);
+        //     seroage_doses.insert(make_pair(
+        //         make_pair(floor(it->second->getAge(currentDay)/365.0),it->second->getPreviousInfections()), dose + 1));
+        //     vaxd = false;
+        // }
     }
 }
 
@@ -226,7 +215,7 @@ void Simulation::mosquitoDynamics() {
     for(auto it = mosquitoes.begin(); it != mosquitoes.end();){
         if(it->second->infection != nullptr){
             if(currentDay == it->second->infection->getStartDay())
-                it->second->infection->setInfectiousness(mozInfectiousness);
+                it->second->infection->setInfectiousnessMosquito(mozInfectiousness);
         }
  
         // determine if the mosquito will bite and/or die today, and if so at what time
@@ -286,7 +275,6 @@ void Simulation::mosquitoDynamics() {
 
 
 
-
 void Simulation::generateMosquitoes(){
     int mozCount = 0;
 
@@ -327,8 +315,9 @@ void Simulation::readInitialInfectionsFile(string infectionsFile) {
         resident = humans.equal_range(houseID).first;
         for(int i = 1; i < hMemID; i++)
             resident++;
-
-        resident->second->infection.reset(new Infection(0, rGen.intialInfDaysLeft(), 0, serotype));
+cout << "INFECTED";
+        resident->second->infection.reset(new Infection(
+            0, rGen.intialInfDaysLeft(), 0, serotype, resident->second->getPreviousInfections() == 0, rGen.getEventProbability() < .246));
         resident->second->setImmunityPerm(serotype,true);
         resident->second->setImmunityTemp(true);
         resident->second->setImmStartDay(currentDay);
@@ -358,6 +347,8 @@ void Simulation::setLocNeighborhood(double dist) {
     }
 }
 
+
+
 void Simulation::readSimControlFile(string line) {
     stringstream infile;
     infile << line;
@@ -372,8 +363,6 @@ void Simulation::readSimControlFile(string line) {
     getline(infile, line, ',');
     locationFile = line;
     getline(infile, line, ',');
-    neighborhoodFile = line;
-    getline(infile, line, ',');
     mortalityFile = line;
     getline(infile, line, ',');
     trajectoryFile = line;
@@ -384,12 +373,6 @@ void Simulation::readSimControlFile(string line) {
     getline(infile, line, ',');
     FOI = strtod(line.c_str(),NULL);
     getline(infile, line, ',');
-    hllo = strtol(line.c_str(), NULL, 10);
-    getline(infile, line, ',');
-    hlhi = strtol(line.c_str(), NULL, 10);
-    getline(infile, line, ',');
-    humanInfectionDays = strtol(line.c_str(), NULL, 10);
-    getline(infile, line, ',');
     huImm = strtol(line.c_str(), NULL, 10);
     getline(infile, line, ',');
     emergeFactor = strtod(line.c_str(), NULL);    
@@ -397,10 +380,6 @@ void Simulation::readSimControlFile(string line) {
     mlife = strtod(line.c_str(), NULL);
     getline(infile, line, ',');
     mozInfectiousness = strtod(line.c_str(), NULL);
-    getline(infile, line, ',');
-    mlho = strtol(line.c_str(), NULL, 10);
-    getline(infile, line, ',');
-    mlhi = strtol(line.c_str(), NULL, 10);
     getline(infile, line, ',');
     mozMoveProbability = strtod(line.c_str(), NULL);
     getline(infile, line, ',');
@@ -410,6 +389,8 @@ void Simulation::readSimControlFile(string line) {
     getline(infile, line, ',');
     vaccinationStrategy = line;
 }
+
+
 
 void Simulation::readLocationFile(string locFile) {
     if (locFile.length() == 0) {
@@ -455,32 +436,7 @@ void Simulation::readLocationFile(string locFile) {
 
 }
 
-void Simulation::readNeighborhoodFile(std::string nFile) {
-    if (nFile.length() == 0) {
-        cout << "\n" << simName << ": Neighborhood file not specified! Exiting." << endl;
-        exit(1);
-    }
-    ifstream infile(nFile);
-    if (!infile.good()) {
-        cout << "\n\n" << simName << ": Can't open file:" << nFile << ". Exiting.\n" << endl;
-        exit(1);
-    }
-    string line;
-    getline(infile, line);
-    while (getline(infile, line)) {
-        stringstream ss;
-        ss << line;
-        getline(ss, line, ',');
-        auto loc = locations.find(line);
-        while (getline(ss, line, ',')) {
-            loc->second->addCloseLoc(line);
-        }
-        while (infile.peek() == '\n')
-            infile.ignore(1, '\n');
-    }
-    infile.close();
-    cout << "\n" << simName << ": Done reading neighborhoods!" << endl;
-}
+
 
 void Simulation::readMortalityFile() {
     if (mortalityFile.length() == 0) {
@@ -608,12 +564,16 @@ void Simulation::readHumanFile(string humanFile) {
     cout << "\n" << simName << ": Done reading trajectories!" << endl;
 }
 
+
+
 void Simulation::printLocations() const {
     cout << "\n" << simName << ": Locations:" << endl;
     for (auto& x : locations) {
         cout << x.second->toString() << endl;
     }
 }
+
+
 
 void Simulation::printHumans() const {
     cout << "\n" << simName << ": Human:" << endl;
@@ -622,38 +582,7 @@ void Simulation::printHumans() const {
     }
 }
 
-void Simulation::createNeighborhoodFile(std::string s1, std::string s2, std::string s3) {
-    if (s2 == s3) {
-        cout << "\n[LocationsFile] and [NeighborhoodFile] can't be same. Exiting.\n";
-        exit(1);
-    }
-    double dist = strtod(s1.c_str(), NULL);
-    cout << "\nReading locations file ... " << endl;
-    readLocationFile(s2);
-    cout << endl;
-    cout << "\nCalculating neighborhoods. This may take few minutes ... " << endl;
-    setLocNeighborhood(dist);
-    cout << "Done" << endl;
-    cout << "\nWriting neighborhood file ... " << endl;
-    writeNeighborhoodFile(s3);
-    cout << "Done" << endl;
-}
 
-void Simulation::writeNeighborhoodFile(string file) const {
-    ofstream nOut;
-    nOut.open(file);
-    if (!nOut.good()) {
-        cout << "\n" << simName << ": Can't open file:" << file << " . Exiting." << endl;
-        exit(1);
-    }
-    nOut << "locationID,NeighborsID\n";
-    for (auto& x : locations) {
-        nOut << x.second->getLocID();
-        x.second->writeNeighToFile(nOut);
-        nOut << "\n";
-    }
-    nOut.close();
-}
 
 void Simulation::printMosquitoes() const {
     cout << "\n" << simName << ": Mosquitoes:" << endl;
@@ -662,19 +591,21 @@ void Simulation::printMosquitoes() const {
     }
 }
 
+
+
 void Simulation::printSimulationParams() const {
     cout << "\n\n"<< simName <<": currentDay:" << currentDay << endl;
     cout << "\n"<< simName <<": numDays:" << numDays << endl; 
     cout << "\n"<< simName <<": trajectoryFile:" << trajectoryFile << endl;
     cout << "\n"<< simName <<": locationFile:" << locationFile << endl;
-    cout << "\n"<< simName <<": neighborhoodFile:" << neighborhoodFile << endl;
     cout << "\n"<< simName <<": seed:" << rSeed << endl;
     cout << "\n"<< simName <<": outputPath:" << outputPath << endl;
-    cout << "\n"<< simName <<": humanInfectionDays:" << humanInfectionDays << endl;
     cout << "\n"<< simName <<": mozInfectiousness:" << mozInfectiousness << endl;
     cout << "\n"<< simName <<": mozMoveProbability:" << mozMoveProbability << endl;
     cout << "\n"<< simName <<": " << rGen.toString() << endl;
 }
+
+
 
 Simulation::Simulation(string line) {
     currentDay = 0;
@@ -682,11 +613,17 @@ Simulation::Simulation(string line) {
     configLine = line;
 }
 
+
+
 Simulation::Simulation() {
 }
 
+
+
 Simulation::Simulation(const Simulation & orig) {
 }
+
+
 
 Simulation::~Simulation() {
 }

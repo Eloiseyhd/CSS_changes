@@ -1,10 +1,3 @@
-/* 
- * File:   Human.h
- * Author: amit
- *
- * Created on August 25, 2014, 12:53 AM
- */
-
 #ifndef HUMAN_H
 #define	HUMAN_H
 

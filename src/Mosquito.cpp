@@ -1,11 +1,3 @@
-/* 
- * File:   Mosquito.cpp
- * Author: amit
- * 
- * Created on August 25, 2014, 12:53 AM
- */
-
-
 #include "Mosquito.h"
 #include <sstream>
 
@@ -99,7 +91,7 @@ Human * Mosquito::whoBite(
         attractivenessSum += mapItr->second;
     mapItr--;
 
-    return &(*mapItr->first);
+    return &(*mapItr->first); 
 }
 
 
@@ -117,11 +109,13 @@ void Mosquito::infectingBite(
         setState(Mosquito::MozState::REST);
         setBiteStartDay(currentDay + rGen->getMozRestDays());
         if(humBite->infection != nullptr){
-            // if(rGen->getEventProbability() < humBite->infection->getInfectiousness()){
-                int sday = currentDay + rGen->getMozLatencyDays();
+            humBite->infection->setInfectiousnessHuman(currentDay);
+            if(rGen->getEventProbability() < humBite->infection->getInfectiousness()){
+                double sday = currentDay + rGen->getMozLatencyDays();
                 int eday = numDays + 1;
-                infection.reset(new Infection(sday, eday, 0, humBite->infection->getInfectionType()));
-            // }
+                infection.reset(new Infection(
+                    round(sday), eday, 0.0, humBite->infection->getInfectionType(), 0, 0));
+            }
         }        
     }
 }
@@ -144,7 +138,7 @@ void Mosquito::infectiousBite(
         setState(Mosquito::MozState::REST);
         setBiteStartDay(currentDay + rGen->getMozRestDays());
 
-        // if the mosquito is infected, the human susceptible, and the infection successful
+        // if the mosquito is infectious, the human susceptible, and the infection successful
         if(infection != nullptr && humBite->infection == nullptr && !humBite->isImmune(infection->getInfectionType())){
             if(rGen->getEventProbability() < infection->getInfectiousness()){
                 // clinical disease state
@@ -152,36 +146,38 @@ void Mosquito::infectiousBite(
                 if(rGen->getEventProbability() < .246)
                     disease = infection->getInfectionType();
 
-                // effect of vaccine on preventing infection and disease
-                if(humBite->isVaccinated()){
-                    if(rGen->getEventProbability() < humBite->getVE(infection->getInfectionType())){
-                        if(humBite->getVaccinationDay() + rGen->getWaningTime(infection->getInfectionType()) < currentDay){
-                            return;
-                        } else {
-                            humBite->waneVaccination();
-                        }
-                    } else {
-                        if(disease == 1 && rGen->getEventProbability() < humBite->getVE(infection->getInfectionType()))
-                            disease = 0;   
-                    }
-                }
+                // // effect of vaccine on preventing infection and disease
+                // if(humBite->isVaccinated()){
+                //     if(rGen->getEventProbability() < humBite->getVE(infection->getInfectionType())){
+                //         if(humBite->getVaccinationDay() + rGen->getWaningTime(infection->getInfectionType()) < currentDay){
+                //             return;
+                //         } else {
+                //             humBite->waneVaccination();
+                //         }
+                //     } else {
+                //         if(disease == 1 && rGen->getEventProbability() < humBite->getVE(infection->getInfectionType()))
+                //             disease = 0;   
+                //     }
+                // }
 
                 // check to see whether the human is immune
                 if(humBite->isImmune(infection->getInfectionType()))
                     return;
 
                 // record infection and update immune status
-                int sday = currentDay + rGen->getHuLatencyDays();
-                int eday = sday + 9;
-                humBite->infection.reset(new Infection(sday, eday, 0, infection->getInfectionType()));
+                int sday = currentDay + 1;
+                int eday = sday + 14;
+                humBite->infection.reset(new Infection(
+                    sday, eday, 0.0, infection->getInfectionType(), humBite->getPreviousInfections() == 0, disease > 0));
                 humBite->updateImmunityPerm(infection->getInfectionType(),true);
                 humBite->setImmunityTemp(true);
                 humBite->setImmStartDay(currentDay);
-                humBite->setImmEndDay(currentDay + 9 + rGen->getHumanImmunity());
+                humBite->setImmEndDay(currentDay + 14 + rGen->getHumanImmunity());
 
                 // write data about infection to output file
                 *out << currentDay << "," << infection->getInfectionType() << "," << disease << ",";
-                *out << humBite->getAge(currentDay) << "," << humBite->getPreviousInfections() << "\n";
+                *out << humBite->getAge(currentDay) << "," << humBite->getPreviousInfections() << ",";
+                *out << humBite->isVaccinated() << "\n";
                 // *out << "," << humBite->getHouseID() << "," << humBite->getHouseMemNum();                        
                 // *out << "," << humBite->getAge(currentDay) << "," << humBite->getGender();
                 // *out << "," << sday << "," << locNow->getLocID() << "\n";

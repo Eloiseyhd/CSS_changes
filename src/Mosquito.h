@@ -1,10 +1,3 @@
-/* 
- * File:   Mosquito.h
- * Author: amit
- *
- * Created on August 25, 2014, 12:53 AM
- */
-
 #ifndef MOSQUITO_H
 #define	MOSQUITO_H
 

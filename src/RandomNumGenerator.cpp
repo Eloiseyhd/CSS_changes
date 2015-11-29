@@ -27,9 +27,9 @@ double RandomNumGenerator::getMozLifeSpan() {
     return d(gen);
 }
 
-unsigned RandomNumGenerator::getMozLatencyDays() {
-    uniform_int_distribution<> dis(mozLatencyLo, mozLatencyHi);
-    return dis(gen);
+double RandomNumGenerator::getMozLatencyDays() {
+    lognormal_distribution<> d(1.648721, 0.451754);
+    return d(gen);
 }
 
 double RandomNumGenerator::getMozRestDays() {
@@ -39,11 +39,6 @@ double RandomNumGenerator::getMozRestDays() {
 
 unsigned RandomNumGenerator::getMozNextLoc(unsigned num) {
     uniform_int_distribution<> dis(0, num-1);
-    return dis(gen);
-}
-
-unsigned RandomNumGenerator::getHuLatencyDays() {
-    uniform_int_distribution<> dis(huLatencyLo, huLatencyHi);
     return dis(gen);
 }
 

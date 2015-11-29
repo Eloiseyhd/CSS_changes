@@ -1,10 +1,3 @@
-/* 
- * File:   Location.cpp
- * Author: amit
- * 
- * Created on August 25, 2014, 12:55 AM
- */
-
 #include "Location.h"
 #include <sstream>
 #include <iostream>

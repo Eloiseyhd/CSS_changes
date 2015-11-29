@@ -1,10 +1,3 @@
-/* 
- * File:   main.cpp
- * Author: amit
- *
- * Created on August 25, 2014, 12:51 AM
- */
-
 #include <cstdlib>
 #include <random>
 #include <iostream>
