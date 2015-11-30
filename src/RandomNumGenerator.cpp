@@ -1,10 +1,3 @@
-/* 
- * File:   RandomNumGenerator.cpp
- * Author: amit
- * 
- * Created on August 28, 2014, 4:17 AM
- */
-
 #include "RandomNumGenerator.h"
 #include <iostream>
 #include <cmath>
@@ -53,7 +46,7 @@ unsigned RandomNumGenerator::getHumanImmunity() {
 }
 
 bool RandomNumGenerator::getHumanSeropositivity(double FOI, double age) {
-    if(getEventProbability() < 1 - pow(1 - FOI, age)){
+    if(getEventProbability() < 1 - exp(-FOI * age)){
         return true;
     } else {
         return false;

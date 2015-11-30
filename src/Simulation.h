@@ -21,7 +21,6 @@ public:
     void readInitialInfectionsFile(std::string);
     void readSimControlFile(std::string);
     void readLocationFile(std::string);
-    void readNeighborhoodFile(std::string);
     void readMortalityFile();
     void readVaccineProfileFile();
     void setLocNeighborhood(double);
@@ -35,8 +34,6 @@ public:
     void generateMosquitoes();
     unsigned setInitialInfection(double, unsigned);
     void printSimulationParams() const;
-    void writeNeighborhoodFile(std::string file) const;
-    void createNeighborhoodFile(std::string, std::string, std::string);
     void updatePop();
     void writePop();
     void resetPop();

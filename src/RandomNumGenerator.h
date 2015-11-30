@@ -1,10 +1,3 @@
-/* 
- * File:   RandomNumGenerator.h
- * Author: amit
- *
- * Created on August 28, 2014, 4:17 AM
- */
-
 #ifndef RANDOMNUMGENERATOR_H
 #define	RANDOMNUMGENERATOR_H
 

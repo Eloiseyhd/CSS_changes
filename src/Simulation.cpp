@@ -43,7 +43,8 @@ string Simulation::readInputs() {
         cout << "\n\n" << simName <<": " << "Can't open outputPop file:" << outputPopFile << ". Exiting.\n\n";
         exit(1);
     }
-    outpop << "year,age,seropos,population,doses\n";
+    outpop << "year,age,seroneg\n";
+    // outpop << "year,age,seropos,population,doses\n";
     cout << "\n\n" << simName << ": Reading vaccine profile file ..." << endl;
     readVaccineProfileFile();
     RandomNumGenerator rgen(rSeed, hllo, hlhi, huImm, emergeFactor, mlife, mlho, mlhi, mrestlo, mresthi, halflife);
@@ -129,13 +130,21 @@ void Simulation::resetPop(){
 
 
 void Simulation::writePop(){
-    for(unsigned a = 0; a < 100; a++){
-        for(unsigned s = 0; s < 5; s++){
-            outpop << year << "," << a << "," << s << "," <<
-            seroage_pop.at(make_pair(a,s)) << "," <<
-            seroage_doses.at(make_pair(a,s)) << "\n";
-        }
-    }
+    outpop << year << "," << 9 << "," <<
+    double(seroage_pop.at(make_pair(9,0))) / 
+    double(
+        seroage_pop.at(make_pair(9,0)) +
+        seroage_pop.at(make_pair(9,1)) +
+        seroage_pop.at(make_pair(9,2)) +
+        seroage_pop.at(make_pair(9,3)) +
+        seroage_pop.at(make_pair(9,4))) << "\n";
+    // for(unsigned a = 0; a < 100; a++){
+    //     for(unsigned s = 0; s < 5; s++){
+    //         outpop << year << "," << a << "," << s << "," <<
+    //         seroage_pop.at(make_pair(a,s)) << "," <<
+    //         seroage_doses.at(make_pair(a,s)) << "\n";
+    //     }
+    // }
 }
 
 
@@ -315,13 +324,12 @@ void Simulation::readInitialInfectionsFile(string infectionsFile) {
         resident = humans.equal_range(houseID).first;
         for(int i = 1; i < hMemID; i++)
             resident++;
-cout << "INFECTED";
         resident->second->infection.reset(new Infection(
             0, rGen.intialInfDaysLeft(), 0, serotype, resident->second->getPreviousInfections() == 0, rGen.getEventProbability() < .246));
         resident->second->setImmunityPerm(serotype,true);
         resident->second->setImmunityTemp(true);
         resident->second->setImmStartDay(currentDay);
-        resident->second->setImmEndDay(currentDay + 9 + rGen.getHumanImmunity());
+        resident->second->setImmEndDay(currentDay + rGen.getRandomNum(14) + rGen.getHumanImmunity());
 
         while (infile.peek() == '\n')
             infile.ignore(1, '\n');

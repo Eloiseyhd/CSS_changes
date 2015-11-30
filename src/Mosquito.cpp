@@ -175,9 +175,9 @@ void Mosquito::infectiousBite(
                 humBite->setImmEndDay(currentDay + 14 + rGen->getHumanImmunity());
 
                 // write data about infection to output file
-                *out << currentDay << "," << infection->getInfectionType() << "," << disease << ",";
-                *out << humBite->getAge(currentDay) << "," << humBite->getPreviousInfections() << ",";
-                *out << humBite->isVaccinated() << "\n";
+                // *out << currentDay << "," << infection->getInfectionType() << "," << disease << ",";
+                // *out << humBite->getAge(currentDay) << "," << humBite->getPreviousInfections() << ",";
+                // *out << humBite->isVaccinated() << "\n";
                 // *out << "," << humBite->getHouseID() << "," << humBite->getHouseMemNum();                        
                 // *out << "," << humBite->getAge(currentDay) << "," << humBite->getGender();
                 // *out << "," << sday << "," << locNow->getLocID() << "\n";

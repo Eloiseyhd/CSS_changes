@@ -122,7 +122,6 @@ int main(int argc, char** argv) {
             exit(1);
         }
         Simulation sim;
-        sim.createNeighborhoodFile(argv[2], argv[3], argv[4]);
     }
     return 0;
 }
