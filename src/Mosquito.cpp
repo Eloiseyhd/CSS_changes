@@ -143,22 +143,47 @@ void Mosquito::infectiousBite(
             if(rGen->getEventProbability() < infection->getInfectiousness()){
                 // clinical disease state
                 int disease = 0;
-                if(rGen->getEventProbability() < .246)
-                    disease = infection->getInfectionType();
+                int hospitalized = 0;
+                int vaxAdvancement = 0;
+                if(humBite->isVaccinated()){
+                    vaxAdvancement = 1;
+                }
+                if(humBite->getPreviousInfections() + vaxAdvancement == 0){
+                    if(rGen->getEventProbability() < 0.3){
+                        disease = infection->getInfectionType();
+                        if(rGen->getEventProbability() < 0.111){
+                            hospitalized = infection->getInfectionType();
+                        }
+                    }
+                }else if(humBite->getPreviousInfections() + vaxAdvancement == 1){
+                    if(rGen->getEventProbability() < 0.6){
+                        disease = infection->getInfectionType();
+                        if(rGen->getEventProbability() < 0.20868){
+                            hospitalized = infection->getInfectionType();
+                        }
+                    }
+                }else{
+                    if(rGen->getEventProbability() < 0.1){
+                        disease = infection->getInfectionType();
+                        if(rGen->getEventProbability() < 0.05217){
+                            hospitalized = infection->getInfectionType();
+                        }
+                    }
+                }
 
-                // // effect of vaccine on preventing infection and disease
-                // if(humBite->isVaccinated()){
-                //     if(rGen->getEventProbability() < humBite->getVE(infection->getInfectionType())){
-                //         if(humBite->getVaccinationDay() + rGen->getWaningTime(infection->getInfectionType()) < currentDay){
-                //             return;
-                //         } else {
-                //             humBite->waneVaccination();
-                //         }
-                //     } else {
-                //         if(disease == 1 && rGen->getEventProbability() < humBite->getVE(infection->getInfectionType()))
-                //             disease = 0;   
-                //     }
-                // }
+                // effect of vaccine on preventing infection and disease
+                if(humBite->isVaccinated()){
+                    if(rGen->getEventProbability() < humBite->getVE(infection->getInfectionType())){
+                        if(humBite->getVaccinationDay() + rGen->getWaningTime(infection->getInfectionType()) > currentDay){
+                            return;
+                        } else {
+                            humBite->waneVaccination();
+                        }
+                    } else {
+                        if(disease > 0 && rGen->getEventProbability() < humBite->getVE(infection->getInfectionType()))
+                            disease = 0;   
+                    }
+                }
 
                 // check to see whether the human is immune
                 if(humBite->isImmune(infection->getInfectionType()))
@@ -173,6 +198,7 @@ void Mosquito::infectiousBite(
                 humBite->setImmunityTemp(true);
                 humBite->setImmStartDay(currentDay);
                 humBite->setImmEndDay(currentDay + 14 + rGen->getHumanImmunity());
+                humBite->updateRecent(1, disease > 0, hospitalized > 0);
 
                 // write data about infection to output file
                 // *out << currentDay << "," << infection->getInfectionType() << "," << disease << ",";

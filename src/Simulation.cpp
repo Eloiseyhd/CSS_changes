@@ -43,7 +43,7 @@ string Simulation::readInputs() {
         cout << "\n\n" << simName <<": " << "Can't open outputPop file:" << outputPopFile << ". Exiting.\n\n";
         exit(1);
     }
-    outpop << "year,age,seroneg\n";
+    outpop << "year,noinf_0008,inf_0008,noinf_0918,inf_0918,noinf_1999,inf_1999,nodis_0008,dis_0008,nodis_0918,dis_0918,nodis_1999,dis_1999,nohosp_0008,hosp_0008,nohosp_0918,hosp_0918,nohosp_1999,hosp_1999\n";
     // outpop << "year,age,seropos,population,doses\n";
     cout << "\n\n" << simName << ": Reading vaccine profile file ..." << endl;
     readVaccineProfileFile();
@@ -101,43 +101,108 @@ void Simulation::simEngine() {
 
 
 void Simulation::updatePop(){
-    auto itPop = seroage_pop.begin();
-    int pop;
+    int count;
+    int age;
+    int age_09 = 9 * 365;
+    int age_19 = 19 * 365;
+    int noinf_0008 = 0, inf_0008 = 0, noinf_0918 = 0, inf_0918 = 0, noinf_1999 = 0, inf_1999 = 0;
+    int nodis_0008 = 0, dis_0008 = 0, nodis_0918 = 0, dis_0918 = 0, nodis_1999 = 0, dis_1999 = 0;
+    int nohosp_0008 = 0, hosp_0008 = 0, nohosp_0918 = 0, hosp_0918 = 0, nohosp_1999 = 0, hosp_1999 = 0;
 
     for(auto itHum = humans.begin(); itHum != humans.end(); itHum++){
-        itPop = seroage_pop.find(make_pair(floor(itHum->second->getAge(currentDay)/365),itHum->second->getPreviousInfections()));
-        pop = seroage_pop.at(make_pair(floor(itHum->second->getAge(currentDay)/365),itHum->second->getPreviousInfections()));
-        seroage_pop.erase(itPop);
-        seroage_pop.insert(make_pair(
-            make_pair(floor(itHum->second->getAge(currentDay)/365),itHum->second->getPreviousInfections()), pop + 1));
+        age = itHum->second->getAge(currentDay);
+        if(age < age_09){
+            if(itHum->second->getRecentInf() == 0){
+                noinf_0008++;
+            } else {
+                inf_0008++;
+            }
+            if(itHum->second->getRecentDis() == 0){
+                nodis_0008++;
+            } else {
+                dis_0008++;
+            }
+            if(itHum->second->getRecentHosp() == 0){
+                nohosp_0008++;
+            } else {
+                hosp_0008++;
+            }
+        } else if(age < age_19){
+            if(itHum->second->getRecentInf() == 0){
+                noinf_0918++;
+            } else {
+                inf_0918++;
+            }
+            if(itHum->second->getRecentDis() == 0){
+                nodis_0918++;
+            } else {
+                dis_0918++;
+            }
+            if(itHum->second->getRecentHosp() == 0){
+                nohosp_0918++;
+            } else {
+                hosp_0918++;
+            }
+        } else {
+            if(itHum->second->getRecentInf() == 0){
+                noinf_1999++;
+            } else {
+                inf_1999++;
+            }
+            if(itHum->second->getRecentDis() == 0){
+                nodis_1999++;
+            } else {
+                dis_1999++;
+            }
+            if(itHum->second->getRecentHosp() == 0){
+                nohosp_1999++;
+            } else {
+                hosp_1999++;
+            }
+        }
+        itHum->second->resetRecent();
     }
+
+    outpop << year << "," << 
+        noinf_0008 << "," << inf_0008 << "," << noinf_0918 << "," << inf_0918 << "," << noinf_1999 << "," << inf_1999 << "," << 
+        nodis_0008 << "," << dis_0008 << "," << nodis_0918 << "," << dis_0918  << "," << nodis_1999 << "," << dis_1999 << "," << 
+        nohosp_0008 << "," << hosp_0008 << "," << nohosp_0918 << "," << hosp_0918 << "," << nohosp_1999  << "," << hosp_1999 << "\n";
+
+    // for(auto itHum = humans.begin(); itHum != humans.end(); itHum++){
+    //     itPop = seroage_pop.find(make_pair(floor(itHum->second->getAge(currentDay)/365),itHum->second->getPreviousInfections()));
+    //     pop = seroage_pop.at(make_pair(floor(itHum->second->getAge(currentDay)/365),itHum->second->getPreviousInfections()));
+    //     seroage_pop.erase(itPop);
+    //     seroage_pop.insert(make_pair(
+    //         make_pair(floor(itHum->second->getAge(currentDay)/365),itHum->second->getPreviousInfections()), pop + 1));
+    // }
 }
 
 
 
 void Simulation::resetPop(){
-    seroage_pop.clear();
-    seroage_doses.clear();
+    // seroage_pop.clear();
+    // seroage_doses.clear();
 
-    for(unsigned a = 0; a < 100; a++){
-        for(unsigned s = 0; s < 5; s++){
-            seroage_pop.insert(make_pair(make_pair(a,s),0));
-            seroage_doses.insert(make_pair(make_pair(a,s),0));
-        }
-    }
+    // for(unsigned a = 0; a < 100; a++){
+    //     for(unsigned s = 0; s < 5; s++){
+    //         seroage_pop.insert(make_pair(make_pair(a,s),0));
+    //         seroage_doses.insert(make_pair(make_pair(a,s),0));
+    //     }
+    // }
 }
 
 
 
 void Simulation::writePop(){
-    outpop << year << "," << 9 << "," <<
-    double(seroage_pop.at(make_pair(9,0))) / 
-    double(
-        seroage_pop.at(make_pair(9,0)) +
-        seroage_pop.at(make_pair(9,1)) +
-        seroage_pop.at(make_pair(9,2)) +
-        seroage_pop.at(make_pair(9,3)) +
-        seroage_pop.at(make_pair(9,4))) << "\n";
+    // outpop << year << "," << 9 << "," <<
+    // double(seroage_pop.at(make_pair(9,0))) / 
+    // double(
+    //     seroage_pop.at(make_pair(9,0)) +
+    //     seroage_pop.at(make_pair(9,1)) +
+    //     seroage_pop.at(make_pair(9,2)) +
+    //     seroage_pop.at(make_pair(9,3)) +
+    //     seroage_pop.at(make_pair(9,4))) << "\n";
+
     // for(unsigned a = 0; a < 100; a++){
     //     for(unsigned s = 0; s < 5; s++){
     //         outpop << year << "," << a << "," << s << "," <<
@@ -166,21 +231,21 @@ void Simulation::humanDynamics() {
         // select movement trajectory for the day
         (it->second)->setTrajDay(rGen.getRandomNum(5));
 
-        // // vaccinate if appropriate according to age
+        // vaccinate if appropriate according to age
         // if(vaccinationStrategy == "catchup" || vaccinationStrategy == "nocatchup"){
-        //     age = it->second->getAge(currentDay);
-        //     if(rGen.getEventProbability() < .8 || it->second->isVaccinated()){
-        //         if(age == 2 * 365){
-        //             it->second->vaccinate(&VE_pos, &VE_neg, 1.0/3.0, currentDay);
-        //             vaxd = true;
-        //         } else if(it->second->isVaccinated() && age == 2 * 365 + 183){
-        //             it->second->vaccinate(&VE_pos, &VE_neg, 2.0/3.0, currentDay);
-        //             vaxd = true;
-        //         } else if(it->second->isVaccinated() && age == 3 * 365){
-        //             it->second->vaccinate(&VE_pos, &VE_neg, 1.0, currentDay);
-        //             vaxd = true;
-        //         }
-        //     }            
+            age = it->second->getAge(currentDay);
+            if(rGen.getEventProbability() < .8 || it->second->isVaccinated()){
+                if(age == 9 * 365){
+                    it->second->vaccinate(&VE_pos, &VE_neg, 1.0, currentDay);
+                    vaxd = true;
+                } else if(it->second->isVaccinated() && age == 9 * 365 + 183){
+                    it->second->vaccinate(&VE_pos, &VE_neg, 1.0, currentDay);
+                    vaxd = true;
+                } else if(it->second->isVaccinated() && age == 10 * 365){
+                    it->second->vaccinate(&VE_pos, &VE_neg, 1.0, currentDay);
+                    vaxd = true;
+                }
+            }            
         // }
         // if(vaccinationStrategy == "catchup"){
         //     if(currentDay <= 365){
@@ -503,7 +568,7 @@ void Simulation::readVaccineProfileFile() {
 
         VE_pos.insert(make_pair(sero,vep));
         VE_neg.insert(make_pair(sero,ven));
-        halflife.insert(make_pair(sero,hl));
+        halflife.insert(make_pair(sero,hl * 365.0));
     }
     infile.close();
     cout << "\n" << simName << ": Done reading the vaccine profile!" << endl;

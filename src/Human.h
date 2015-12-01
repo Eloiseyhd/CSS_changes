@@ -31,6 +31,9 @@ private:
     unsigned doses;
     int vday;
     std::map<unsigned,double> VE;
+    int recent_inf;
+    int recent_dis;
+    int recent_hosp;
 
 public:
     std::unique_ptr<Infection> infection;
@@ -53,6 +56,11 @@ public:
     void vaccinate(std::map<unsigned,double> *,std::map<unsigned,double> *,double,int);
     void waneVaccination(){vaccinated = false;}
     bool isVaccinated(){return vaccinated;}
+    int getRecentInf(){return recent_inf;}
+    int getRecentDis(){return recent_dis;}
+    int getRecentHosp(){return recent_hosp;}
+    void resetRecent();
+    void updateRecent(int,int,int);
     std::set<std::string> getLocsVisited();
     std::string getHouseID() const;
     int getHouseMemNum() const;
