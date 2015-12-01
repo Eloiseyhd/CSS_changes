@@ -1,32 +1,22 @@
 source('functions.R')
 
-reps = 10
+reps = 1000
 
-HumanLatencyLow = rep(4,2)
-HumanLatencyHigh = rep(7,2)
-HumanInfectionDays = rep(9,2)
 HumanImmunityDays = rep(686,2)
-ForceOfInfection = rep(.052,2)
+ForceOfInfection = c(.001,.10)
 EmergenceFactor = c(.5,1.5)
 MosquitoLifespan = c(10,20)
-MosquitoInfectiousness = rep(0.5,2)
-MosquitoLatencyLow = rep(6,2)
-MosquitoLatencyHigh = rep(9,2)
+MosquitoInfectiousness = c(0,1)
 MosquitoMoveProbability = rep(0.3,2)
-MosquitoRestDaysLow = rep(2,2)
-MosquitoRestDaysHigh = rep(3,2)
+MosquitoRestDaysLow = rep(1,2)
+MosquitoRestDaysHigh = rep(2,2)
 
 scalars = sobol(vars = list(
-  HumanLatencyLow = HumanLatencyLow,
-  HumanLatencyHigh = HumanLatencyHigh,
-  HumanInfectionDays = HumanInfectionDays,
   HumanImmunityDays = HumanImmunityDays,
   ForceOfInfection = ForceOfInfection,
   EmergenceFactor = EmergenceFactor,
   MosquitoLifespan = MosquitoLifespan,
   MosquitoInfectiousness = MosquitoInfectiousness,
-  MosquitoLatencyLow = MosquitoLatencyLow,
-  MosquitoLatencyHigh = MosquitoLatencyHigh,
   MosquitoMoveProbability = MosquitoMoveProbability,
   MosquitoRestDaysLow = MosquitoRestDaysLow,
   MosquitoRestDaysHigh = MosquitoRestDaysHigh),
@@ -35,19 +25,18 @@ scalars = sobol(vars = list(
 for(ii in 1 : reps){
   writeSimControl.sobol(
     simControlNum = ii,
-    reps = reps,
-    NumDays = 365 * 10,
-    OutputPath = '../simulator/data/Output',
-    LocationFile = '../simulator/data/Input/locations_20150801.csv',
-    NeighborhoodFile = '../simulator/data/Input/neighborhoods.csv',
-    MortalityFile = '../simulator/data/Input/age_specific_mortality.csv',
-    VaccineProfileFile = '../simulator/data/Input/vaccine_profile_CYD15.csv',
-    num.1 = 10,
-    num.2 = 10,
-    num.3 = 10,
-    num.4 = 10,
-    zone = 'MY',
+    reps = 1, # reps,
+    NumDays = 365 * 30,
+    OutputPath = '.',
+    LocationFile = 'locations_20150801.csv',
+    MortalityFile = 'age_specific_mortality.csv',
+    VaccineProfileFile = 'vaccine_profile_CYD15.csv',
+    num.1 = 25,
+    num.2 = 25,
+    num.3 = 25,
+    num.4 = 25,
+    zone = NA,
     neighborhood = NA,
     block = NA,
-    scalars = scalars)
+    scalars = scalars[ii,])
 }
