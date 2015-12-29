@@ -47,7 +47,7 @@ string Simulation::readInputs() {
     // outpop << "year,age,seropos,population,doses\n";
     cout << "\n\n" << simName << ": Reading vaccine profile file ..." << endl;
     readVaccineProfileFile();
-    RandomNumGenerator rgen(rSeed, hllo, hlhi, huImm, emergeFactor, mlife, mlho, mlhi, mrestlo, mresthi, halflife);
+    RandomNumGenerator rgen(rSeed, huImm, emergeFactor, mlife, mrest, halflife);
     rGen = rgen;
     cout << "\n\n" << simName << ": Reading locations file ..." << endl;
     readLocationFile(locationFile);
@@ -55,25 +55,7 @@ string Simulation::readInputs() {
     readMortalityFile();
     cout << "\n\n" << simName << ": Reading trajectories file ..." << endl;
     readHumanFile(trajectoryFile);
-    cout << "\n\n" << simName << ": Reading initial infections file ..." << endl;
-    readInitialInfectionsFile(initialInfectionsFile);
     return simName;
-}
-
-
-
-unsigned Simulation::setInitialInfection(double prop, unsigned infType) {
-    unsigned i = 0;
-    for (auto& h : humans) {
-        if (rGen.getEventProbability() < prop) {
-            if (h.second->infection == nullptr) {
-                h.second->infection.reset(new Infection(
-                    0, rGen.intialInfDaysLeft(), 0, infType, h.second->getPreviousInfections() == 0, rGen.getEventProbability() < .246));
-                i++;
-            }
-        }
-    }
-    return i;
 }
 
 
@@ -231,6 +213,20 @@ void Simulation::humanDynamics() {
         // select movement trajectory for the day
         (it->second)->setTrajDay(rGen.getRandomNum(5));
 
+        // simulate possible imported infection
+        if(rGen.getEventProbability() < ForceOfImportation){
+            int serotype = rGen.getRandomNum(4) + 1;
+            if(!it->second->isImmune(serotype)){
+                it->second->infection.reset(new Infection(
+                    currentDay + 1, currentDay + 15, 0.0, serotype, it->second->getPreviousInfections() == 0, 0));
+                it->second->updateImmunityPerm(serotype,true);
+                it->second->setImmunityTemp(true);
+                it->second->setImmStartDay(currentDay);
+                it->second->setImmEndDay(currentDay + 14 + rGen.getHumanImmunity());
+                it->second->updateRecent(1, 0, 0);
+            }
+        }
+
         // vaccinate if appropriate according to age
         // if(vaccinationStrategy == "catchup" || vaccinationStrategy == "nocatchup"){
             age = it->second->getAge(currentDay);
@@ -365,48 +361,6 @@ void Simulation::generateMosquitoes(){
 
 
 
-void Simulation::readInitialInfectionsFile(string infectionsFile) {
-    if (infectionsFile.length() == 0) {
-        cout << "\n" << simName <<": Initial infections file not specified! Exiting." << endl;
-        exit(1);
-    }
-    string line, houseID;
-    unsigned hMemID, serotype;
-    std::multimap<std::string,std::unique_ptr<Human>>::iterator resident;
-
-    ifstream infile(infectionsFile);
-    if (!infile.good()) {
-        cout << "\n\n"  << simName << ": Can't open file:" << infectionsFile << ". Exiting.\n" << endl;
-        exit(1);
-    }
-    while (getline(infile, line, ',')) {
-        houseID = line;
-        getline(infile, line, ',');
-        hMemID = strtol(line.c_str(), NULL, 10);
-        getline(infile, line, '\n');
-        serotype = strtol(line.c_str(), NULL, 10);
-
-        resident = humans.equal_range(houseID).first;
-        for(int i = 1; i < hMemID; i++)
-            resident++;
-        resident->second->infection.reset(new Infection(
-            0, rGen.intialInfDaysLeft(), 0, serotype, resident->second->getPreviousInfections() == 0, rGen.getEventProbability() < .246));
-        resident->second->setImmunityPerm(serotype,true);
-        resident->second->setImmunityTemp(true);
-        resident->second->setImmStartDay(currentDay);
-        resident->second->setImmEndDay(currentDay + rGen.getRandomNum(14) + rGen.getHumanImmunity());
-
-        while (infile.peek() == '\n')
-            infile.ignore(1, '\n');
-
-    }
-    infile.close();
-    cout << "\n" << simName << ": Done reading initial infections" <<endl;
-
-}
-
-
-
 void Simulation::setLocNeighborhood(double dist) {
     for (auto it1 = locations.begin(); it1 != locations.end(); ++it1) {
         auto it2 = it1;
@@ -440,11 +394,11 @@ void Simulation::readSimControlFile(string line) {
     getline(infile, line, ',');
     trajectoryFile = line;
     getline(infile, line, ',');
-    initialInfectionsFile = line;
-    getline(infile, line, ',');
     vaccineProfileFile = line;
     getline(infile, line, ',');
     FOI = strtod(line.c_str(),NULL);
+    getline(infile, line, ',');
+    ForceOfImportation = strtod(line.c_str(),NULL);
     getline(infile, line, ',');
     huImm = strtol(line.c_str(), NULL, 10);
     getline(infile, line, ',');
@@ -456,9 +410,7 @@ void Simulation::readSimControlFile(string line) {
     getline(infile, line, ',');
     mozMoveProbability = strtod(line.c_str(), NULL);
     getline(infile, line, ',');
-    mrestlo = strtol(line.c_str(), NULL, 10);
-    getline(infile, line, ',');
-    mresthi = strtol(line.c_str(), NULL, 10);
+    mrest = strtol(line.c_str(), NULL, 10);
     getline(infile, line, ',');
     vaccinationStrategy = line;
 }

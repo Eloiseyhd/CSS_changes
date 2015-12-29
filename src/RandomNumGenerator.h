@@ -13,31 +13,24 @@ public:
     unsigned getHumanImmunity();
     bool getHumanSeropositivity(double, double);
     unsigned getRandomNum(unsigned);
-    unsigned intialInfDaysLeft();
     double getEventProbability();
     double getMozLatencyDays();
     double getMozRestDays();
     unsigned getMozNextLoc(unsigned);
     void setSeed(unsigned);
     std::string toString() const;
-    RandomNumGenerator(unsigned, unsigned, unsigned, unsigned, double, double, unsigned, unsigned, unsigned, unsigned, std::map<unsigned,double>);
+    RandomNumGenerator(unsigned, unsigned, double, double, unsigned, std::map<unsigned,double>);
     RandomNumGenerator();
     RandomNumGenerator(const RandomNumGenerator& orig);
     virtual ~RandomNumGenerator();
 private:
     unsigned seed;
     std::mt19937 gen;
-    unsigned huLatencyLo;
-    unsigned huLatencyHi;
     unsigned huImmunity;
     double emergeFactor;
     double mozLife;
-    unsigned mozLatencyLo;
-    unsigned mozLatencyHi;
-    double mozRestLo;
-    double mozRestHi;
+    double mozRest;
     std::map<unsigned,double> halflife;
 };
 
 #endif	/* RANDOMNUMGENERATOR_H */
-

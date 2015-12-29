@@ -225,6 +225,8 @@ Mosquito::Mosquito(unsigned long id, unsigned bd, double dd, double bsd, string 
     fly = false;
 }
 
+
+
 string Mosquito::toString() const {
     stringstream ss;
     ss << locationID << " " << mID <<" " << bday << " " << dday;
@@ -232,19 +234,29 @@ string Mosquito::toString() const {
     return ss.str();
 }
 
+
+
 bool Mosquito::getFly() const {
     return fly;
 }
+
+
 
 void Mosquito::setFly(bool f) {
     fly = f;
 }
 
+
+
 Mosquito::Mosquito() {
 }
 
+
+
 Mosquito::Mosquito(const Mosquito& orig) {
 }
+
+
 
 Mosquito::~Mosquito() {
 }

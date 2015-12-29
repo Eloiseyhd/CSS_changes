@@ -26,8 +26,8 @@ double RandomNumGenerator::getMozLatencyDays() {
 }
 
 double RandomNumGenerator::getMozRestDays() {
-    uniform_real_distribution<> dis(mozRestLo, mozRestHi);
-    return dis(gen);
+    exponential_distribution<> d(mozRest);
+    return d(gen);
 }
 
 unsigned RandomNumGenerator::getMozNextLoc(unsigned num) {
@@ -68,40 +68,25 @@ void RandomNumGenerator::setSeed(unsigned s) {
     gen.seed(s);
 }
 
-unsigned RandomNumGenerator::intialInfDaysLeft() {
-    uniform_int_distribution<> dis(1, 9);
-    return dis(gen);
-}
-
 string RandomNumGenerator::toString() const {
     stringstream ss;
-    ss <<"huLatencyLo:" << huLatencyLo;
-    ss <<" huLatencyHi:" << huLatencyHi;
     ss <<" huImmunity:" << huImmunity;
     ss <<" emergeFactor:" << emergeFactor;
     ss <<" mozLife:" << mozLife;
-    ss <<" mozLatencyLo:" << mozLatencyLo;
-    ss <<" mozLatencyHi:" << mozLatencyHi;
-    ss <<" mozRestLo:" << mozRestLo;
-    ss <<" mozRestHi:" << mozRestHi;
+    ss <<" mozRest:" << mozRest;
     return ss.str();
 }
 
 RandomNumGenerator::RandomNumGenerator(
-    unsigned s, unsigned hllo, unsigned hlhi, unsigned huImm, double efactor, double mlife,
-    unsigned mllo, unsigned mlhi, unsigned mrestlo, unsigned mresthi, std::map<unsigned,double> hlife)
+    unsigned s, unsigned huImm, double efactor, double mlife,
+    unsigned mrest, std::map<unsigned,double> hlife)
 {
     seed = s;
     gen.seed(s);
-    huLatencyLo = hllo;
-    huLatencyHi = hlhi;
     huImmunity = huImm;
     emergeFactor = efactor;
     mozLife = mlife;
-    mozLatencyLo = mllo;
-    mozLatencyHi = mlhi;
-    mozRestLo = mrestlo;
-    mozRestHi = mresthi;
+    mozRest = mrest;
     halflife = hlife;
 }
 
@@ -113,4 +98,3 @@ RandomNumGenerator::RandomNumGenerator(const RandomNumGenerator& orig) {
 
 RandomNumGenerator::~RandomNumGenerator() {
 }
-
