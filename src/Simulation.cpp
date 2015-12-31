@@ -69,70 +69,79 @@ void Simulation::updatePop(){
     int count;
     int age;
     int age_09 = 9 * 365;
-    int age_19 = 19 * 365;
-    int noinf_0008 = 0, inf_0008 = 0, noinf_0918 = 0, inf_0918 = 0, noinf_1999 = 0, inf_1999 = 0;
-    int nodis_0008 = 0, dis_0008 = 0, nodis_0918 = 0, dis_0918 = 0, nodis_1999 = 0, dis_1999 = 0;
-    int nohosp_0008 = 0, hosp_0008 = 0, nohosp_0918 = 0, hosp_0918 = 0, nohosp_1999 = 0, hosp_1999 = 0;
+    int age_10 = 10 * 365;
+    int seropos = 0, seroneg = 0;
+    // int age_19 = 19 * 365;
+    // int noinf_0008 = 0, inf_0008 = 0, noinf_0918 = 0, inf_0918 = 0, noinf_1999 = 0, inf_1999 = 0;
+    // int nodis_0008 = 0, dis_0008 = 0, nodis_0918 = 0, dis_0918 = 0, nodis_1999 = 0, dis_1999 = 0;
+    // int nohosp_0008 = 0, hosp_0008 = 0, nohosp_0918 = 0, hosp_0918 = 0, nohosp_1999 = 0, hosp_1999 = 0;
 
     for(auto itHum = humans.begin(); itHum != humans.end(); itHum++){
         itHum->second->updateAttractiveness(currentDay);
         age = itHum->second->getAge(currentDay);
-        if(age < age_09){
-            if(itHum->second->getRecentInf() == 0){
-                noinf_0008++;
+
+        if(age >= age_09 && age < age_10){
+            if(itHum->second->getPreviousInfections()){
+                seropos++;
             } else {
-                inf_0008++;
+                seroneg++;
             }
-            if(itHum->second->getRecentDis() == 0){
-                nodis_0008++;
-            } else {
-                dis_0008++;
-            }
-            if(itHum->second->getRecentHosp() == 0){
-                nohosp_0008++;
-            } else {
-                hosp_0008++;
-            }
-        } else if(age < age_19){
-            if(itHum->second->getRecentInf() == 0){
-                noinf_0918++;
-            } else {
-                inf_0918++;
-            }
-            if(itHum->second->getRecentDis() == 0){
-                nodis_0918++;
-            } else {
-                dis_0918++;
-            }
-            if(itHum->second->getRecentHosp() == 0){
-                nohosp_0918++;
-            } else {
-                hosp_0918++;
-            }
-        } else {
-            if(itHum->second->getRecentInf() == 0){
-                noinf_1999++;
-            } else {
-                inf_1999++;
-            }
-            if(itHum->second->getRecentDis() == 0){
-                nodis_1999++;
-            } else {
-                dis_1999++;
-            }
-            if(itHum->second->getRecentHosp() == 0){
-                nohosp_1999++;
-            } else {
-                hosp_1999++;
-            }
+            // if(itHum->second->getRecentInf() == 0){
+            //     noinf_0008++;
+            // } else {
+            //     inf_0008++;
+            // }
+            // if(itHum->second->getRecentDis() == 0){
+            //     nodis_0008++;
+            // } else {
+            //     dis_0008++;
+            // }
+            // if(itHum->second->getRecentHosp() == 0){
+            //     nohosp_0008++;
+            // } else {
+            //     hosp_0008++;
+            // }
+        // } else if(age < age_19){
+            // if(itHum->second->getRecentInf() == 0){
+            //     noinf_0918++;
+            // } else {
+            //     inf_0918++;
+            // }
+            // if(itHum->second->getRecentDis() == 0){
+            //     nodis_0918++;
+            // } else {
+            //     dis_0918++;
+            // }
+            // if(itHum->second->getRecentHosp() == 0){
+            //     nohosp_0918++;
+            // } else {
+            //     hosp_0918++;
+            // }
+        // } else {
+            // if(itHum->second->getRecentInf() == 0){
+            //     noinf_1999++;
+            // } else {
+            //     inf_1999++;
+            // }
+            // if(itHum->second->getRecentDis() == 0){
+            //     nodis_1999++;
+            // } else {
+            //     dis_1999++;
+            // }
+            // if(itHum->second->getRecentHosp() == 0){
+            //     nohosp_1999++;
+            // } else {
+            //     hosp_1999++;
+            // }
         }
         itHum->second->resetRecent();
     }
 
     outpop << year << "," << 
-        noinf_0008 << "," << inf_0008 << "," << noinf_0918 << "," << inf_0918 << "," << noinf_1999 << "," << inf_1999 << "," << 
-        nodis_0008 << "," << dis_0008 << "," << nodis_0918 << "," << dis_0918  << "," << nodis_1999 << "," << dis_1999 << "," << 
-        nohosp_0008 << "," << hosp_0008 << "," << nohosp_0918 << "," << hosp_0918 << "," << nohosp_1999  << "," << hosp_1999 << "\n";
+        seropos << "," << seroneg << "\n";
+        // noinf_0008 << "," << inf_0008 << "," << noinf_0918 << "," << inf_0918 << "," << noinf_1999 << "," << inf_1999 << "," << 
+        // nodis_0008 << "," << dis_0008 << "," << nodis_0918 << "," << dis_0918  << "," << nodis_1999 << "," << dis_1999 << "," << 
+        // nohosp_0008 << "," << hosp_0008 << "," << nohosp_0918 << "," << hosp_0918 << "," << nohosp_1999  << "," << hosp_1999 << "\n";
 }
 
 
