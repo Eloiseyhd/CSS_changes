@@ -71,7 +71,7 @@ public:
     std::string toString() const;
     std::vector<std::pair<std::string,double>> const& getTrajectory(unsigned) const;
     std::string getCurrentLoc(double);
-    Human(std::string, int, int, double, char, std::unique_ptr<std::vector<std::vector<std::pair<std::string,double>>>>&,RandomNumGenerator&,unsigned,double);
+    Human(std::string,int,int,double,char,std::unique_ptr<std::vector<std::vector<std::pair<std::string,double>>>>&,RandomNumGenerator&,unsigned,double);
     Human();
     Human(const Human& orig);
     virtual ~Human();
@@ -79,4 +79,3 @@ public:
 };
 
 #endif	/* HUMAN_H */
-

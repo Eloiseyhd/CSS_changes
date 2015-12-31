@@ -1,25 +1,27 @@
 source('functions.R')
 
-reps = 1000
+reps = 10000
 
 HumanImmunityDays = rep(686,2)
 ForceOfInfection = c(.001,.10)
-EmergenceFactor = c(.5,1.5)
-MosquitoLifespan = c(10,20)
+ForceOfImportation = c(1e-7,1e-5)
+EmergenceFactor = c(.1,10)
+MosquitoLifespan = c(3,30)
 MosquitoInfectiousness = c(0,1)
 MosquitoMoveProbability = rep(0.3,2)
-MosquitoRestDaysLow = rep(1,2)
-MosquitoRestDaysHigh = rep(2,2)
+MosquitoRestDays = rep(2/3,2)
+Seed = c(1,as.integer(Sys.time()))
 
 scalars = sobol(vars = list(
   HumanImmunityDays = HumanImmunityDays,
   ForceOfInfection = ForceOfInfection,
+  ForceOfImportation = ForceOfImportation,
   EmergenceFactor = EmergenceFactor,
   MosquitoLifespan = MosquitoLifespan,
   MosquitoInfectiousness = MosquitoInfectiousness,
   MosquitoMoveProbability = MosquitoMoveProbability,
-  MosquitoRestDaysLow = MosquitoRestDaysLow,
-  MosquitoRestDaysHigh = MosquitoRestDaysHigh),
+  MosquitoRestDays = MosquitoRestDays,
+  Seed = Seed),
   reps)
 
 for(ii in 1 : reps){
@@ -29,14 +31,7 @@ for(ii in 1 : reps){
     NumDays = 365 * 30,
     OutputPath = '.',
     LocationFile = 'locations_20150801.csv',
-    MortalityFile = 'age_specific_mortality.csv',
-    VaccineProfileFile = 'vaccine_profile_CYD15.csv',
-    num.1 = 25,
-    num.2 = 25,
-    num.3 = 25,
-    num.4 = 25,
-    zone = NA,
-    neighborhood = NA,
-    block = NA,
+    VaccineProfileFile = 'vaccine_profile_placebo.csv',
+    DemographyFile = 'demo_rates_peru.csv',
     scalars = scalars[ii,])
 }

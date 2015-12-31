@@ -145,9 +145,9 @@ void Mosquito::infectiousBite(
                 int disease = 0;
                 int hospitalized = 0;
                 int vaxAdvancement = 0;
-                if(humBite->isVaccinated()){
-                    vaxAdvancement = 1;
-                }
+                // if(humBite->isVaccinated()){
+                //     vaxAdvancement = 1;
+                // }
                 if(humBite->getPreviousInfections() + vaxAdvancement == 0){
                     if(rGen->getEventProbability() < 0.3){
                         disease = infection->getInfectionType();

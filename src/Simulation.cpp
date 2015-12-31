@@ -13,10 +13,6 @@ using namespace std;
 
 
 void Simulation::simulate() {
-    unsigned numHu = humans.size();
-
-    cout << "\n" << simName <<": Starting ... " << endl;
-
     simEngine();
     out.close();
     outpop.close();
@@ -26,54 +22,41 @@ void Simulation::simulate() {
 
 string Simulation::readInputs() {
     readSimControlFile(configLine);
-    printSimulationParams();
     outputPath.erase(remove(outputPath.begin(), outputPath.end(), '\"'), outputPath.end());
-    outputFile = outputPath + "/" + simName + ".csv";
-    cout << "\n" << simName <<": outputFile:" << outputFile << endl;
-    out.open(outputFile);
-    if (!out.good()) {
-        cout << "\n\n" << simName <<": " << "Can't open output file:" << outputFile << ". Exiting.\n\n";
-        exit(1);
-    }
-    out << "day,infection,disease,age,previous_infections,vaccinated\n";
+
+    // outputFile = outputPath + "/" + simName + ".csv";
+    // out.open(outputFile);
+    // if (!out.good()) {
+    //     exit(1);
+    // }
+    // out << "day,infection,disease,age,previous_infections,vaccinated\n";
+
     outputPopFile = outputPath + "/" + simName + "_pop.csv";
-    cout << "\n" << simName <<": outputPopFile:" << outputPopFile << endl;
     outpop.open(outputPopFile);
     if (!outpop.good()) {
-        cout << "\n\n" << simName <<": " << "Can't open outputPop file:" << outputPopFile << ". Exiting.\n\n";
         exit(1);
     }
     outpop << "year,noinf_0008,inf_0008,noinf_0918,inf_0918,noinf_1999,inf_1999,nodis_0008,dis_0008,nodis_0918,dis_0918,nodis_1999,dis_1999,nohosp_0008,hosp_0008,nohosp_0918,hosp_0918,nohosp_1999,hosp_1999\n";
-    // outpop << "year,age,seropos,population,doses\n";
-    cout << "\n\n" << simName << ": Reading vaccine profile file ..." << endl;
-    readVaccineProfileFile();
+
     RandomNumGenerator rgen(rSeed, huImm, emergeFactor, mlife, mrest, halflife);
     rGen = rgen;
-    cout << "\n\n" << simName << ": Reading locations file ..." << endl;
+    readVaccineProfileFile();
     readLocationFile(locationFile);
-    cout << "\n\n" << simName << ": Reading mortality file ..." << endl;
-    readMortalityFile();
-    cout << "\n\n" << simName << ": Reading trajectories file ..." << endl;
     readHumanFile(trajectoryFile);
+
     return simName;
 }
 
 
 
 void Simulation::simEngine() {
-    resetPop();
-
-    while (currentDay < numDays) {
-        cout << currentDay << endl;
-
+    while(currentDay < numDays){
         humanDynamics();
         mosquitoDynamics();
 
         if(ceil((currentDay + 1) / 365) != ceil(currentDay / 365)){
             year++;
             updatePop();
-            writePop();
-            resetPop();
         }
 
         currentDay++;
@@ -149,61 +132,17 @@ void Simulation::updatePop(){
         noinf_0008 << "," << inf_0008 << "," << noinf_0918 << "," << inf_0918 << "," << noinf_1999 << "," << inf_1999 << "," << 
         nodis_0008 << "," << dis_0008 << "," << nodis_0918 << "," << dis_0918  << "," << nodis_1999 << "," << dis_1999 << "," << 
         nohosp_0008 << "," << hosp_0008 << "," << nohosp_0918 << "," << hosp_0918 << "," << nohosp_1999  << "," << hosp_1999 << "\n";
-
-    // for(auto itHum = humans.begin(); itHum != humans.end(); itHum++){
-    //     itPop = seroage_pop.find(make_pair(floor(itHum->second->getAge(currentDay)/365),itHum->second->getPreviousInfections()));
-    //     pop = seroage_pop.at(make_pair(floor(itHum->second->getAge(currentDay)/365),itHum->second->getPreviousInfections()));
-    //     seroage_pop.erase(itPop);
-    //     seroage_pop.insert(make_pair(
-    //         make_pair(floor(itHum->second->getAge(currentDay)/365),itHum->second->getPreviousInfections()), pop + 1));
-    // }
-}
-
-
-
-void Simulation::resetPop(){
-    // seroage_pop.clear();
-    // seroage_doses.clear();
-
-    // for(unsigned a = 0; a < 100; a++){
-    //     for(unsigned s = 0; s < 5; s++){
-    //         seroage_pop.insert(make_pair(make_pair(a,s),0));
-    //         seroage_doses.insert(make_pair(make_pair(a,s),0));
-    //     }
-    // }
-}
-
-
-
-void Simulation::writePop(){
-    // outpop << year << "," << 9 << "," <<
-    // double(seroage_pop.at(make_pair(9,0))) / 
-    // double(
-    //     seroage_pop.at(make_pair(9,0)) +
-    //     seroage_pop.at(make_pair(9,1)) +
-    //     seroage_pop.at(make_pair(9,2)) +
-    //     seroage_pop.at(make_pair(9,3)) +
-    //     seroage_pop.at(make_pair(9,4))) << "\n";
-
-    // for(unsigned a = 0; a < 100; a++){
-    //     for(unsigned s = 0; s < 5; s++){
-    //         outpop << year << "," << a << "," << s << "," <<
-    //         seroage_pop.at(make_pair(a,s)) << "," <<
-    //         seroage_doses.at(make_pair(a,s)) << "\n";
-    //     }
-    // }
 }
 
 
 
 void Simulation::humanDynamics() {
-    auto itDose = seroage_doses.begin();
     int diff, age, dose;
     bool vaxd = false;
 
     for (auto it = humans.begin(); it != humans.end(); ++it) {
         // daily mortality for humans by age
-        if(rGen.getEventProbability() < mortalityHuman[floor(it->second->getAge(currentDay) / 365.0)])
+        if(rGen.getEventProbability() < (deathRate * it->second->getAge(currentDay)))
             it->second->reincarnate(currentDay);
 
         // update temporary cross-immunity status if necessary
@@ -264,15 +203,6 @@ void Simulation::humanDynamics() {
         //                 vaxd = true;
         //         }
         //     }
-        // }
-
-        // if(vaxd){
-        //     itDose = seroage_doses.find(make_pair(floor(it->second->getAge(currentDay)/365.0),it->second->getPreviousInfections()));
-        //     dose = seroage_pop.at(make_pair(floor(it->second->getAge(currentDay)/365.0),it->second->getPreviousInfections()));
-        //     seroage_doses.erase(itDose);
-        //     seroage_doses.insert(make_pair(
-        //         make_pair(floor(it->second->getAge(currentDay)/365.0),it->second->getPreviousInfections()), dose + 1));
-        //     vaxd = false;
         // }
     }
 }
@@ -390,11 +320,11 @@ void Simulation::readSimControlFile(string line) {
     getline(infile, line, ',');
     locationFile = line;
     getline(infile, line, ',');
-    mortalityFile = line;
-    getline(infile, line, ',');
     trajectoryFile = line;
     getline(infile, line, ',');
     vaccineProfileFile = line;
+    getline(infile, line, ',');
+    deathRate = strtod(line.c_str(), NULL);    
     getline(infile, line, ',');
     FOI = strtod(line.c_str(),NULL);
     getline(infile, line, ',');
@@ -419,7 +349,6 @@ void Simulation::readSimControlFile(string line) {
 
 void Simulation::readLocationFile(string locFile) {
     if (locFile.length() == 0) {
-        cout << "\n" << simName <<": Locations file not specified! Exiting." << endl; 
         exit(1);
     }
     string line, locID, locType;
@@ -427,7 +356,6 @@ void Simulation::readLocationFile(string locFile) {
 
     ifstream infile(locFile);
     if (!infile.good()) {
-        cout << "\n\n" << simName << ": Can't open file:" << locFile << ". Exiting.\n" << endl;
         exit(1);
     }
     getline(infile, line);
@@ -457,45 +385,12 @@ void Simulation::readLocationFile(string locFile) {
 
     }
     infile.close();
-    cout << "\n" << simName << ": Done reading locations!" << endl;
-
-}
-
-
-
-void Simulation::readMortalityFile() {
-    if (mortalityFile.length() == 0) {
-        cout << "\n" << simName << ": Mortality file not specified! Exiting." << endl;
-        exit(1);
-    }
-    string line;
-    int age;
-    double mort;
-
-    ifstream infile(mortalityFile);
-    if(!infile.good()){
-        cout << "\n\n" << simName << ": Can't open file:" << mortalityFile << ". Exiting.\n" << endl;
-        exit(1);
-    }
-    while(getline(infile, line, ',')){
-        age = strtol(line.c_str(), NULL, 10);
-        getline(infile, line, ',');
-        mort = strtod(line.c_str(), NULL);
-
-        mortalityHuman.insert(make_pair(age,mort));
-
-        while (infile.peek() == '\n')
-            infile.ignore(1, '\n');
-    }
-    infile.close();
-    cout << "\n" << simName << ": Done reading mortalities!" << endl;
 }
 
 
 
 void Simulation::readVaccineProfileFile() {
     if (vaccineProfileFile.length() == 0) {
-        cout << "\n" << simName << ": Vaccine profile file not specified! Exiting." << endl;
         exit(1);
     }
     string line;
@@ -506,7 +401,6 @@ void Simulation::readVaccineProfileFile() {
 
     ifstream infile(vaccineProfileFile);
     if(!infile.good()){
-        cout << "\n\n" << simName << ": Can't open file:" << vaccineProfileFile << ". Exiting.\n" << endl;
         exit(1);
     }
     while(getline(infile, line, ',')){
@@ -523,14 +417,12 @@ void Simulation::readVaccineProfileFile() {
         halflife.insert(make_pair(sero,hl * 365.0));
     }
     infile.close();
-    cout << "\n" << simName << ": Done reading the vaccine profile!" << endl;
 }
 
 
 
 void Simulation::readHumanFile(string humanFile) {
     if (humanFile.length() == 0) {
-        cout << "\n" << simName << ": Trajectories file not specified! Exiting." << endl;
         exit(1);
     }
     string line, houseID;
@@ -541,7 +433,6 @@ void Simulation::readHumanFile(string humanFile) {
 
     ifstream infile(humanFile);
     if (!infile.good()) {
-        cout << "\n\n" << simName << ": Can't open file:" << humanFile << ". Exiting.\n" << endl;
         exit(1);
     }
     while (getline(infile, line, ',')) {
@@ -586,48 +477,6 @@ void Simulation::readHumanFile(string humanFile) {
             infile.ignore(1, '\n');
     }
     infile.close();
-    cout << "\n" << simName << ": Done reading trajectories!" << endl;
-}
-
-
-
-void Simulation::printLocations() const {
-    cout << "\n" << simName << ": Locations:" << endl;
-    for (auto& x : locations) {
-        cout << x.second->toString() << endl;
-    }
-}
-
-
-
-void Simulation::printHumans() const {
-    cout << "\n" << simName << ": Human:" << endl;
-    for (auto& x : humans) {
-        cout << x.second->toString() << endl;
-    }
-}
-
-
-
-void Simulation::printMosquitoes() const {
-    cout << "\n" << simName << ": Mosquitoes:" << endl;
-    for (auto& x : mosquitoes) {
-        cout << x.first << " " << x.second->toString() << endl;
-    }
-}
-
-
-
-void Simulation::printSimulationParams() const {
-    cout << "\n\n"<< simName <<": currentDay:" << currentDay << endl;
-    cout << "\n"<< simName <<": numDays:" << numDays << endl; 
-    cout << "\n"<< simName <<": trajectoryFile:" << trajectoryFile << endl;
-    cout << "\n"<< simName <<": locationFile:" << locationFile << endl;
-    cout << "\n"<< simName <<": seed:" << rSeed << endl;
-    cout << "\n"<< simName <<": outputPath:" << outputPath << endl;
-    cout << "\n"<< simName <<": mozInfectiousness:" << mozInfectiousness << endl;
-    cout << "\n"<< simName <<": mozMoveProbability:" << mozMoveProbability << endl;
-    cout << "\n"<< simName <<": " << rGen.toString() << endl;
 }
 
 

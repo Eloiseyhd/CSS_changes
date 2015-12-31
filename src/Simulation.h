@@ -21,29 +21,21 @@ public:
     void readInitialInfectionsFile(std::string);
     void readSimControlFile(std::string);
     void readLocationFile(std::string);
-    void readMortalityFile();
     void readVaccineProfileFile();
     void setLocNeighborhood(double);
-    void printLocations() const;
-    void printHumans() const;
-    void printMosquitoes() const; 
     void simEngine();
     void humanDynamics();
     void tests();
     void mosquitoDynamics();
     void generateMosquitoes();
     unsigned setInitialInfection(double, unsigned);
-    void printSimulationParams() const;
-    void updatePop();
-    void writePop();
-    void resetPop();
     void simulate();
+    void updatePop();
     virtual ~Simulation();
 private:
     std::map <std::string,std::unique_ptr<Location>> locations;
     std::multimap<std::string,std::unique_ptr<Mosquito>> mosquitoes;
     std::multimap<std::string,std::unique_ptr<Human>> humans;
-    std::map<int,double> mortalityHuman;
     std::map<unsigned,double> VE_pos;
     std::map<unsigned,double> VE_neg;
     std::map<unsigned,double> halflife;
@@ -53,16 +45,14 @@ private:
     std::string trajectoryFile;
     std::string configLine;
     std::string locationFile;
-    std::string neighborhoodFile;
-    std::string mortalityFile;
     std::string vaccineProfileFile;
     std::string vaccinationStrategy;
-    std::string initialInfectionsFile;
     std::string outputFile;
     std::string outputPopFile;
     std::string simName;
     unsigned rSeed;
     std::string outputPath;
+    double deathRate;
     unsigned humanInfectionDays;
     unsigned huImm;
     double mlife;
@@ -75,9 +65,7 @@ private:
     double ForceOfImportation;
     unsigned year;
     std::ofstream out;
-    std::ofstream outpop;    
-    std::map<std::pair<unsigned,unsigned>,unsigned> seroage_pop;
-    std::map<std::pair<unsigned,unsigned>,unsigned> seroage_doses;
+    std::ofstream outpop;
 };
 
 #endif  /* SIMULATION_H */
