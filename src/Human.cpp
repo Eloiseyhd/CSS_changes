@@ -49,6 +49,7 @@ Human::Human(
 
 void Human::reincarnate(unsigned currDay){
     bday = currDay;
+    updateAttractiveness(currDay);
     infection.reset(nullptr);
     immunity_temp = true;
     immStartDay = bday;
@@ -301,13 +302,13 @@ void Human::updateBodySize(unsigned currDay){
         if(currDay - bday >= 6030){
             bodySize = bodySizeAdult;
         } else{
-            bodySize = bodySizeSlope * (currDay - bday);
+            bodySize = bodySizeBirth + bodySizeSlope * (currDay - bday);
         }
     } else {
         if(currDay - bday >= 6809){
             bodySize = bodySizeAdult;
         } else{
-            bodySize = bodySizeSlope * (currDay - bday);
+            bodySize = bodySizeBirth + bodySizeSlope * (currDay - bday);
         }
     }
 }

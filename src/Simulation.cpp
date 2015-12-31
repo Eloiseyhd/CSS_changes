@@ -75,6 +75,7 @@ void Simulation::updatePop(){
     int nohosp_0008 = 0, hosp_0008 = 0, nohosp_0918 = 0, hosp_0918 = 0, nohosp_1999 = 0, hosp_1999 = 0;
 
     for(auto itHum = humans.begin(); itHum != humans.end(); itHum++){
+        itHum->second->updateAttractiveness(currentDay);
         age = itHum->second->getAge(currentDay);
         if(age < age_09){
             if(itHum->second->getRecentInf() == 0){
