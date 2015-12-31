@@ -9,7 +9,6 @@ Human::Human(
     string hID,
     int hMemID,
     int age,
-    double bSize,
     char gen,
     unique_ptr<vector<vector<pair<string, double >> >> &paths,
     RandomNumGenerator& rGen,
@@ -19,12 +18,12 @@ Human::Human(
     houseID = hID;
     houseMemNum = hMemID;
     bday = currDay - 365 * age - rGen.getRandomNum(365);
-    bodySize = bSize;
     gender = gen;
+    initiateBodySize(currDay,rGen);
     trajectories = move(paths);
     trajDay = 0;
     infection.reset(nullptr);
-    attractiveness = pow(bSize, 1.541);
+    updateAttractiveness(currDay);
     vaccinated = false;
     doses = 0;
     resetRecent();
@@ -277,6 +276,47 @@ string Human::toString() const {
     }
     ss << "\n";
     return ss.str();
+}
+
+
+
+void Human::initiateBodySize(unsigned currDay, RandomNumGenerator& rGen){
+    if(gender == 'F'){
+        bodySizeBirth = 0.3085318 + 0.09302602 * rGen.getRandomNormal();
+        bodySizeAdult = 1.505055 + 0.12436 * rGen.getRandomNormal();
+        bodySizeSlope = (bodySizeAdult - bodySizeBirth) / 6030.0;
+    } else {
+        bodySizeBirth = 0.3114736 + 0.1532624 * rGen.getRandomNormal();
+        bodySizeAdult = 1.712391 + 0.1523652 * rGen.getRandomNormal();
+        bodySizeSlope = (bodySizeAdult - bodySizeBirth) / 6809.0;
+    }
+
+    updateBodySize(currDay);
+}
+
+
+
+void Human::updateBodySize(unsigned currDay){
+    if(gender == 'F'){
+        if(currDay - bday >= 6030){
+            bodySize = bodySizeAdult;
+        } else{
+            bodySize = bodySizeSlope * (currDay - bday);
+        }
+    } else {
+        if(currDay - bday >= 6809){
+            bodySize = bodySizeAdult;
+        } else{
+            bodySize = bodySizeSlope * (currDay - bday);
+        }
+    }
+}
+
+
+
+void Human::updateAttractiveness(unsigned currDay){
+    updateBodySize(currDay);
+    attractiveness = pow(bodySize, 1.541);
 }
 
 

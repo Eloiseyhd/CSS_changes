@@ -428,7 +428,6 @@ void Simulation::readHumanFile(string humanFile) {
     string line, houseID;
     int age;
     unsigned hMemID;
-    double bodySize;
     char gen;
 
     ifstream infile(humanFile);
@@ -446,8 +445,7 @@ void Simulation::readHumanFile(string humanFile) {
             gen = line[0];
             getline(infile, line, ',');
             age = strtol(line.c_str(), NULL, 10);
-            getline(infile, line, ',');
-            bodySize = strtod(line.c_str(), NULL);
+
             vector < pair<string, double >> path;
             getline(infile, line);
             stringstream ss;
@@ -463,7 +461,7 @@ void Simulation::readHumanFile(string humanFile) {
                 getline(infile, line, ',');
         }
 
-        unique_ptr<Human> h(new Human(houseID, hMemID, age, bodySize, gen, trajectories, rGen, currentDay, FOI));
+        unique_ptr<Human> h(new Human(houseID, hMemID, age, gen, trajectories, rGen, currentDay, FOI));
 
         std::set<std::string> locsVisited = h->getLocsVisited();
         for(std::set<std::string>::iterator itrSet = locsVisited.begin(); itrSet != locsVisited.end(); itrSet++)

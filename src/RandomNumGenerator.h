@@ -13,6 +13,7 @@ public:
     unsigned getHumanImmunity();
     bool getHumanSeropositivity(double, double);
     unsigned getRandomNum(unsigned);
+    double getRandomNormal();
     double getEventProbability();
     double getMozLatencyDays();
     double getMozRestDays();

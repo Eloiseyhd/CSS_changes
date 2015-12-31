@@ -58,6 +58,11 @@ unsigned RandomNumGenerator::getRandomNum(unsigned num) {
     return dis(gen);
 }
 
+double RandomNumGenerator::getRandomNormal(){
+    normal_distribution<> d(0.0, 1.0);
+    return d(gen);
+}
+
 double RandomNumGenerator::getEventProbability() {
     uniform_real_distribution<> dis(0, 1);
     return dis(gen);

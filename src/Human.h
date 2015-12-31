@@ -21,6 +21,9 @@ private:
     int houseMemNum;
     std::unique_ptr<std::vector<std::vector<std::pair<std::string,double>>>> trajectories;
     double bodySize;
+    double bodySizeBirth;
+    double bodySizeAdult;
+    double bodySizeSlope;
     double attractiveness;
     char gender;
     std::map<unsigned,bool> immunity_perm;
@@ -66,12 +69,15 @@ public:
     int getHouseMemNum() const;
     int getAge(unsigned) const;
     double getBodySize() const;
+    void initiateBodySize(unsigned,RandomNumGenerator&);
+    void updateBodySize(unsigned);
     double getAttractiveness() const;
+    void updateAttractiveness(unsigned);
     char getGender() const;
     std::string toString() const;
     std::vector<std::pair<std::string,double>> const& getTrajectory(unsigned) const;
     std::string getCurrentLoc(double);
-    Human(std::string,int,int,double,char,std::unique_ptr<std::vector<std::vector<std::pair<std::string,double>>>>&,RandomNumGenerator&,unsigned,double);
+    Human(std::string,int,int,char,std::unique_ptr<std::vector<std::vector<std::pair<std::string,double>>>>&,RandomNumGenerator&,unsigned,double);
     Human();
     Human(const Human& orig);
     virtual ~Human();
