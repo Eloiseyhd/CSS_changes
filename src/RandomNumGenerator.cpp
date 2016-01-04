@@ -84,7 +84,7 @@ string RandomNumGenerator::toString() const {
 
 RandomNumGenerator::RandomNumGenerator(
     unsigned s, unsigned huImm, double efactor, double mlife,
-    unsigned mrest, std::map<unsigned,double> hlife)
+    double mrest, std::map<unsigned,double> hlife)
 {
     seed = s;
     gen.seed(s);

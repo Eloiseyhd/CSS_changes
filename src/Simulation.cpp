@@ -36,7 +36,7 @@ string Simulation::readInputs() {
     if (!outpop.good()) {
         exit(1);
     }
-    outpop << "year,noinf_0008,inf_0008,noinf_0918,inf_0918,noinf_1999,inf_1999,nodis_0008,dis_0008,nodis_0918,dis_0918,nodis_1999,dis_1999,nohosp_0008,hosp_0008,nohosp_0918,hosp_0918,nohosp_1999,hosp_1999\n";
+    outpop << "year,seropos,seroneg\n";
 
     RandomNumGenerator rgen(rSeed, huImm, emergeFactor, mlife, mrest, halflife);
     rGen = rgen;
@@ -50,7 +50,7 @@ string Simulation::readInputs() {
 
 
 void Simulation::simEngine() {
-    while(currentDay < numDays){
+    while(currentDay < numDays){        
         humanDynamics();
         mosquitoDynamics();
 
@@ -158,6 +158,10 @@ void Simulation::humanDynamics() {
         // update temporary cross-immunity status if necessary
         if(currentDay == it->second->getImmEndDay())
             it->second->setImmunityTemp(false);
+
+        // update infection status if necessary
+        if(it->second->infection != nullptr)
+            it->second->checkRecovered(currentDay);
 
         // select movement trajectory for the day
         (it->second)->setTrajDay(rGen.getRandomNum(5));
@@ -336,8 +340,6 @@ void Simulation::readSimControlFile(string line) {
     getline(infile, line, ',');
     deathRate = strtod(line.c_str(), NULL);    
     getline(infile, line, ',');
-    FOI = strtod(line.c_str(),NULL);
-    getline(infile, line, ',');
     ForceOfImportation = strtod(line.c_str(),NULL);
     getline(infile, line, ',');
     huImm = strtol(line.c_str(), NULL, 10);
@@ -350,9 +352,7 @@ void Simulation::readSimControlFile(string line) {
     getline(infile, line, ',');
     mozMoveProbability = strtod(line.c_str(), NULL);
     getline(infile, line, ',');
-    mrest = strtol(line.c_str(), NULL, 10);
-    getline(infile, line, ',');
-    vaccinationStrategy = line;
+    mrest = strtod(line.c_str(), NULL);
 }
 
 
@@ -471,7 +471,7 @@ void Simulation::readHumanFile(string humanFile) {
                 getline(infile, line, ',');
         }
 
-        unique_ptr<Human> h(new Human(houseID, hMemID, age, gen, trajectories, rGen, currentDay, FOI));
+        unique_ptr<Human> h(new Human(houseID, hMemID, age, gen, trajectories, rGen, currentDay));
 
         std::set<std::string> locsVisited = h->getLocsVisited();
         for(std::set<std::string>::iterator itrSet = locsVisited.begin(); itrSet != locsVisited.end(); itrSet++)

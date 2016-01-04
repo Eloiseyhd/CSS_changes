@@ -54,7 +54,7 @@ void Mosquito::takeBite(
     if(infection == nullptr){
         infectingBite(time, locNow, rGen, currentDay, numDays);
     }
-    else if(infection->getInfectiousness() > 0){
+    else if(infection->getInfectiousness() > 0.0){
         infectiousBite(time, locNow, rGen, currentDay, numDays, out);
     }
 }
@@ -111,7 +111,7 @@ void Mosquito::infectingBite(
         if(humBite->infection != nullptr){
             humBite->infection->setInfectiousnessHuman(currentDay);
             if(rGen->getEventProbability() < humBite->infection->getInfectiousness()){
-                double sday = currentDay + rGen->getMozLatencyDays();
+                double sday = double(currentDay) + rGen->getMozLatencyDays();
                 int eday = numDays + 1;
                 infection.reset(new Infection(
                     round(sday), eday, 0.0, humBite->infection->getInfectionType(), 0, 0));

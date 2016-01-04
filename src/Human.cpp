@@ -12,8 +12,7 @@ Human::Human(
     char gen,
     unique_ptr<vector<vector<pair<string, double >> >> &paths,
     RandomNumGenerator& rGen,
-    unsigned currDay,
-    double FOI)
+    unsigned currDay)
 {
     houseID = hID;
     houseMemNum = hMemID;
@@ -30,10 +29,10 @@ Human::Human(
 
     if(bday < currDay - 180){
         immunity_temp = false;
-        setImmunityPerm(1,rGen.getHumanSeropositivity(FOI, (currDay - bday) / 365.0));
-        setImmunityPerm(2,rGen.getHumanSeropositivity(FOI, (currDay - bday) / 365.0));
-        setImmunityPerm(3,rGen.getHumanSeropositivity(FOI, (currDay - bday) / 365.0));
-        setImmunityPerm(4,rGen.getHumanSeropositivity(FOI, (currDay - bday) / 365.0));
+        setImmunityPerm(1,false);
+        setImmunityPerm(2,false);
+        setImmunityPerm(3,false);
+        setImmunityPerm(4,false);
     } else {
         immunity_temp = true;
         immStartDay = bday;
@@ -264,34 +263,20 @@ std::string Human::getCurrentLoc(double time){
 
 
 
-string Human::toString() const {
-    stringstream ss;
-    ss << bday << " " << dday << " " << houseID << " " << houseMemNum << " " << bodySize << " " << gender;
-    ss << "\n" << infection->toString();
-    for (int i = 0; i < trajectories->size(); i++) {
-        auto path = (*trajectories.get())[i];
-        ss << "\n";
-        for (auto pa : path) {
-            ss << pa.first << " " << pa.second << " ";
+void Human::initiateBodySize(unsigned currDay, RandomNumGenerator& rGen){
+    bodySizeBirth = -1.0;
+    bodySizeAdult = -1.0;
+    while(bodySizeBirth <= 0.0 || bodySizeAdult <= 0.0){
+        if(gender == 'F'){
+            bodySizeBirth = 0.3085318 + 0.09302602 * rGen.getRandomNormal();
+            bodySizeAdult = 1.505055 + 0.12436 * rGen.getRandomNormal();
+            bodySizeSlope = (bodySizeAdult - bodySizeBirth) / 6030.0;
+        } else {
+            bodySizeBirth = 0.3114736 + 0.1532624 * rGen.getRandomNormal();
+            bodySizeAdult = 1.712391 + 0.1523652 * rGen.getRandomNormal();
+            bodySizeSlope = (bodySizeAdult - bodySizeBirth) / 6809.0;
         }
     }
-    ss << "\n";
-    return ss.str();
-}
-
-
-
-void Human::initiateBodySize(unsigned currDay, RandomNumGenerator& rGen){
-    if(gender == 'F'){
-        bodySizeBirth = 0.3085318 + 0.09302602 * rGen.getRandomNormal();
-        bodySizeAdult = 1.505055 + 0.12436 * rGen.getRandomNormal();
-        bodySizeSlope = (bodySizeAdult - bodySizeBirth) / 6030.0;
-    } else {
-        bodySizeBirth = 0.3114736 + 0.1532624 * rGen.getRandomNormal();
-        bodySizeAdult = 1.712391 + 0.1523652 * rGen.getRandomNormal();
-        bodySizeSlope = (bodySizeAdult - bodySizeBirth) / 6809.0;
-    }
-
     updateBodySize(currDay);
 }
 
@@ -319,6 +304,15 @@ void Human::updateAttractiveness(unsigned currDay){
     updateBodySize(currDay);
     attractiveness = pow(bodySize, 1.541);
 }
+
+
+
+void Human::checkRecovered(unsigned currDay){
+    if(infection->getEndDay() <= currDay){
+       infection.reset(nullptr);
+    }
+}
+
 
 
 

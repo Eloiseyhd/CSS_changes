@@ -15,7 +15,6 @@
 class Human {
 private:
     int bday;
-    int dday;
     int trajDay;
     std::string houseID;
     int houseMemNum;
@@ -58,6 +57,7 @@ public:
     void setTrajDay(int dayIn){trajDay = dayIn;}
     void vaccinate(std::map<unsigned,double> *,std::map<unsigned,double> *,double,int);
     void waneVaccination(){vaccinated = false;}
+    void checkRecovered(unsigned);
     bool isVaccinated(){return vaccinated;}
     int getRecentInf(){return recent_inf;}
     int getRecentDis(){return recent_dis;}
@@ -74,10 +74,9 @@ public:
     double getAttractiveness() const;
     void updateAttractiveness(unsigned);
     char getGender() const;
-    std::string toString() const;
     std::vector<std::pair<std::string,double>> const& getTrajectory(unsigned) const;
     std::string getCurrentLoc(double);
-    Human(std::string,int,int,char,std::unique_ptr<std::vector<std::vector<std::pair<std::string,double>>>>&,RandomNumGenerator&,unsigned,double);
+    Human(std::string,int,int,char,std::unique_ptr<std::vector<std::vector<std::pair<std::string,double>>>>&,RandomNumGenerator&,unsigned);
     Human();
     Human(const Human& orig);
     virtual ~Human();

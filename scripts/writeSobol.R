@@ -1,12 +1,11 @@
 source('functions.R')
 
-reps = 10000
+reps = 1000
 
 HumanImmunityDays = rep(686,2)
-ForceOfInfection = c(.001,.10)
 ForceOfImportation = c(1e-7,1e-5)
-EmergenceFactor = c(.1,10)
-MosquitoLifespan = c(3,30)
+EmergenceFactor = c(.5,5)
+MosquitoLifespan = c(2,20)
 MosquitoInfectiousness = c(0,1)
 MosquitoMoveProbability = rep(0.3,2)
 MosquitoRestDays = rep(2/3,2)
@@ -14,7 +13,6 @@ Seed = c(1,as.integer(Sys.time()))
 
 scalars = sobol(vars = list(
   HumanImmunityDays = HumanImmunityDays,
-  ForceOfInfection = ForceOfInfection,
   ForceOfImportation = ForceOfImportation,
   EmergenceFactor = EmergenceFactor,
   MosquitoLifespan = MosquitoLifespan,
@@ -28,7 +26,7 @@ for(ii in 1 : reps){
   writeSimControl.sobol(
     simControlNum = ii,
     reps = 1, # reps,
-    NumDays = 365 * 30,
+    NumDays = 365 * 100,
     OutputPath = '.',
     LocationFile = 'locations_20150801.csv',
     VaccineProfileFile = 'vaccine_profile_placebo.csv',

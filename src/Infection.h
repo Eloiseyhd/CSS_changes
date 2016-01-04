@@ -11,7 +11,7 @@ public:
     int getEndDay() const;
     double getInfectiousness() const;
     unsigned getInfectionType() const;
-    void setInfectiousnessHuman(double);
+    void setInfectiousnessHuman(int);
     void setInfectiousnessMosquito(double);
     std::string toString() const;
     Infection(unsigned, unsigned, double, unsigned, bool, bool);

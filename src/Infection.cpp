@@ -23,21 +23,21 @@ void Infection::setInfectiousnessMosquito(double in){
     infectiousness = in;
 }
 
-void Infection::setInfectiousnessHuman(double currentDay) {
+void Infection::setInfectiousnessHuman(int currentDay){
     if(symptomatic){
         if(primary){
-            infectiousness = exp(-0.204981 * pow((currentDay - startDay) - 5.538213, 2)) / 0.9999993;
+            infectiousness = exp(-0.204981 * pow(double(currentDay - startDay) - 5.538213, 2)) / 0.9999993;
         }
         else{
-            infectiousness = exp(-0.3836628 * pow((currentDay - startDay) - 5.8745411, 2)) / 0.9999921;
+            infectiousness = exp(-0.3836628 * pow(double(currentDay - startDay) - 5.8745411, 2)) / 0.9999921;
         }
     }
     else{
         if(primary){
-            infectiousness = exp(-0.2503908 * pow((currentDay - startDay) - 5.5852691, 2)) / 0.9999944;
+            infectiousness = exp(-0.2503908 * pow(double(currentDay - startDay) - 5.5852691, 2)) / 0.9999944;
         }
         else{
-            infectiousness = exp(-0.5841903 * pow((currentDay - startDay) - 4.8839302, 2)) / 0.999991;
+            infectiousness = exp(-0.5841903 * pow(double(currentDay - startDay) - 4.8839302, 2)) / 0.999991;
         }
     }
 }

@@ -20,7 +20,7 @@ public:
     unsigned getMozNextLoc(unsigned);
     void setSeed(unsigned);
     std::string toString() const;
-    RandomNumGenerator(unsigned, unsigned, double, double, unsigned, std::map<unsigned,double>);
+    RandomNumGenerator(unsigned, unsigned, double, double, double, std::map<unsigned,double>);
     RandomNumGenerator();
     RandomNumGenerator(const RandomNumGenerator& orig);
     virtual ~RandomNumGenerator();

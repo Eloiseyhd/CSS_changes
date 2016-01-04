@@ -15,7 +15,7 @@ writeSimControl.sobol = function(
   simControlFile = paste('/tmp/tperkin1/cmdvi/SimControl_calibrate_', simControlNum - 1, '.csv', sep='')
 
   file.connection = file(simControlFile)
-	toWrite = 'SimulationName,Seed,NumDays,OutputPath,LocationFile,TrajectoryFile,VaccineProfileFile,DeathRate,ForceOfInfection,ForceOfImportation,HumanImmunityDays,EmergenceFactor,MosquitoLifespan,MosquitoInfectiousness,MosquitoMoveProbability,MosquitoRestDays\n'
+	toWrite = 'SimulationName,Seed,NumDays,OutputPath,LocationFile,TrajectoryFile,VaccineProfileFile,DeathRate,ForceOfImportation,HumanImmunityDays,EmergenceFactor,MosquitoLifespan,MosquitoInfectiousness,MosquitoMoveProbability,MosquitoRestDays\n'
 
 	TrajectoryFile = 'trajectories.txt'
 
@@ -32,7 +32,6 @@ writeSimControl.sobol = function(
 			TrajectoryFile, ',',
       VaccineProfileFile, ',',
 			demo_rates$death, ',',
-			scalars$ForceOfInfection[ii], ',',
 			scalars$ForceOfImportation[ii], ',',
       scalars$HumanImmunityDays[ii], ',',
 			scalars$EmergenceFactor[ii], ',',

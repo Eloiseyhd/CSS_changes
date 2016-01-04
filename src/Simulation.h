@@ -56,12 +56,11 @@ private:
     unsigned humanInfectionDays;
     unsigned huImm;
     double mlife;
-    unsigned mrest;
+    double mrest;
     double emergeFactor;
     double biteProbablity;
     double mozInfectiousness;   
     double mozMoveProbability;
-    double FOI;
     double ForceOfImportation;
     unsigned year;
     std::ofstream out;
