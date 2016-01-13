@@ -45,6 +45,12 @@ unsigned RandomNumGenerator::getHumanImmunity() {
     return ceil(d(gen));
 }
 
+unsigned RandomNumGenerator::getVaxHumanImmunity(unsigned immdays) {
+  exponential_distribution<> d(1./immdays);
+  return ceil(d(gen));
+}
+
+
 bool RandomNumGenerator::getHumanSeropositivity(double FOI, double age) {
     if(getEventProbability() < 1 - exp(-FOI * age)){
         return true;

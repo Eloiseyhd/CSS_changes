@@ -47,18 +47,18 @@ void Mosquito::takeBite(
     double time,
     Location * locNow,
     RandomNumGenerator * rGen,
+    RandomNumGenerator * rGenInf,
     int currentDay,
     int numDays,
     std::ofstream * out)
 {
     if(infection == nullptr){
-        infectingBite(time, locNow, rGen, currentDay, numDays);
+      infectingBite(time, locNow, rGen, rGenInf, currentDay, numDays);
     }
     else if(infection->getInfectiousness() > 0.0){
-        infectiousBite(time, locNow, rGen, currentDay, numDays, out);
+      infectiousBite(time, locNow, rGen, rGenInf, currentDay, numDays, out);
     }
 }
-
 
 
 Human * Mosquito::whoBite(
@@ -66,14 +66,14 @@ Human * Mosquito::whoBite(
     Location * locNow,
     RandomNumGenerator * rGen)
 {
-    std::map<Human *,double> humanMap;
-    std::set<Human *>* humans = locNow->getHumans();
-    std::set<Human *>::iterator itrHum = humans->begin();
-
+    std::map<Human *,double,Human::sortid> humanMap;
+    std::set<Human *,Human::sortid>* humans = locNow->getHumans();
+    std::set<Human *,Human::sortid>::iterator itrHum = humans->begin();
     for(; itrHum != humans->end(); itrHum++){
         std::string currentLoc = (*itrHum)->getCurrentLoc(time);
         if(currentLoc == locationID){
             humanMap.insert(std::pair<Human *,double>(*itrHum,(*itrHum)->getAttractiveness()));
+	    //	    printf("Mosquito %lu in loc %s can bite human %s-%d\n",mID,locNow->getLocID().c_str(),(*itrHum)->getHouseID().c_str(),(*itrHum)->getHouseMemNum());
         }
     }
 
@@ -81,7 +81,7 @@ Human * Mosquito::whoBite(
         return NULL;
 
     double attractivenessSum = 0;
-    std::map<Human *,double>::iterator mapItr = humanMap.begin();
+    std::map<Human *,double,Human::sortid>::iterator mapItr = humanMap.begin();
     for(; mapItr != humanMap.end(); mapItr++)
         attractivenessSum += mapItr->second;
 
@@ -100,23 +100,29 @@ void Mosquito::infectingBite(
     double time,
     Location * locNow,
     RandomNumGenerator * rGen,
+    RandomNumGenerator * rGenInf,
     int currentDay,
     int numDays)
 {
     Human * humBite = whoBite(time, locNow, rGen);
 
     if(humBite != NULL){
+      //      printf("Mosquito %lu in loc %s bit human %s-%d\n",mID,locNow->getLocID().c_str(),humBite->getHouseID().c_str(),humBite->getHouseMemNum());
         setState(Mosquito::MozState::REST);
         setBiteStartDay(currentDay + rGen->getMozRestDays());
         if(humBite->infection != nullptr){
             humBite->infection->setInfectiousnessHuman(currentDay);
+	    //	    printf("Possible infection for Mosquito from human %s-%d\n",humBite->getHouseID().c_str(),humBite->getHouseMemNum());
             if(rGen->getEventProbability() < humBite->infection->getInfectiousness()){
                 double sday = double(currentDay) + rGen->getMozLatencyDays();
                 int eday = numDays + 1;
                 infection.reset(new Infection(
                     round(sday), eday, 0.0, humBite->infection->getInfectionType(), 0, 0));
+		//		printf("Mosquito bit human %s-%d is infected\n",humBite->getHouseID().c_str(),humBite->getHouseMemNum());
             }
         }        
+    }else{
+      //      printf("Mosquito %lu in loc %s could not find anybody to bite\n",mID,locNow->getLocID().c_str());
     }
 }
 
@@ -126,6 +132,7 @@ void Mosquito::infectiousBite(
     double time,
     Location * locNow,
     RandomNumGenerator * rGen,
+    RandomNumGenerator * rGenInf,
     int currentDay,
     int numDays,
     std::ofstream * out)
@@ -145,16 +152,16 @@ void Mosquito::infectiousBite(
                 int disease = 0;
                 int hospitalized = 0;
                 int vaxAdvancement = 0;
-                // if(humBite->isVaccinated()){
-                //     vaxAdvancement = 1;
-                // }
+		if(humBite->isVaccinated()){
+		  vaxAdvancement = 1;
+                }
                 if(humBite->getPreviousInfections() + vaxAdvancement == 0){
                     if(rGen->getEventProbability() < 0.3){
                         disease = infection->getInfectionType();
                         if(rGen->getEventProbability() < 0.111){
                             hospitalized = infection->getInfectionType();
                         }
-                    }
+		    }
                 }else if(humBite->getPreviousInfections() + vaxAdvancement == 1){
                     if(rGen->getEventProbability() < 0.6){
                         disease = infection->getInfectionType();
@@ -184,9 +191,10 @@ void Mosquito::infectiousBite(
                             disease = 0;   
                     }
                 }
-
+		//		printf("Possible infection to human: %s - %d\n", humBite->getHouseID().c_str(),humBite->getHouseMemNum());
                 // check to see whether the human is immune
                 if(humBite->isImmune(infection->getInfectionType()))
+		  //		  printf("Is immune. Human: %s - %d\n", humBite->getHouseID().c_str(),humBite->getHouseMemNum());
                     return;
 
                 // record infection and update immune status
@@ -199,7 +207,7 @@ void Mosquito::infectiousBite(
                 humBite->setImmStartDay(currentDay);
                 humBite->setImmEndDay(currentDay + 14 + rGen->getHumanImmunity());
                 humBite->updateRecent(1, disease > 0, hospitalized > 0);
-
+		//		printf("Successful infection to human: %s - %d\n", humBite->getHouseID().c_str(),humBite->getHouseMemNum());
                 // write data about infection to output file
                 // *out << currentDay << "," << infection->getInfectionType() << "," << disease << ",";
                 // *out << humBite->getAge(currentDay) << "," << humBite->getPreviousInfections() << ",";

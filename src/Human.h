@@ -55,7 +55,7 @@ public:
     double getVE(unsigned sero){return VE.at(sero);}
     int getTrajDay(){return trajDay;}
     void setTrajDay(int dayIn){trajDay = dayIn;}
-    void vaccinate(std::map<unsigned,double> *,std::map<unsigned,double> *,double,int);
+    void vaccinate(std::map<unsigned,double> *,std::map<unsigned,double> *,RandomNumGenerator&,double,int);
     void waneVaccination(){vaccinated = false;}
     void checkRecovered(unsigned);
     bool isVaccinated(){return vaccinated;}
@@ -80,6 +80,14 @@ public:
     Human();
     Human(const Human& orig);
     virtual ~Human();
+    struct sortid{
+      bool operator() (const Human *a, const Human *b)const{
+	return b->getHouseID() + std::to_string(b->getHouseMemNum()) > a->getHouseID() + std::to_string(a->getHouseMemNum());
+      }
+    };
+    /*    bool operator< (const Human* h1) const
+    { return houseMemNum < h1->houseMemNum; }
+    */
 
 };
 

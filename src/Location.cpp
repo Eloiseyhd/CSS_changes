@@ -69,7 +69,7 @@ string Location::toString() const {
 }
 
 void Location::addHuman(Human * h) {
-    humans.insert(h);
+  humans.insert(h);
 }
 
 // void Location::printHumans() const {

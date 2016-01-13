@@ -66,6 +66,7 @@ void Human::reincarnate(unsigned currDay){
 void Human::vaccinate(
     std::map<unsigned,double> * vepos,
     std::map<unsigned,double> * veneg,
+    RandomNumGenerator& rGen,
     double partialEfficacy,
     int currDay)
 {
@@ -87,6 +88,15 @@ void Human::vaccinate(
             VE.insert(make_pair(it->first,1.0 - pow(1.0 - partialEfficacy * it->second, .5)));
         }
     }
+
+    //A vaccinated person has complete protection against all serotypes for an exponentially 
+    //  distributed period with mean 1 year after vaccination
+    setImmunityTemp(true);
+    setImmStartDay(currDay);
+    unsigned tempImmDays = currDay  + rGen.getVaxHumanImmunity(365);
+    //    printf ("TempImm, %u, %u\n",currDay,tempImmDays);
+    setImmEndDay(tempImmDays);
+
 }
 
 
