@@ -59,8 +59,8 @@ void Simulation::simEngine() {
   while(currentDay < numDays){        
     //    printf("simEngine Entered current day %d, max days %d\n",currentDay, numDays);
     //if(vaccineDay == currentDay && vaccinationFlag == true){printf("vaccination beings at day: %u\n",currentDay);}
-    double r = rGen.getEventProbability();
-    printf("day %d randomnumber r = %.4f\n",currentDay,r);
+    //    double r = rGen.getEventProbability();
+    //    printf("day %d randomnumber r = %.4f\n",currentDay,r);
     //    printf("day %d to humdynamics randomnumber r = %.4f\n",currentDay,r);
 
     humanDynamics();
