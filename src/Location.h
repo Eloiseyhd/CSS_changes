@@ -19,12 +19,12 @@ private:
     std::string locType;
     std::unique_ptr<std::vector<std::string>> closeLocs;
     // std::forward_list<std::unique_ptr<Human>> humansVisit;
-    std::set<Human *> humans;
+    std::set<Human *,Human::sortid> humans;
 public:
     std::string getRandomCloseLoc(RandomNumGenerator&);
     // void printHumans() const;
     void addHuman(Human *);
-    std::set<Human *>* getHumans(){return &humans;}
+    std::set<Human *,Human::sortid>* getHumans(){return &humans;}
     void addCloseLoc(std::string);
     double getDistanceFromLoc(Location &) const;
     double getLocX() const;
@@ -38,6 +38,7 @@ public:
     Location();
     Location(const Location& orig);
     virtual ~Location();
+
 private:
 
 };

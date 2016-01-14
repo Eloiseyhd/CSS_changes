@@ -24,10 +24,10 @@ public:
     double getBiteStartDay();
     void setFly(bool);
     bool getFly() const;
-    void takeBite(double,Location *,RandomNumGenerator *,int,int,std::ofstream *);
+    void takeBite(double,Location *,RandomNumGenerator *, RandomNumGenerator *,int,int,std::ofstream *);
     Human * whoBite(double,Location *,RandomNumGenerator *);
-    void infectingBite(double,Location *,RandomNumGenerator *,int,int);
-    void infectiousBite(double,Location *,RandomNumGenerator *,int,int,std::ofstream *);
+    void infectingBite(double,Location *,RandomNumGenerator *,RandomNumGenerator *,int,int);
+    void infectiousBite(double,Location *,RandomNumGenerator *,RandomNumGenerator *,int,int,std::ofstream *);
     std::string printInfections() const;
     std::string toString() const;
     Mosquito(unsigned long, unsigned, double, double, std::string);

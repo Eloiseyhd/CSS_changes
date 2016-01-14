@@ -34,12 +34,17 @@ string Simulation::readInputs() {
     outputPopFile = outputPath + "/" + simName + "_pop.csv";
     outpop.open(outputPopFile);
     if (!outpop.good()) {
+      //      printf("cannot create output file %s\n",outputPopFile.c_str());
         exit(1);
     }
     outpop << "year,seropos,seroneg\n";
 
+
     RandomNumGenerator rgen(rSeed, huImm, emergeFactor, mlife, mrest, halflife);
     rGen = rgen;
+
+    RandomNumGenerator rgen2(rSeedInf, huImm, emergeFactor, mlife, mrest, halflife);
+    rGenInf = rgen2;
     readVaccineProfileFile();
     readLocationFile(locationFile);
     readHumanFile(trajectoryFile);
@@ -50,22 +55,31 @@ string Simulation::readInputs() {
 
 
 void Simulation::simEngine() {
-    while(currentDay < numDays){        
-        humanDynamics();
-        mosquitoDynamics();
-
-        if(ceil((currentDay + 1) / 365) != ceil(currentDay / 365)){
-            year++;
-            updatePop();
-        }
-
-        currentDay++;
+  //  if(vaccinationFlag == true){printf("Vaccination is activated for day %u\n",vaccineDay);}
+  while(currentDay < numDays){        
+    //    printf("simEngine Entered current day %d, max days %d\n",currentDay, numDays);
+    //    if(vaccineDay == currentDay && vaccinationFlag == true){printf("vaccination beings at day: %u\n",currentDay);}
+    //    double r = rGen.getEventProbability();
+    //    printf("day %d to humdynamics randomnumber r = %.4f\n",currentDay,r);
+    humanDynamics();
+    //    r = rGen.getEventProbability();
+    //    printf("day %d to mosdynamics randomnumber r = %.4f\n",currentDay,r);
+    mosquitoDynamics();
+    //    r = rGen.getEventProbability();
+    //    printf("day %d after mosdynamics randomnumber r = %.4f\n", currentDay,r);
+    if(ceil((currentDay + 1) / 365) != ceil(currentDay / 365)){
+      year++;
+	updatePop();
     }
+    
+    currentDay++;
+  }
 }
 
 
 
 void Simulation::updatePop(){
+  //  printf("update pop year: %u\n",year);
     int count;
     int age;
     int age_09 = 9 * 365;
@@ -149,7 +163,7 @@ void Simulation::updatePop(){
 void Simulation::humanDynamics() {
     int diff, age, dose;
     bool vaxd = false;
-
+    //    printf("human dynamics entered\n");
     for (auto it = humans.begin(); it != humans.end(); ++it) {
         // daily mortality for humans by age
         if(rGen.getEventProbability() < (deathRate * it->second->getAge(currentDay)))
@@ -175,50 +189,53 @@ void Simulation::humanDynamics() {
                 it->second->updateImmunityPerm(serotype,true);
                 it->second->setImmunityTemp(true);
                 it->second->setImmStartDay(currentDay);
-                it->second->setImmEndDay(currentDay + 14 + rGen.getHumanImmunity());
+                it->second->setImmEndDay(currentDay + 14 + rGenInf.getHumanImmunity());
                 it->second->updateRecent(1, 0, 0);
+		//		printf("successful importation to human: %s - %d with serotype %d\n", it->second->getHouseID().c_str(),it->second->getHouseMemNum(),serotype);
             }
         }
-
-        // vaccinate if appropriate according to age
-        // if(vaccinationStrategy == "catchup" || vaccinationStrategy == "nocatchup"){
-            age = it->second->getAge(currentDay);
-            if(rGen.getEventProbability() < .8 || it->second->isVaccinated()){
-                if(age == 9 * 365){
-                    it->second->vaccinate(&VE_pos, &VE_neg, 1.0, currentDay);
-                    vaxd = true;
-                } else if(it->second->isVaccinated() && age == 9 * 365 + 183){
-                    it->second->vaccinate(&VE_pos, &VE_neg, 1.0, currentDay);
-                    vaxd = true;
-                } else if(it->second->isVaccinated() && age == 10 * 365){
-                    it->second->vaccinate(&VE_pos, &VE_neg, 1.0, currentDay);
-                    vaxd = true;
-                }
-            }            
-        // }
-        // if(vaccinationStrategy == "catchup"){
-        //     if(currentDay <= 365){
-        //         if(rGen.getEventProbability() < .8 / 365.0 || it->second->isVaccinated()){
-        //             if(!it->second->isVaccinated() && age >= 3 * 365 && age < 8 * 365){
-        //                 it->second->vaccinate(&VE_pos, &VE_neg, 1.0/3.0, currentDay);
-        //                 vaxd = true;
-        //             }
-        //         }
-        //     }
-        //     if(currentDay <= 365 + 183 && currentDay > 182){
-        //         if(it->second->isVaccinated() && age >= 3 * 365 + 183 && age < 8 * 365 + 183){
-        //                 it->second->vaccinate(&VE_pos, &VE_neg, 2.0/3.0, currentDay);
-        //                 vaxd = true;
-        //         }
-        //     }
-        //     if(currentDay <= 365 * 2 && currentDay > 365){
-        //         if(it->second->isVaccinated() && age >= 4 * 365 && age < 9 * 365){
-        //                 it->second->vaccinate(&VE_pos, &VE_neg, 1.0, currentDay);
-        //                 vaxd = true;
-        //         }
-        //     }
-        // }
+	if(vaccineDay <= currentDay && vaccinationFlag == true){
+	  // vaccinate if appropriate according to age
+	  // if(vaccinationStrategy == "catchup" || vaccinationStrategy == "nocatchup"){
+	  age = it->second->getAge(currentDay);
+	  if(rGenInf.getEventProbability() < .8 || it->second->isVaccinated()){
+	    if(age == 9 * 365){
+	      it->second->vaccinate(&VE_pos, &VE_neg,rGenInf, 1.0, currentDay);
+	      vaxd = true;
+	    } else if(it->second->isVaccinated() && age == 9 * 365 + 183){
+	      it->second->vaccinate(&VE_pos, &VE_neg,rGenInf, 1.0, currentDay);
+	      vaxd = true;
+	    } else if(it->second->isVaccinated() && age == 10 * 365){
+	      it->second->vaccinate(&VE_pos, &VE_neg,rGenInf, 1.0, currentDay);
+	      vaxd = true;
+	    }
+	  } 
+	}           
+	// }
+	/* if(vaccinationStrategy == "catchup"){
+            if(currentDay <= 365){
+                 if(rGen.getEventProbability() < .8 / 365.0 || it->second->isVaccinated()){
+                     if(!it->second->isVaccinated() && age >= 3 * 365 && age < 8 * 365){
+                         it->second->vaccinate(&VE_pos, &VE_neg, 1.0/3.0, currentDay);
+                         vaxd = true;
+                     }
+                 }
+             }
+             if(currentDay <= 365 + 183 && currentDay > 182){
+	if(it->second->isVaccinated() && age >= 3 * 365 + 183 && age < 8 * 365 + 183){
+                         it->second->vaccinate(&VE_pos, &VE_neg, 2.0/3.0, currentDay);
+                         vaxd = true;
+                 }
+             }
+             if(currentDay <= 365 * 2 && currentDay > 365){
+                 if(it->second->isVaccinated() && age >= 4 * 365 && age < 9 * 365){
+                         it->second->vaccinate(&VE_pos, &VE_neg, 1.0, currentDay);
+                         vaxd = true;
+                 }
+             }
+	*/
     }
+   //    printf("human dynamics finished\n");
 }
 
 
@@ -239,7 +256,7 @@ void Simulation::mosquitoDynamics() {
             it->second->setState(Mosquito::MozState::BITE);
             biteTime = it->second->getBiteStartDay() - double(currentDay);
             if(biteTime < 0){
-                biteTime = rGen.getEventProbability();
+                biteTime = rGenInf.getEventProbability();
             }
         }
  
@@ -257,8 +274,7 @@ void Simulation::mosquitoDynamics() {
 
         // if the mosquito bites first, then let it bite and then see about dying
         if(biteTime < dieTime && biteTime <= 1.0){
-            it->second->takeBite(biteTime,locations[it->second->getLocationID()].get(),&rGen,currentDay,numDays,&out);
-
+	  it->second->takeBite(biteTime,locations[it->second->getLocationID()].get(),&rGen,&rGenInf,currentDay,numDays,&out);
             if(dieTime < 1.0){
                 auto it_temp = it;
                 it++;
@@ -267,11 +283,15 @@ void Simulation::mosquitoDynamics() {
             }
         }
  
-        // let the mosquito move if that happens today
-        if(rGen.getEventProbability() < mozMoveProbability) {
+        // let the mosquito move if that happens today 
+	double moveProb = rGen.getEventProbability();
+	//	printf("Mosquito: %u in location %s move prob %.4f vs %.4f\n", it->second->getMosquitoID(),it->first.c_str(),moveProb,mozMoveProbability);
+        if(moveProb < mozMoveProbability) {
             string newLoc = locations.find(it->first)->second->getRandomCloseLoc(rGen);
+	    //	    printf("Mosquito: %u possibly moves to new location: %s\n",it->second->getMosquitoID(),newLoc.c_str());
             if(newLoc != "TOO_FAR_FROM_ANYWHERE") {
                 it->second->setLocation(newLoc);
+		//		printf("Mosquito: %u move to new location: %s\n",it->second->getMosquitoID(),newLoc.c_str());
                 mosquitoes.insert(make_pair(newLoc, move(it->second)));
                 auto it_temp = it;
                 it++;
@@ -328,7 +348,13 @@ void Simulation::readSimControlFile(string line) {
     getline(infile, line, ',');
     rSeed = strtol(line.c_str(), NULL, 10);
     getline(infile, line, ',');
+    rSeedInf = strtol(line.c_str(), NULL, 10);
+    getline(infile, line, ',');
     numDays = strtol(line.c_str(), NULL, 10);
+    getline(infile, line, ',');
+    vaccineDay = strtol(line.c_str(), NULL, 10);
+    getline(infile, line, ',');
+    vaccinationFlag = (stoi(line.c_str(), NULL, 10) == 0 ? false : true);
     getline(infile, line, ',');
     outputPath = line;
     getline(infile, line, ',');

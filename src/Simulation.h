@@ -12,6 +12,7 @@
 class Simulation {
 public:
     RandomNumGenerator rGen;
+    RandomNumGenerator rGenInf;
 
     Simulation(std::string);
     Simulation();
@@ -47,10 +48,13 @@ private:
     std::string locationFile;
     std::string vaccineProfileFile;
     std::string vaccinationStrategy;
+    bool vaccinationFlag;
+    unsigned vaccineDay;
     std::string outputFile;
     std::string outputPopFile;
     std::string simName;
     unsigned rSeed;
+    unsigned rSeedInf;
     std::string outputPath;
     double deathRate;
     unsigned humanInfectionDays;
@@ -63,6 +67,7 @@ private:
     double mozMoveProbability;
     double ForceOfImportation;
     unsigned year;
+
     std::ofstream out;
     std::ofstream outpop;
 };

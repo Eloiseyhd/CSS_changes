@@ -11,6 +11,7 @@ public:
     double getMozLifeSpan();
     unsigned getHumanTrajectory();
     unsigned getHumanImmunity();
+    unsigned getVaxHumanImmunity(unsigned);
     bool getHumanSeropositivity(double, double);
     unsigned getRandomNum(unsigned);
     double getRandomNormal();
