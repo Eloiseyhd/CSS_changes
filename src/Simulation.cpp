@@ -43,7 +43,7 @@ string Simulation::readInputs() {
     RandomNumGenerator rgen(rSeed, huImm, emergeFactor, mlife, mrest, halflife);
     rGen = rgen;
 
-    RandomNumGenerator rgen2(1315730500, huImm, emergeFactor, mlife, mrest, halflife);
+    RandomNumGenerator rgen2(rSeedInf, huImm, emergeFactor, mlife, mrest, halflife);
     rGenInf = rgen2;
     readVaccineProfileFile();
     readLocationFile(locationFile);
@@ -55,21 +55,18 @@ string Simulation::readInputs() {
 
 
 void Simulation::simEngine() {
-  if(vaccinationFlag == true)
-    //    printf("Vaccination is activated for day %u\n",vaccineDay);
-  
+  //  if(vaccinationFlag == true){printf("Vaccination is activated for day %u\n",vaccineDay);}
   while(currentDay < numDays){        
     //    printf("simEngine Entered current day %d, max days %d\n",currentDay, numDays);
-    if(vaccineDay == currentDay && vaccinationFlag == true)
-      //      printf("vaccination beings at day: %u\n",currentDay);
-      /*      for(int i = 0;i<4;i++){
-	      double r = rGen.getEventProbability();
-	      }
-	      double r = rGen.getEventProbability();
-	      printf("randomnumber r = %.4f\n",r);*/
+    //    if(vaccineDay == currentDay && vaccinationFlag == true){printf("vaccination beings at day: %u\n",currentDay);}
+    //    double r = rGen.getEventProbability();
+    //    printf("day %d to humdynamics randomnumber r = %.4f\n",currentDay,r);
     humanDynamics();
+    //    r = rGen.getEventProbability();
+    //    printf("day %d to mosdynamics randomnumber r = %.4f\n",currentDay,r);
     mosquitoDynamics();
-    
+    //    r = rGen.getEventProbability();
+    //    printf("day %d after mosdynamics randomnumber r = %.4f\n", currentDay,r);
     if(ceil((currentDay + 1) / 365) != ceil(currentDay / 365)){
       year++;
 	updatePop();
@@ -192,7 +189,7 @@ void Simulation::humanDynamics() {
                 it->second->updateImmunityPerm(serotype,true);
                 it->second->setImmunityTemp(true);
                 it->second->setImmStartDay(currentDay);
-                it->second->setImmEndDay(currentDay + 14 + rGen.getHumanImmunity());
+                it->second->setImmEndDay(currentDay + 14 + rGenInf.getHumanImmunity());
                 it->second->updateRecent(1, 0, 0);
 		//		printf("successful importation to human: %s - %d with serotype %d\n", it->second->getHouseID().c_str(),it->second->getHouseMemNum(),serotype);
             }
@@ -201,15 +198,15 @@ void Simulation::humanDynamics() {
 	  // vaccinate if appropriate according to age
 	  // if(vaccinationStrategy == "catchup" || vaccinationStrategy == "nocatchup"){
 	  age = it->second->getAge(currentDay);
-	  if(rGen.getEventProbability() < .8 || it->second->isVaccinated()){
+	  if(rGenInf.getEventProbability() < .8 || it->second->isVaccinated()){
 	    if(age == 9 * 365){
-	      it->second->vaccinate(&VE_pos, &VE_neg,rGen, 1.0, currentDay);
+	      it->second->vaccinate(&VE_pos, &VE_neg,rGenInf, 1.0, currentDay);
 	      vaxd = true;
 	    } else if(it->second->isVaccinated() && age == 9 * 365 + 183){
-	      it->second->vaccinate(&VE_pos, &VE_neg,rGen, 1.0, currentDay);
+	      it->second->vaccinate(&VE_pos, &VE_neg,rGenInf, 1.0, currentDay);
 	      vaxd = true;
 	    } else if(it->second->isVaccinated() && age == 10 * 365){
-	      it->second->vaccinate(&VE_pos, &VE_neg,rGen, 1.0, currentDay);
+	      it->second->vaccinate(&VE_pos, &VE_neg,rGenInf, 1.0, currentDay);
 	      vaxd = true;
 	    }
 	  } 
@@ -259,7 +256,7 @@ void Simulation::mosquitoDynamics() {
             it->second->setState(Mosquito::MozState::BITE);
             biteTime = it->second->getBiteStartDay() - double(currentDay);
             if(biteTime < 0){
-                biteTime = rGen.getEventProbability();
+                biteTime = rGenInf.getEventProbability();
             }
         }
  
@@ -350,6 +347,8 @@ void Simulation::readSimControlFile(string line) {
     simName = line;
     getline(infile, line, ',');
     rSeed = strtol(line.c_str(), NULL, 10);
+    getline(infile, line, ',');
+    rSeedInf = strtol(line.c_str(), NULL, 10);
     getline(infile, line, ',');
     numDays = strtol(line.c_str(), NULL, 10);
     getline(infile, line, ',');

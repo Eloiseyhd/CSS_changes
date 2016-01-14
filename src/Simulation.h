@@ -54,6 +54,7 @@ private:
     std::string outputPopFile;
     std::string simName;
     unsigned rSeed;
+    unsigned rSeedInf;
     std::string outputPath;
     double deathRate;
     unsigned humanInfectionDays;

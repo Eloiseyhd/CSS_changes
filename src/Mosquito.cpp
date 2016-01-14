@@ -104,17 +104,17 @@ void Mosquito::infectingBite(
     int currentDay,
     int numDays)
 {
-    Human * humBite = whoBite(time, locNow, rGen);
+    Human * humBite = whoBite(time, locNow, rGenInf);
 
     if(humBite != NULL){
       //      printf("Mosquito %lu in loc %s bit human %s-%d\n",mID,locNow->getLocID().c_str(),humBite->getHouseID().c_str(),humBite->getHouseMemNum());
         setState(Mosquito::MozState::REST);
-        setBiteStartDay(currentDay + rGen->getMozRestDays());
+        setBiteStartDay(currentDay + rGenInf->getMozRestDays());
         if(humBite->infection != nullptr){
             humBite->infection->setInfectiousnessHuman(currentDay);
 	    //	    printf("Possible infection for Mosquito from human %s-%d\n",humBite->getHouseID().c_str(),humBite->getHouseMemNum());
-            if(rGen->getEventProbability() < humBite->infection->getInfectiousness()){
-                double sday = double(currentDay) + rGen->getMozLatencyDays();
+            if(rGenInf->getEventProbability() < humBite->infection->getInfectiousness()){
+                double sday = double(currentDay) + rGenInf->getMozLatencyDays();
                 int eday = numDays + 1;
                 infection.reset(new Infection(
                     round(sday), eday, 0.0, humBite->infection->getInfectionType(), 0, 0));
@@ -137,17 +137,17 @@ void Mosquito::infectiousBite(
     int numDays,
     std::ofstream * out)
 {
-    Human * humBite = whoBite(time, locNow, rGen);
+    Human * humBite = whoBite(time, locNow, rGenInf);
 
     // if someone is found to bite
     if(humBite != NULL){
         // update the mosquito's status
         setState(Mosquito::MozState::REST);
-        setBiteStartDay(currentDay + rGen->getMozRestDays());
+        setBiteStartDay(currentDay + rGenInf->getMozRestDays());
 
         // if the mosquito is infectious, the human susceptible, and the infection successful
         if(infection != nullptr && humBite->infection == nullptr && !humBite->isImmune(infection->getInfectionType())){
-            if(rGen->getEventProbability() < infection->getInfectiousness()){
+            if(rGenInf->getEventProbability() < infection->getInfectiousness()){
                 // clinical disease state
                 int disease = 0;
                 int hospitalized = 0;
@@ -156,23 +156,23 @@ void Mosquito::infectiousBite(
 		  vaxAdvancement = 1;
                 }
                 if(humBite->getPreviousInfections() + vaxAdvancement == 0){
-                    if(rGen->getEventProbability() < 0.3){
+                    if(rGenInf->getEventProbability() < 0.3){
                         disease = infection->getInfectionType();
-                        if(rGen->getEventProbability() < 0.111){
+                        if(rGenInf->getEventProbability() < 0.111){
                             hospitalized = infection->getInfectionType();
                         }
 		    }
                 }else if(humBite->getPreviousInfections() + vaxAdvancement == 1){
-                    if(rGen->getEventProbability() < 0.6){
+                    if(rGenInf->getEventProbability() < 0.6){
                         disease = infection->getInfectionType();
-                        if(rGen->getEventProbability() < 0.20868){
+                        if(rGenInf->getEventProbability() < 0.20868){
                             hospitalized = infection->getInfectionType();
                         }
                     }
                 }else{
-                    if(rGen->getEventProbability() < 0.1){
+                    if(rGenInf->getEventProbability() < 0.1){
                         disease = infection->getInfectionType();
-                        if(rGen->getEventProbability() < 0.05217){
+                        if(rGenInf->getEventProbability() < 0.05217){
                             hospitalized = infection->getInfectionType();
                         }
                     }
@@ -180,14 +180,14 @@ void Mosquito::infectiousBite(
 
                 // effect of vaccine on preventing infection and disease
                 if(humBite->isVaccinated()){
-                    if(rGen->getEventProbability() < humBite->getVE(infection->getInfectionType())){
-                        if(humBite->getVaccinationDay() + rGen->getWaningTime(infection->getInfectionType()) > currentDay){
+                    if(rGenInf->getEventProbability() < humBite->getVE(infection->getInfectionType())){
+                        if(humBite->getVaccinationDay() + rGenInf->getWaningTime(infection->getInfectionType()) > currentDay){
                             return;
                         } else {
                             humBite->waneVaccination();
                         }
                     } else {
-                        if(disease > 0 && rGen->getEventProbability() < humBite->getVE(infection->getInfectionType()))
+                        if(disease > 0 && rGenInf->getEventProbability() < humBite->getVE(infection->getInfectionType()))
                             disease = 0;   
                     }
                 }
@@ -205,7 +205,7 @@ void Mosquito::infectiousBite(
                 humBite->updateImmunityPerm(infection->getInfectionType(),true);
                 humBite->setImmunityTemp(true);
                 humBite->setImmStartDay(currentDay);
-                humBite->setImmEndDay(currentDay + 14 + rGen->getHumanImmunity());
+                humBite->setImmEndDay(currentDay + 14 + rGenInf->getHumanImmunity());
                 humBite->updateRecent(1, disease > 0, hospitalized > 0);
 		//		printf("Successful infection to human: %s - %d\n", humBite->getHouseID().c_str(),humBite->getHouseMemNum());
                 // write data about infection to output file
