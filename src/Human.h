@@ -85,9 +85,6 @@ public:
 	return b->getHouseID() + std::to_string(b->getHouseMemNum()) > a->getHouseID() + std::to_string(a->getHouseMemNum());
       }
     };
-    /*    bool operator< (const Human* h1) const
-    { return houseMemNum < h1->houseMemNum; }
-    */
 
 };
 

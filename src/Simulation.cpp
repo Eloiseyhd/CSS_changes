@@ -58,12 +58,15 @@ void Simulation::simEngine() {
   //  if(vaccinationFlag == true){printf("Vaccination is activated for day %u\n",vaccineDay);}
   while(currentDay < numDays){        
     //    printf("simEngine Entered current day %d, max days %d\n",currentDay, numDays);
-    //    if(vaccineDay == currentDay && vaccinationFlag == true){printf("vaccination beings at day: %u\n",currentDay);}
-    //    double r = rGen.getEventProbability();
+    //if(vaccineDay == currentDay && vaccinationFlag == true){printf("vaccination beings at day: %u\n",currentDay);}
+    double r = rGen.getEventProbability();
+    printf("day %d randomnumber r = %.4f\n",currentDay,r);
     //    printf("day %d to humdynamics randomnumber r = %.4f\n",currentDay,r);
+
     humanDynamics();
     //    r = rGen.getEventProbability();
     //    printf("day %d to mosdynamics randomnumber r = %.4f\n",currentDay,r);
+
     mosquitoDynamics();
     //    r = rGen.getEventProbability();
     //    printf("day %d after mosdynamics randomnumber r = %.4f\n", currentDay,r);
@@ -256,7 +259,8 @@ void Simulation::mosquitoDynamics() {
             it->second->setState(Mosquito::MozState::BITE);
             biteTime = it->second->getBiteStartDay() - double(currentDay);
             if(biteTime < 0){
-                biteTime = rGenInf.getEventProbability();
+	      biteTime = rGen.getEventProbability();
+	      //	      printf("day %u %.4f bitetime mosquito %u\n", currentDay,rGen.getEventProbability(),it-second->getMosquitoID());
             }
         }
  
@@ -271,9 +275,11 @@ void Simulation::mosquitoDynamics() {
             mosquitoes.erase(it_temp);
             continue;
         }
-
+	//double biter = rGen.getEventProbability();
+	//	printf("day %u before takebite rng %.4f for mosquito %u dieTime %.4f biteTime %.4f\n",currentDay,biter,it->second->getMosquitoID(),dieTime,biteTime);
         // if the mosquito bites first, then let it bite and then see about dying
         if(biteTime < dieTime && biteTime <= 1.0){
+	  //	  printf("day %u  mosquito %u takes bite\n",currentDay,it->second->getMosquitoID());
 	  it->second->takeBite(biteTime,locations[it->second->getLocationID()].get(),&rGen,&rGenInf,currentDay,numDays,&out);
             if(dieTime < 1.0){
                 auto it_temp = it;
@@ -282,7 +288,8 @@ void Simulation::mosquitoDynamics() {
                 continue;
             }
         }
- 
+	//	biter = rGen.getEventProbability();
+	//	printf("day %u after takebite rng %.4f for mosquito %u\n",currentDay,biter,it->second->getMosquitoID());
         // let the mosquito move if that happens today 
 	double moveProb = rGen.getEventProbability();
 	//	printf("Mosquito: %u in location %s move prob %.4f vs %.4f\n", it->second->getMosquitoID(),it->first.c_str(),moveProb,mozMoveProbability);
