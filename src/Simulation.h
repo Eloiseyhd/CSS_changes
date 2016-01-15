@@ -52,6 +52,7 @@ private:
     unsigned vaccineDay;
     std::string outputFile;
     std::string outputPopFile;
+    std::string outputVacFile;
     std::string simName;
     unsigned rSeed;
     unsigned rSeedInf;
@@ -70,6 +71,7 @@ private:
 
     std::ofstream out;
     std::ofstream outpop;
+    std::ofstream outvac;
 };
 
 #endif  /* SIMULATION_H */

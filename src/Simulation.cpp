@@ -16,6 +16,7 @@ void Simulation::simulate() {
     simEngine();
     out.close();
     outpop.close();
+    outvac.close();
 }
 
 
@@ -30,7 +31,7 @@ string Simulation::readInputs() {
     //     exit(1);
     // }
     // out << "day,infection,disease,age,previous_infections,vaccinated\n";
-
+    outputVacFile = outputPath + "/" + simName + "_vac.csv";
     outputPopFile = outputPath + "/" + simName + "_pop.csv";
     outpop.open(outputPopFile);
     if (!outpop.good()) {
@@ -38,7 +39,12 @@ string Simulation::readInputs() {
         exit(1);
     }
     outpop << "year,seropos,seroneg\n";
-
+    outvac << "year,totalpop,total9,total18,total19+,vac9,vac18,vac19+,disAge9Inf0,disAge9Inf1,disAge9Inf2,disAge9Inf3,disAge9Inf4,disAge18Inf0,disAge18Inf1,disAge18Inf2,disAge18Inf3,disAge18Inf4,disAge19Inf0,disAge19Inf1,disAge19Inf2,disAge19Inf3,disAge19Inf4,"<<
+      "nonDisAge9Inf0,nonDisAge9Inf1,nonDisAge9Inf2,nonDisAge9Inf3,nonDisAge9Inf4,nonDisAge18Inf0,nonDisAge18Inf1,nonDisAge18Inf2,nonDisAge18Inf3,nonDisAge18Inf4,nonDisAge19Inf0,nonDisAge19Inf1,nonDisAge19Inf2,nonDisAge19Inf3,nonDisAge19Inf4\n";
+    outvac.open(outputVacFile);
+    if(!outvac.good()){
+      exit(1);
+    }
 
     RandomNumGenerator rgen(rSeed, huImm, emergeFactor, mlife, mrest, halflife);
     rGen = rgen;
@@ -79,7 +85,10 @@ void Simulation::simEngine() {
   }
 }
 
-
+struct popStats{
+  int prevInf[3][5];
+  int prevInfVac[3][5];
+};
 
 void Simulation::updatePop(){
   //  printf("update pop year: %u\n",year);
@@ -88,6 +97,20 @@ void Simulation::updatePop(){
     int age_09 = 9 * 365;
     int age_10 = 10 * 365;
     int seropos = 0, seroneg = 0;
+    int vacpop[3];
+    int totalpop[3];
+    popStats nonDis;
+    popStats dis;
+      for(int i = 0;i < 3; i++){
+	totalpop[i] = 0;
+	vacpop[i] = 0;
+	for(int j = 0; j < 5;j++){
+	  nonDis.prevInf[i][j] = 0;
+	  nonDis.prevInfVac[i][j] = 0;
+	  dis.prevInf[i][j] = 0;
+	  dis.prevInfVac[i][j] = 0;
+	}
+      }
     // int age_19 = 19 * 365;
     // int noinf_0008 = 0, inf_0008 = 0, noinf_0918 = 0, inf_0918 = 0, noinf_1999 = 0, inf_1999 = 0;
     // int nodis_0008 = 0, dis_0008 = 0, nodis_0918 = 0, dis_0918 = 0, nodis_1999 = 0, dis_1999 = 0;
@@ -151,6 +174,36 @@ void Simulation::updatePop(){
             //     hosp_1999++;
             // }
         }
+	/* Three age groups 
+	   0 -> 0 - 8
+	   1 -> 9 - 18
+	   2 -> 19+
+	*/
+	int ageGroup = 0;
+	if(age < 9 * 365){
+	  ageGroup = 0;
+	}else if (age < 19 * 365){
+	  ageGroup = 1;
+	}else{
+	  ageGroup = 2;
+	}
+
+	if(itHum->second->isVaccinated()){
+	  vacpop[ageGroup]++;
+	  totalpop[ageGroup]++;
+	  if(itHum->second->getRecentDis()){
+	    dis.prevInfVac[ageGroup][itHum->second->getPreviousInfections()]++;
+	  }else{	  
+	    nonDis.prevInfVac[ageGroup][itHum->second->getPreviousInfections()]++;
+	  }
+	}else{
+	  totalpop[ageGroup]++;
+	  if(itHum->second->getRecentDis()){
+	    dis.prevInf[ageGroup][itHum->second->getPreviousInfections()]++;
+	  }else{
+	    nonDis.prevInf[ageGroup][itHum->second->getPreviousInfections()]++;
+	  }
+	}
         itHum->second->resetRecent();
     }
 
@@ -159,6 +212,15 @@ void Simulation::updatePop(){
         // noinf_0008 << "," << inf_0008 << "," << noinf_0918 << "," << inf_0918 << "," << noinf_1999 << "," << inf_1999 << "," << 
         // nodis_0008 << "," << dis_0008 << "," << nodis_0918 << "," << dis_0918  << "," << nodis_1999 << "," << dis_1999 << "," << 
         // nohosp_0008 << "," << hosp_0008 << "," << nohosp_0918 << "," << hosp_0918 << "," << nohosp_1999  << "," << hosp_1999 << "\n";
+    int sumpop = totalpop[0] + totalpop[1] + totalpop[2];
+    outvac << year << "," <<
+      sumpop<<","<< totalpop[0]<<","<<totalpop[1]<<","<<totalpop[2]<<","<<vacpop[0]<<","<<vacpop[1]<<","<< vacpop[2] << ","<<
+      dis.prevInfVac[0][0] << "," << dis.prevInfVac[0][1] << "," << dis.prevInfVac[0][2] << "," << dis.prevInfVac[0][3] << ","  << dis.prevInfVac[0][4] << "," <<
+      dis.prevInfVac[1][0] << "," << dis.prevInfVac[1][1] << "," << dis.prevInfVac[1][2] << "," << dis.prevInfVac[1][3] << ","  << dis.prevInfVac[1][4] << "," <<
+      dis.prevInfVac[2][0] << "," << dis.prevInfVac[2][1] << "," << dis.prevInfVac[2][2] << "," << dis.prevInfVac[2][3] << ","  << dis.prevInfVac[2][4] << "," <<
+      nonDis.prevInfVac[0][0] << "," << nonDis.prevInfVac[0][1] << "," << nonDis.prevInfVac[0][2] << "," << nonDis.prevInfVac[0][3] << ","  << nonDis.prevInfVac[0][4] << "," <<
+      nonDis.prevInfVac[1][0] << "," << nonDis.prevInfVac[1][1] << "," << nonDis.prevInfVac[1][2] << "," << nonDis.prevInfVac[1][3] << ","  << nonDis.prevInfVac[1][4] << "," <<
+      nonDis.prevInfVac[2][0] << "," << nonDis.prevInfVac[2][1] << "," << nonDis.prevInfVac[2][2] << "," << nonDis.prevInfVac[2][3] << ","  << nonDis.prevInfVac[2][4] << "\n";
 }
 
 
@@ -244,9 +306,13 @@ void Simulation::humanDynamics() {
 
 
 void Simulation::mosquitoDynamics() {
-    generateMosquitoes();
 
+    generateMosquitoes();
+    int totalmosquitoes =0;
+    int biterng = 0;
+    int moverng = 0;
     for(auto it = mosquitoes.begin(); it != mosquitoes.end();){
+      totalmosquitoes++;
         if(it->second->infection != nullptr){
             if(currentDay == it->second->infection->getStartDay())
                 it->second->infection->setInfectiousnessMosquito(mozInfectiousness);
@@ -260,6 +326,7 @@ void Simulation::mosquitoDynamics() {
             biteTime = it->second->getBiteStartDay() - double(currentDay);
             if(biteTime < 0){
 	      biteTime = rGen.getEventProbability();
+	      biterng++;
 	      //	      printf("day %u %.4f bitetime mosquito %u\n", currentDay,rGen.getEventProbability(),it-second->getMosquitoID());
             }
         }
@@ -292,6 +359,7 @@ void Simulation::mosquitoDynamics() {
 	//	printf("day %u after takebite rng %.4f for mosquito %u\n",currentDay,biter,it->second->getMosquitoID());
         // let the mosquito move if that happens today 
 	double moveProb = rGen.getEventProbability();
+	moverng++;
 	//	printf("Mosquito: %u in location %s move prob %.4f vs %.4f\n", it->second->getMosquitoID(),it->first.c_str(),moveProb,mozMoveProbability);
         if(moveProb < mozMoveProbability) {
             string newLoc = locations.find(it->first)->second->getRandomCloseLoc(rGen);
@@ -303,6 +371,7 @@ void Simulation::mosquitoDynamics() {
                 auto it_temp = it;
                 it++;
                 mosquitoes.erase(it_temp);
+		moverng++;
             }
             else{
                 it++;
@@ -312,22 +381,25 @@ void Simulation::mosquitoDynamics() {
             it++;
         }
     }
+    //    printf("day %u total mosquitoes %d biterng %d moverng %d\n",currentDay,totalmosquitoes,biterng,moverng);
 }
 
 
 
 void Simulation::generateMosquitoes(){
     int mozCount = 0;
-
+    int rngcount = 0;
     for(auto& x : locations){
         mozCount = rGen.getMozEmerge(x.second->getMozzes());
-
+	rngcount++;
         for(int i = 0; i < mozCount; i++){
             unique_ptr<Mosquito> moz(new Mosquito(
                 mozID++, currentDay, double(currentDay) + rGen.getMozLifeSpan(), double(currentDay) + rGen.getMozRestDays(), x.first));
+	    rngcount+=2;
             mosquitoes.insert(make_pair(x.first, move(moz)));
         }
     }
+    //    printf("day %u rng %d times\n",currentDay,rngcount);
 }
 
 
