@@ -145,76 +145,10 @@ void Mosquito::infectiousBite(
         setState(Mosquito::MozState::REST);
         setBiteStartDay(currentDay + rGen->getMozRestDays());
 
-        // if the mosquito is infectious, the human susceptible, and the infection successful
+        // if the mosquito is infectious, the human not actively infected, and the infection successful
         if(infection != nullptr && humBite->infection == nullptr && !humBite->isImmune(infection->getInfectionType())){
             if(rGenInf->getEventProbability() < infection->getInfectiousness()){
-                // clinical disease state
-                int disease = 0;
-                int hospitalized = 0;
-                int vaxAdvancement = 0;
-		if(humBite->isVaccinated()){
-		  vaxAdvancement = 1;
-                }
-                if(humBite->getPreviousInfections() + vaxAdvancement == 0){
-                    if(rGenInf->getEventProbability() < 0.3){
-                        disease = infection->getInfectionType();
-                        if(rGenInf->getEventProbability() < 0.111){
-                            hospitalized = infection->getInfectionType();
-                        }
-		    }
-                }else if(humBite->getPreviousInfections() + vaxAdvancement == 1){
-                    if(rGenInf->getEventProbability() < 0.6){
-                        disease = infection->getInfectionType();
-                        if(rGenInf->getEventProbability() < 0.20868){
-                            hospitalized = infection->getInfectionType();
-                        }
-                    }
-                }else{
-                    if(rGenInf->getEventProbability() < 0.1){
-                        disease = infection->getInfectionType();
-                        if(rGenInf->getEventProbability() < 0.05217){
-                            hospitalized = infection->getInfectionType();
-                        }
-                    }
-                }
-
-                // effect of vaccine on preventing infection and disease
-                if(humBite->isVaccinated()){
-                    if(rGenInf->getEventProbability() < humBite->getVE(infection->getInfectionType())){
-                        if(humBite->getVaccinationDay() + rGenInf->getWaningTime(infection->getInfectionType()) > currentDay){
-                            return;
-                        } else {
-                            humBite->waneVaccination();
-                        }
-                    } else {
-                        if(disease > 0 && rGenInf->getEventProbability() < humBite->getVE(infection->getInfectionType()))
-                            disease = 0;   
-                    }
-                }
-		//		printf("Possible infection to human: %s - %d\n", humBite->getHouseID().c_str(),humBite->getHouseMemNum());
-                // check to see whether the human is immune
-                if(humBite->isImmune(infection->getInfectionType()))
-		  //		  printf("Is immune. Human: %s - %d\n", humBite->getHouseID().c_str(),humBite->getHouseMemNum());
-                    return;
-
-                // record infection and update immune status
-                int sday = currentDay + 1;
-                int eday = sday + 14;
-                humBite->infection.reset(new Infection(
-                    sday, eday, 0.0, infection->getInfectionType(), humBite->getPreviousInfections() == 0, disease > 0));
-                humBite->updateImmunityPerm(infection->getInfectionType(),true);
-                humBite->setImmunityTemp(true);
-                humBite->setImmStartDay(currentDay);
-                humBite->setImmEndDay(currentDay + 14 + rGenInf->getHumanImmunity());
-                humBite->updateRecent(1, disease > 0, hospitalized > 0);
-		//		printf("Successful infection to human: %s - %d\n", humBite->getHouseID().c_str(),humBite->getHouseMemNum());
-                // write data about infection to output file
-                // *out << currentDay << "," << infection->getInfectionType() << "," << disease << ",";
-                // *out << humBite->getAge(currentDay) << "," << humBite->getPreviousInfections() << ",";
-                // *out << humBite->isVaccinated() << "\n";
-                // *out << "," << humBite->getHouseID() << "," << humBite->getHouseMemNum();                        
-                // *out << "," << humBite->getAge(currentDay) << "," << humBite->getGender();
-                // *out << "," << sday << "," << locNow->getLocID() << "\n";
+                humBite->infect(currentDay, infection->getInfectionType(), rGenInf);
             }
         }
     }

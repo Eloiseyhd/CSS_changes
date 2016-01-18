@@ -74,29 +74,79 @@ void Human::vaccinate(
     doses++;
     vday = currDay;
 
-    unsigned infectionCount = 0;
-    for(auto it = immunity_perm.begin(); it != immunity_perm.end(); it++){
-        if(it->second){infectionCount++;}
-    }
+    // unsigned infectionCount = 0;
+    // for(auto it = immunity_perm.begin(); it != immunity_perm.end(); it++){
+    //     if(it->second){infectionCount++;}
+    // }
 
-    if(infectionCount == 0){
-        for(auto it = veneg->begin(); it != veneg->end(); it++){
-            VE.insert(make_pair(it->first,1.0 - pow(1.0 - partialEfficacy * it->second, .5)));
-        }
-    } else {
-        for(auto it = vepos->begin(); it != vepos->end(); it++){
-            VE.insert(make_pair(it->first,1.0 - pow(1.0 - partialEfficacy * it->second, .5)));
-        }
-    }
+    // if(infectionCount == 0){
+    //     for(auto it = veneg->begin(); it != veneg->end(); it++){
+    //         VE.insert(make_pair(it->first, 1.0 - pow(1.0 - partialEfficacy * it->second, .5)));
+    //     }
+    // } else {
+    //     for(auto it = vepos->begin(); it != vepos->end(); it++){
+    //         VE.insert(make_pair(it->first, 1.0 - pow(1.0 - partialEfficacy * it->second, .5)));
+    //     }
+    // }
 
-    //A vaccinated person has complete protection against all serotypes for an exponentially 
-    //  distributed period with mean 1 year after vaccination
+    // a vaccinated person has complete protection against all serotypes for an exponentially 
+    // distributed period with mean 1 year after vaccination
     setImmunityTemp(true);
     setImmStartDay(currDay);
-    unsigned tempImmDays = currDay  + rGen.getVaxHumanImmunity(365);
-    //    printf ("TempImm, %u, %u\n",currDay,tempImmDays);
-    setImmEndDay(tempImmDays);
+    if(getPreviousInfections() == 0){
+        setImmEndDay(currDay  + rGen.getVaxHumanImmunity(365));
+    }
+    else{
+        setImmEndDay(currDay + 365 * 100);
+    }
+}
 
+
+
+void Human::infect(
+    int currentDay,
+    unsigned infectionType,
+    RandomNumGenerator * rGen)
+{
+    recent_inf = 1;
+    recent_dis = 0;
+    recent_hosp = 0;
+
+    int vaxAdvancement = 0;
+    if(vaccinated){
+       vaxAdvancement = 1;
+    }
+    if(getPreviousInfections() + vaxAdvancement == 0){
+        if(rGen->getEventProbability() < 0.3){
+            recent_dis = infectionType;
+            if(rGen->getEventProbability() < 0.111){
+                recent_hosp = infectionType;
+            }
+        }
+    }
+    else if(getPreviousInfections() + vaxAdvancement == 1){
+        if(rGen->getEventProbability() < 0.6){
+            recent_dis = infectionType;
+            if(rGen->getEventProbability() < 0.20868){
+                recent_hosp = infectionType;
+            }
+        }
+    }
+    else{
+        if(rGen->getEventProbability() < 0.1){
+        recent_dis = infectionType;
+            if(rGen->getEventProbability() < 0.05217){
+                recent_hosp = infectionType;
+            }
+        }
+    }
+
+    infection.reset(new Infection(
+        currentDay + 1, currentDay + 15, 0.0, infectionType, getPreviousInfections() == 0, recent_dis > 0));
+    updateImmunityPerm(infectionType, true);
+    setImmunityTemp(true);
+    setImmStartDay(currentDay);
+    setImmEndDay(currentDay + 15 + rGen->getHumanImmunity());
 }
 
 

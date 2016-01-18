@@ -1,6 +1,6 @@
-source('functions.R')
+source('functions_indirect.R')
 
-reps = 40
+reps = 750
 
 HumanImmunityDays = rep(686,2)
 EmergenceFactor = c(.2,2)
