@@ -16,7 +16,6 @@ void Simulation::simulate() {
     simEngine();
     out.close();
     outpop.close();
-    outvac.close();
 }
 
 
@@ -31,7 +30,7 @@ string Simulation::readInputs() {
     //     exit(1);
     // }
     // out << "day,infection,disease,age,previous_infections,vaccinated\n";
-    outputVacFile = outputPath + "/" + simName + "_vac.csv";
+
     outputPopFile = outputPath + "/" + simName + "_pop.csv";
     outpop.open(outputPopFile);
     if (!outpop.good()) {
@@ -62,15 +61,12 @@ void Simulation::simEngine() {
   //  if(vaccinationFlag == true){printf("Vaccination is activated for day %u\n",vaccineDay);}
   while(currentDay < numDays){        
     //    printf("simEngine Entered current day %d, max days %d\n",currentDay, numDays);
-    //if(vaccineDay == currentDay && vaccinationFlag == true){printf("vaccination beings at day: %u\n",currentDay);}
+    //    if(vaccineDay == currentDay && vaccinationFlag == true){printf("vaccination beings at day: %u\n",currentDay);}
     //    double r = rGen.getEventProbability();
-    //    printf("day %d randomnumber r = %.4f\n",currentDay,r);
     //    printf("day %d to humdynamics randomnumber r = %.4f\n",currentDay,r);
-
     humanDynamics();
     //    r = rGen.getEventProbability();
     //    printf("day %d to mosdynamics randomnumber r = %.4f\n",currentDay,r);
-
     mosquitoDynamics();
     //    r = rGen.getEventProbability();
     //    printf("day %d after mosdynamics randomnumber r = %.4f\n", currentDay,r);
@@ -83,6 +79,8 @@ void Simulation::simEngine() {
   }
 }
 
+
+
 void Simulation::updatePop(){
   //  printf("update pop year: %u\n",year);
     int count;
@@ -94,6 +92,7 @@ void Simulation::updatePop(){
     int noinf_0008 = 0, inf_0008 = 0, noinf_0918 = 0, inf_0918 = 0, noinf_1999 = 0, inf_1999 = 0;
     int nodis_0008 = 0, dis_0008 = 0, nodis_0918 = 0, dis_0918 = 0, nodis_1999 = 0, dis_1999 = 0;
     int nohosp_0008 = 0, hosp_0008 = 0, nohosp_0918 = 0, hosp_0918 = 0, nohosp_1999 = 0, hosp_1999 = 0;
+
     for(auto itHum = humans.begin(); itHum != humans.end(); itHum++){
         itHum->second->updateAttractiveness(currentDay);
         age = itHum->second->getAge(currentDay);
@@ -152,36 +151,6 @@ void Simulation::updatePop(){
                 hosp_1999++;
             }
         }
-	/* Three age groups 
-	   0 -> 0 - 8
-	   1 -> 9 - 18
-	   2 -> 19+
-	*/
-	int ageGroup = 0;
-	if(age < 9 * 365){
-	  ageGroup = 0;
-	}else if (age < 19 * 365){
-	  ageGroup = 1;
-	}else{
-	  ageGroup = 2;
-	}
-
-	if(itHum->second->isVaccinated()){
-	  vacpop[ageGroup]++;
-	  totalpop[ageGroup]++;
-	  if(itHum->second->getRecentDis()){
-	    dis.prevInfVac[ageGroup][itHum->second->getPreviousInfections()]++;
-	  }else{	  
-	    nonDis.prevInfVac[ageGroup][itHum->second->getPreviousInfections()]++;
-	  }
-	}else{
-	  totalpop[ageGroup]++;
-	  if(itHum->second->getRecentDis()){
-	    dis.prevInf[ageGroup][itHum->second->getPreviousInfections()]++;
-	  }else{
-	    nonDis.prevInf[ageGroup][itHum->second->getPreviousInfections()]++;
-	  }
-	}
         itHum->second->resetRecent();
     }
 
@@ -248,13 +217,9 @@ void Simulation::humanDynamics() {
 
 
 void Simulation::mosquitoDynamics() {
-
     generateMosquitoes();
-    int totalmosquitoes =0;
-    int biterng = 0;
-    int moverng = 0;
+
     for(auto it = mosquitoes.begin(); it != mosquitoes.end();){
-      totalmosquitoes++;
         if(it->second->infection != nullptr){
             if(currentDay == it->second->infection->getStartDay())
                 it->second->infection->setInfectiousnessMosquito(mozInfectiousness);
@@ -267,9 +232,7 @@ void Simulation::mosquitoDynamics() {
             it->second->setState(Mosquito::MozState::BITE);
             biteTime = it->second->getBiteStartDay() - double(currentDay);
             if(biteTime < 0){
-	      biteTime = rGen.getEventProbability();
-	      biterng++;
-	      //	      printf("day %u %.4f bitetime mosquito %u\n", currentDay,rGen.getEventProbability(),it-second->getMosquitoID());
+                biteTime = rGenInf.getEventProbability();
             }
         }
  
@@ -284,62 +247,56 @@ void Simulation::mosquitoDynamics() {
             mosquitoes.erase(it_temp);
             continue;
         }
-	//double biter = rGen.getEventProbability();
-	//	printf("day %u before takebite rng %.4f for mosquito %u dieTime %.4f biteTime %.4f\n",currentDay,biter,it->second->getMosquitoID(),dieTime,biteTime);
+
         // if the mosquito bites first, then let it bite and then see about dying
         if(biteTime < dieTime && biteTime <= 1.0){
     	  it->second->takeBite(biteTime,locations[it->second->getLocationID()].get(),&rGen,&rGenInf,currentDay,numDays,&out);
-	  if(dieTime < 1.0){
-	    auto it_temp = it;
-	    it++;
-	    mosquitoes.erase(it_temp);
-	    continue;
-	  }
+            if(dieTime < 1.0){
+                auto it_temp = it;
+                it++;
+                mosquitoes.erase(it_temp);
+                continue;
+            }
         }
-	//	biter = rGen.getEventProbability();
-	//	printf("day %u after takebite rng %.4f for mosquito %u\n",currentDay,biter,it->second->getMosquitoID());
+ 
         // let the mosquito move if that happens today 
     	double moveProb = rGen.getEventProbability();
 	//	printf("Mosquito: %u in location %s move prob %.4f vs %.4f\n", it->second->getMosquitoID(),it->first.c_str(),moveProb,mozMoveProbability);
         if(moveProb < mozMoveProbability) {
-	  string newLoc = locations.find(it->first)->second->getRandomCloseLoc(rGen);
-	  //	    printf("Mosquito: %u possibly moves to new location: %s\n",it->second->getMosquitoID(),newLoc.c_str());
-	  if(newLoc != "TOO_FAR_FROM_ANYWHERE") {
-	    it->second->setLocation(newLoc);
-	    //		printf("Mosquito: %u move to new location: %s\n",it->second->getMosquitoID(),newLoc.c_str());
-	    mosquitoes.insert(make_pair(newLoc, move(it->second)));
-	    auto it_temp = it;
-	    it++;
-	    mosquitoes.erase(it_temp);
-	    moverng++;
-	  }
-	  else{
-	    it++;
-	  }
+            string newLoc = locations.find(it->first)->second->getRandomCloseLoc(rGen);
+	    //	    printf("Mosquito: %u possibly moves to new location: %s\n",it->second->getMosquitoID(),newLoc.c_str());
+            if(newLoc != "TOO_FAR_FROM_ANYWHERE") {
+                it->second->setLocation(newLoc);
+		//		printf("Mosquito: %u move to new location: %s\n",it->second->getMosquitoID(),newLoc.c_str());
+                mosquitoes.insert(make_pair(newLoc, move(it->second)));
+                auto it_temp = it;
+                it++;
+                mosquitoes.erase(it_temp);
+            }
+            else{
+                it++;
+            }
         }
         else{
-	  it++;
+            it++;
         }
     }
-    //    printf("day %u total mosquitoes %d biterng %d moverng %d\n",currentDay,totalmosquitoes,biterng,moverng);
 }
 
 
 
 void Simulation::generateMosquitoes(){
     int mozCount = 0;
-    int rngcount = 0;
+
     for(auto& x : locations){
         mozCount = rGen.getMozEmerge(x.second->getMozzes());
-	rngcount++;
+
         for(int i = 0; i < mozCount; i++){
             unique_ptr<Mosquito> moz(new Mosquito(
                 mozID++, currentDay, double(currentDay) + rGen.getMozLifeSpan(), double(currentDay) + rGen.getMozRestDays(), x.first));
-	    rngcount+=2;
             mosquitoes.insert(make_pair(x.first, move(moz)));
         }
     }
-    //    printf("day %u rng %d times\n",currentDay,rngcount);
 }
 
 
