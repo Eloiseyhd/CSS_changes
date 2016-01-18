@@ -39,6 +39,7 @@ private:
 
 public:
     std::unique_ptr<Infection> infection;
+    void infect(int, unsigned, RandomNumGenerator *);
     void reincarnate(unsigned);
     bool isImmune(unsigned) const;
     int getPreviousInfections();

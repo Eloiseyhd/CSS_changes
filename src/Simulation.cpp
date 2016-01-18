@@ -37,14 +37,17 @@ string Simulation::readInputs() {
       //      printf("cannot create output file %s\n",outputPopFile.c_str());
         exit(1);
     }
-    outpop << "year,seropos,seroneg\n";
-
+    outpop << "year,seropos_09,seroneg_09";
+    outpop << ",noinf_0008,inf_0008,noinf_0918,inf_0918,noinf_1999,inf_1999"; 
+    outpop << ",nodis_0008,dis_0008,nodis_0918,dis_0918,nodis_1999,dis_1999"; 
+    outpop << ",nohosp_0008,hosp_0008,nohosp_0918,hosp_0918,nohosp_1999,hosp_1999\n";
 
     RandomNumGenerator rgen(rSeed, huImm, emergeFactor, mlife, mrest, halflife);
     rGen = rgen;
 
     RandomNumGenerator rgen2(rSeedInf, huImm, emergeFactor, mlife, mrest, halflife);
     rGenInf = rgen2;
+
     readVaccineProfileFile();
     readLocationFile(locationFile);
     readHumanFile(trajectoryFile);
@@ -84,11 +87,11 @@ void Simulation::updatePop(){
     int age;
     int age_09 = 9 * 365;
     int age_10 = 10 * 365;
-    int seropos = 0, seroneg = 0;
-    // int age_19 = 19 * 365;
-    // int noinf_0008 = 0, inf_0008 = 0, noinf_0918 = 0, inf_0918 = 0, noinf_1999 = 0, inf_1999 = 0;
-    // int nodis_0008 = 0, dis_0008 = 0, nodis_0918 = 0, dis_0918 = 0, nodis_1999 = 0, dis_1999 = 0;
-    // int nohosp_0008 = 0, hosp_0008 = 0, nohosp_0918 = 0, hosp_0918 = 0, nohosp_1999 = 0, hosp_1999 = 0;
+    int age_19 = 19 * 365;
+    int seropos_09 = 0, seroneg_09 = 0;
+    int noinf_0008 = 0, inf_0008 = 0, noinf_0918 = 0, inf_0918 = 0, noinf_1999 = 0, inf_1999 = 0;
+    int nodis_0008 = 0, dis_0008 = 0, nodis_0918 = 0, dis_0918 = 0, nodis_1999 = 0, dis_1999 = 0;
+    int nohosp_0008 = 0, hosp_0008 = 0, nohosp_0918 = 0, hosp_0918 = 0, nohosp_1999 = 0, hosp_1999 = 0;
 
     for(auto itHum = humans.begin(); itHum != humans.end(); itHum++){
         itHum->second->updateAttractiveness(currentDay);
@@ -96,66 +99,66 @@ void Simulation::updatePop(){
 
         if(age >= age_09 && age < age_10){
             if(itHum->second->getPreviousInfections()){
-                seropos++;
+                seropos_09++;
             } else {
-                seroneg++;
+                seroneg_09++;
             }
-            // if(itHum->second->getRecentInf() == 0){
-            //     noinf_0008++;
-            // } else {
-            //     inf_0008++;
-            // }
-            // if(itHum->second->getRecentDis() == 0){
-            //     nodis_0008++;
-            // } else {
-            //     dis_0008++;
-            // }
-            // if(itHum->second->getRecentHosp() == 0){
-            //     nohosp_0008++;
-            // } else {
-            //     hosp_0008++;
-            // }
-        // } else if(age < age_19){
-            // if(itHum->second->getRecentInf() == 0){
-            //     noinf_0918++;
-            // } else {
-            //     inf_0918++;
-            // }
-            // if(itHum->second->getRecentDis() == 0){
-            //     nodis_0918++;
-            // } else {
-            //     dis_0918++;
-            // }
-            // if(itHum->second->getRecentHosp() == 0){
-            //     nohosp_0918++;
-            // } else {
-            //     hosp_0918++;
-            // }
-        // } else {
-            // if(itHum->second->getRecentInf() == 0){
-            //     noinf_1999++;
-            // } else {
-            //     inf_1999++;
-            // }
-            // if(itHum->second->getRecentDis() == 0){
-            //     nodis_1999++;
-            // } else {
-            //     dis_1999++;
-            // }
-            // if(itHum->second->getRecentHosp() == 0){
-            //     nohosp_1999++;
-            // } else {
-            //     hosp_1999++;
-            // }
+            if(itHum->second->getRecentInf() == 0){
+                noinf_0008++;
+            } else {
+                inf_0008++;
+            }
+            if(itHum->second->getRecentDis() == 0){
+                nodis_0008++;
+            } else {
+                dis_0008++;
+            }
+            if(itHum->second->getRecentHosp() == 0){
+                nohosp_0008++;
+            } else {
+                hosp_0008++;
+            }
+        } else if(age < age_19){
+            if(itHum->second->getRecentInf() == 0){
+                noinf_0918++;
+            } else {
+                inf_0918++;
+            }
+            if(itHum->second->getRecentDis() == 0){
+                nodis_0918++;
+            } else {
+                dis_0918++;
+            }
+            if(itHum->second->getRecentHosp() == 0){
+                nohosp_0918++;
+            } else {
+                hosp_0918++;
+            }
+        } else {
+            if(itHum->second->getRecentInf() == 0){
+                noinf_1999++;
+            } else {
+                inf_1999++;
+            }
+            if(itHum->second->getRecentDis() == 0){
+                nodis_1999++;
+            } else {
+                dis_1999++;
+            }
+            if(itHum->second->getRecentHosp() == 0){
+                nohosp_1999++;
+            } else {
+                hosp_1999++;
+            }
         }
         itHum->second->resetRecent();
     }
 
     outpop << year << "," << 
-        seropos << "," << seroneg << "\n";
-        // noinf_0008 << "," << inf_0008 << "," << noinf_0918 << "," << inf_0918 << "," << noinf_1999 << "," << inf_1999 << "," << 
-        // nodis_0008 << "," << dis_0008 << "," << nodis_0918 << "," << dis_0918  << "," << nodis_1999 << "," << dis_1999 << "," << 
-        // nohosp_0008 << "," << hosp_0008 << "," << nohosp_0918 << "," << hosp_0918 << "," << nohosp_1999  << "," << hosp_1999 << "\n";
+        seropos_09 << "," << seroneg_09 << "," <<
+        noinf_0008 << "," << inf_0008 << "," << noinf_0918 << "," << inf_0918 << "," << noinf_1999 << "," << inf_1999 << "," << 
+        nodis_0008 << "," << dis_0008 << "," << nodis_0918 << "," << dis_0918  << "," << nodis_1999 << "," << dis_1999 << "," << 
+        nohosp_0008 << "," << hosp_0008 << "," << nohosp_0918 << "," << hosp_0918 << "," << nohosp_1999  << "," << hosp_1999 << "\n";
 }
 
 
@@ -180,62 +183,35 @@ void Simulation::humanDynamics() {
         // select movement trajectory for the day
         (it->second)->setTrajDay(rGen.getRandomNum(5));
 
+        // vaccinate, if applicable
+        if(vaccinationFlag == true){
+            if(currentDay >= vaccineDay){
+                age = it->second->getAge(currentDay);
+
+                // routine vaccination by age
+                if(age == vaccineAge * 365){
+                    if(rGenInf.getEventProbability() < vaccineCoverage)
+                        it->second->vaccinate(&VE_pos, &VE_neg,rGenInf, 1.0, currentDay);
+                }
+
+                // catchup vaccination by age
+                if(catchupFlag == true && vaccineDay == currentDay){
+                    if(age > vaccineAge * 365 && age < 18 * 365){
+                        if(rGenInf.getEventProbability() < vaccineCoverage)
+                            it->second->vaccinate(&VE_pos, &VE_neg,rGenInf, 1.0, currentDay);
+                    }
+                }
+            }
+        }
+
         // simulate possible imported infection
         if(rGen.getEventProbability() < ForceOfImportation){
             int serotype = rGen.getRandomNum(4) + 1;
             if(!it->second->isImmune(serotype)){
-                it->second->infection.reset(new Infection(
-                    currentDay + 1, currentDay + 15, 0.0, serotype, it->second->getPreviousInfections() == 0, 0));
-                it->second->updateImmunityPerm(serotype,true);
-                it->second->setImmunityTemp(true);
-                it->second->setImmStartDay(currentDay);
-                it->second->setImmEndDay(currentDay + 14 + rGenInf.getHumanImmunity());
-                it->second->updateRecent(1, 0, 0);
-		//		printf("successful importation to human: %s - %d with serotype %d\n", it->second->getHouseID().c_str(),it->second->getHouseMemNum(),serotype);
+                it->second->infect(currentDay, serotype, &rGenInf);
             }
         }
-	if(vaccineDay <= currentDay && vaccinationFlag == true){
-	  // vaccinate if appropriate according to age
-	  // if(vaccinationStrategy == "catchup" || vaccinationStrategy == "nocatchup"){
-	  age = it->second->getAge(currentDay);
-	  if(rGenInf.getEventProbability() < .8 || it->second->isVaccinated()){
-	    if(age == 9 * 365){
-	      it->second->vaccinate(&VE_pos, &VE_neg,rGenInf, 1.0, currentDay);
-	      vaxd = true;
-	    } else if(it->second->isVaccinated() && age == 9 * 365 + 183){
-	      it->second->vaccinate(&VE_pos, &VE_neg,rGenInf, 1.0, currentDay);
-	      vaxd = true;
-	    } else if(it->second->isVaccinated() && age == 10 * 365){
-	      it->second->vaccinate(&VE_pos, &VE_neg,rGenInf, 1.0, currentDay);
-	      vaxd = true;
-	    }
-	  } 
-	}           
-	// }
-	/* if(vaccinationStrategy == "catchup"){
-            if(currentDay <= 365){
-                 if(rGen.getEventProbability() < .8 / 365.0 || it->second->isVaccinated()){
-                     if(!it->second->isVaccinated() && age >= 3 * 365 && age < 8 * 365){
-                         it->second->vaccinate(&VE_pos, &VE_neg, 1.0/3.0, currentDay);
-                         vaxd = true;
-                     }
-                 }
-             }
-             if(currentDay <= 365 + 183 && currentDay > 182){
-	if(it->second->isVaccinated() && age >= 3 * 365 + 183 && age < 8 * 365 + 183){
-                         it->second->vaccinate(&VE_pos, &VE_neg, 2.0/3.0, currentDay);
-                         vaxd = true;
-                 }
-             }
-             if(currentDay <= 365 * 2 && currentDay > 365){
-                 if(it->second->isVaccinated() && age >= 4 * 365 && age < 9 * 365){
-                         it->second->vaccinate(&VE_pos, &VE_neg, 1.0, currentDay);
-                         vaxd = true;
-                 }
-             }
-	*/
     }
-   //    printf("human dynamics finished\n");
 }
 
 
@@ -274,7 +250,7 @@ void Simulation::mosquitoDynamics() {
 
         // if the mosquito bites first, then let it bite and then see about dying
         if(biteTime < dieTime && biteTime <= 1.0){
-	  it->second->takeBite(biteTime,locations[it->second->getLocationID()].get(),&rGen,&rGenInf,currentDay,numDays,&out);
+    	  it->second->takeBite(biteTime,locations[it->second->getLocationID()].get(),&rGen,&rGenInf,currentDay,numDays,&out);
             if(dieTime < 1.0){
                 auto it_temp = it;
                 it++;
@@ -284,7 +260,7 @@ void Simulation::mosquitoDynamics() {
         }
  
         // let the mosquito move if that happens today 
-	double moveProb = rGen.getEventProbability();
+    	double moveProb = rGen.getEventProbability();
 	//	printf("Mosquito: %u in location %s move prob %.4f vs %.4f\n", it->second->getMosquitoID(),it->first.c_str(),moveProb,mozMoveProbability);
         if(moveProb < mozMoveProbability) {
             string newLoc = locations.find(it->first)->second->getRandomCloseLoc(rGen);
@@ -355,6 +331,12 @@ void Simulation::readSimControlFile(string line) {
     vaccineDay = strtol(line.c_str(), NULL, 10);
     getline(infile, line, ',');
     vaccinationFlag = (stoi(line.c_str(), NULL, 10) == 0 ? false : true);
+    getline(infile, line, ',');
+    vaccineCoverage = strtod(line.c_str(), NULL);
+    getline(infile, line, ',');
+    vaccineAge = strtol(line.c_str(), NULL, 10);
+    getline(infile, line, ',');
+    catchupFlag = (stoi(line.c_str(), NULL, 10) == 0 ? false : true);
     getline(infile, line, ',');
     outputPath = line;
     getline(infile, line, ',');

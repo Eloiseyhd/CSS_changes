@@ -49,7 +49,10 @@ private:
     std::string vaccineProfileFile;
     std::string vaccinationStrategy;
     bool vaccinationFlag;
+    bool catchupFlag;
     unsigned vaccineDay;
+    unsigned vaccineAge;
+    double vaccineCoverage;
     std::string outputFile;
     std::string outputPopFile;
     std::string simName;
