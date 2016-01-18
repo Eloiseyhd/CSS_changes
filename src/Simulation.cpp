@@ -37,10 +37,11 @@ string Simulation::readInputs() {
       //      printf("cannot create output file %s\n",outputPopFile.c_str());
         exit(1);
     }
+    /*
     outpop << "year,seropos_09,seroneg_09";
     outpop << ",noinf_0008,inf_0008,noinf_0918,inf_0918,noinf_1999,inf_1999"; 
     outpop << ",nodis_0008,dis_0008,nodis_0918,dis_0918,nodis_1999,dis_1999"; 
-    outpop << ",nohosp_0008,hosp_0008,nohosp_0918,hosp_0918,nohosp_1999,hosp_1999\n";
+    outpop << ",nohosp_0008,hosp_0008,nohosp_0918,hosp_0918,nohosp_1999,hosp_1999\n";*/
 
     RandomNumGenerator rgen(rSeed, huImm, emergeFactor, mlife, mrest, halflife);
     rGen = rgen;
@@ -49,6 +50,26 @@ string Simulation::readInputs() {
     rGenInf = rgen2;
 
     readVaccineProfileFile();
+    if(vaccinateMultipleAge){
+      readVaccinationGroupsFile();
+    }
+
+    std::map<int,int>::iterator itAge = ageGroups.begin();
+    outpop<<"time,";
+    int countGroups = 0;
+    for(; itAge != ageGroups.end(); itAge++){
+      outpop<< "seropos_vac_pop"<< (*itAge).first<<'-'<<(*itAge).second<< ",seropos_vac_inf"<< (*itAge).first<<'-'<<(*itAge).second<< ",seropos_plac_pop" << (*itAge).first<<'-'<<(*itAge).second<< ",seropos_plac_inf"<<(*itAge).first<<'-'<<(*itAge).second;
+      outpop<<",seropos_vac_hosp"<<(*itAge).first<<'-'<<(*itAge).second<< ",seropos_plac_hosp"<<(*itAge).first<<'-'<<(*itAge).second;
+      outpop<<",seroneg_vac_pop"<< (*itAge).first<<'-'<<(*itAge).second<< ",seroneg_vac_inf"<< (*itAge).first<<'-'<<(*itAge).second<< ",seroneg_plac_pop" << (*itAge).first<<'-'<<(*itAge).second<< ",seroneg_plac_inf"<<(*itAge).first<<'-'<<(*itAge).second;
+      outpop<< ",seroneg_vac_hosp"<<(*itAge).first<<'-'<<(*itAge).second<< ",seroneg_plac_hosp"<<(*itAge).first<<'-'<<(*itAge).second;
+      if(countGroups == ageGroups.size()-1){
+	outpop<< "\n"; 
+      }else{
+	outpop<<",";
+      }
+      countGroups++;
+    }
+
     readLocationFile(locationFile);
     readHumanFile(trajectoryFile);
 
@@ -58,7 +79,12 @@ string Simulation::readInputs() {
 
 
 void Simulation::simEngine() {
-  //  if(vaccinationFlag == true){printf("Vaccination is activated for day %u\n",vaccineDay);}
+  /*  if(vaccinationFlag == true){
+    printf("Vaccination is activated for day %u\n",vaccineDay);
+    if(vaccinateMultipleAge){
+      printf("Vaccination will be done for multiple age groups\n");
+    }
+    }*/
   while(currentDay < numDays){        
     //    printf("simEngine Entered current day %d, max days %d\n",currentDay, numDays);
     //    if(vaccineDay == currentDay && vaccinationFlag == true){printf("vaccination beings at day: %u\n",currentDay);}
@@ -70,16 +96,38 @@ void Simulation::simEngine() {
     mosquitoDynamics();
     //    r = rGen.getEventProbability();
     //    printf("day %d after mosdynamics randomnumber r = %.4f\n", currentDay,r);
-    if(ceil((currentDay + 1) / 365) != ceil(currentDay / 365)){
+    /*    if(ceil((currentDay + 1) / 365) != ceil(currentDay / 365)){
       year++;
 	updatePop();
+	}*/
+    if(currentDay == 25 * 30){
+      updatePop();
     }
-    
+    if(currentDay  == 3 * 365){
+      updatePop();
+    }
+    if(currentDay == 4 * 365){
+      updatePop();
+    }
     currentDay++;
   }
 }
 
-
+struct popStats{
+  int seropos_vac_pop;
+  int seropos_plac_pop;
+  int seropos_vac_cases;
+  int seropos_plac_cases;
+  int seropos_vac_hosp;
+  int seropos_plac_hosp;
+  int seroneg_vac_pop;
+  int seroneg_plac_pop;
+  int seroneg_vac_cases;
+  int seroneg_plac_cases;
+  int seroneg_vac_hosp;
+  int seroneg_plac_hosp;
+  int age;
+};
 
 void Simulation::updatePop(){
   //  printf("update pop year: %u\n",year);
@@ -92,12 +140,73 @@ void Simulation::updatePop(){
     int noinf_0008 = 0, inf_0008 = 0, noinf_0918 = 0, inf_0918 = 0, noinf_1999 = 0, inf_1999 = 0;
     int nodis_0008 = 0, dis_0008 = 0, nodis_0918 = 0, dis_0918 = 0, nodis_1999 = 0, dis_1999 = 0;
     int nohosp_0008 = 0, hosp_0008 = 0, nohosp_0918 = 0, hosp_0918 = 0, nohosp_1999 = 0, hosp_1999 = 0;
+    int totalgroups = ageGroups.size();
+    std::vector<popStats> ageReports;
+    ageReports.clear();
+    for(int i = 0;i < totalgroups; i++){
+      popStats ageTemp;
+      ageTemp.seropos_vac_cases = 0;
+      ageTemp.seropos_vac_pop = 0;
+      ageTemp.age = i;
+      ageTemp.seropos_plac_pop = 0;
+      ageTemp.seropos_plac_cases = 0;
+      ageTemp.seropos_vac_hosp = 0;
+      ageTemp.seropos_plac_hosp = 0;
+      ageTemp.seroneg_vac_pop = 0;
+      ageTemp.seroneg_plac_pop = 0;
+      ageTemp.seroneg_vac_cases = 0;
+      ageTemp.seroneg_plac_cases = 0;
+      ageTemp.seroneg_vac_hosp = 0;
+      ageTemp.seroneg_plac_hosp = 0;
+      ageReports.push_back(ageTemp);
+    }
 
     for(auto itHum = humans.begin(); itHum != humans.end(); itHum++){
+      //      printf("updating statistics\n");
         itHum->second->updateAttractiveness(currentDay);
         age = itHum->second->getAge(currentDay);
-
-        if(age >= age_09 && age < age_10){
+	int ageGroup = getAgeGroup(age);
+	//	printf("Human of age %d goes in agegroup %d - %d\n",age/365,ageGroup, ageReports[ageGroup].age);
+	if(ageGroup >=0){
+	  if(itHum->second->getSeroStatusAtVaccination()){
+	    if(itHum->second->isVaccinated()){
+	      ageReports[ageGroup].seropos_vac_pop++;
+	      if(itHum->second->getRecentInf()){
+		ageReports[ageGroup].seropos_vac_cases++;
+		if(itHum->second->getRecentDis()){
+		  ageReports[ageGroup].seropos_vac_hosp++;
+		}
+	      }
+	    }else{
+	      ageReports[ageGroup].seropos_plac_pop++;
+	      if(itHum->second->getRecentInf()){
+		ageReports[ageGroup].seropos_plac_cases++;
+		if(itHum->second->getRecentDis()){
+		  ageReports[ageGroup].seropos_plac_hosp++;
+		}
+	      }
+	    }
+	  }else{
+	    if(itHum->second->isVaccinated()){
+	      ageReports[ageGroup].seroneg_vac_pop++;
+	      if(itHum->second->getRecentInf()){
+		ageReports[ageGroup].seroneg_vac_cases++;
+		if(itHum->second->getRecentDis()){
+		  ageReports[ageGroup].seroneg_vac_hosp++;
+		}
+	      }
+	    }else{
+	      ageReports[ageGroup].seroneg_plac_pop++;
+	      if(itHum->second->getRecentInf()){
+		ageReports[ageGroup].seroneg_plac_cases++;
+		if(itHum->second->getRecentDis()){
+		  ageReports[ageGroup].seroneg_plac_hosp++;
+		}
+	      }
+	    }
+	  }
+	}
+	/*        if(age >= age_09 && age < age_10){
             if(itHum->second->getPreviousInfections()){
                 seropos_09++;
             } else {
@@ -150,18 +259,56 @@ void Simulation::updatePop(){
             } else {
                 hosp_1999++;
             }
-        }
+	    }*/
         itHum->second->resetRecent();
     }
+    //    printf("attempting to print\n");
+    outpop << currentDay << ",";
+    for(int i =0; i < totalgroups;i++){ 
+      outpop << ageReports[i].seropos_vac_pop << "," << ageReports[i].seropos_vac_cases << ","<< ageReports[i].seropos_plac_pop << "," <<ageReports[i].seropos_plac_cases << "," << ageReports[i].seropos_vac_hosp << "," <<
+	ageReports[i].seropos_plac_hosp << "," << ageReports[i].seroneg_vac_pop << "," << ageReports[i].seroneg_plac_pop << "," << ageReports[i].seroneg_vac_cases << "," << ageReports[i].seroneg_plac_cases << "," <<
+	ageReports[i].seroneg_vac_hosp << "," << ageReports[i].seroneg_plac_hosp;
+      if(i == totalgroups-1){
+	outpop<< "\n"; 
+      }else{
+	outpop<<",";
+      }
+    }
 
-    outpop << year << "," << 
+      /*
         seropos_09 << "," << seroneg_09 << "," <<
         noinf_0008 << "," << inf_0008 << "," << noinf_0918 << "," << inf_0918 << "," << noinf_1999 << "," << inf_1999 << "," << 
         nodis_0008 << "," << dis_0008 << "," << nodis_0918 << "," << dis_0918  << "," << nodis_1999 << "," << dis_1999 << "," << 
-        nohosp_0008 << "," << hosp_0008 << "," << nohosp_0918 << "," << hosp_0918 << "," << nohosp_1999  << "," << hosp_1999 << "\n";
+        nohosp_0008 << "," << hosp_0008 << "," << nohosp_0918 << "," << hosp_0918 << "," << nohosp_1999  << "," << hosp_1999 << "\n";*/
 }
-
-
+bool Simulation::checkAgeToVaccinate(int age_){
+  if(vaccinateMultipleAge){
+    std::map<int,int>::iterator itAge = ageGroups.begin();
+    for(; itAge != ageGroups.end(); itAge++){
+      if(age_ >= (*itAge).first * 365 && age_ <= (*itAge).second * 365){
+	//	printf("This person of age: %d goes in ageGroup %d to %d\n",age_/365,(*itAge).first,(*itAge).second);
+	return true;
+      }
+    }
+  }else{
+    if(age_ == vaccineAge * 365){
+      return true;
+    }
+  }
+  return false;
+}
+int Simulation::getAgeGroup(int age_){
+  std::map<int,int>::iterator itAge = ageGroups.begin();
+  int count = 0;
+  for(; itAge != ageGroups.end(); itAge++){
+    if(age_ >= (*itAge).first * 365 && age_ <= (*itAge).second * 365){
+      //	printf("This person of age: %d goes in ageGroup %d to %d\n",age_/365,(*itAge).first,(*itAge).second);
+      return count;
+    }
+    count++;
+  }
+  return -1;
+}
 
 void Simulation::humanDynamics() {
     int diff, age, dose;
@@ -187,29 +334,29 @@ void Simulation::humanDynamics() {
         if(vaccinationFlag == true){
             if(currentDay >= vaccineDay){
                 age = it->second->getAge(currentDay);
-
+		it->second->updateSeroStatusAtVaccination();
                 // routine vaccination by age
-                if(age == vaccineAge * 365){
-                    if(rGenInf.getEventProbability() < vaccineCoverage)
-                        it->second->vaccinate(&VE_pos, &VE_neg,rGenInf, 1.0, currentDay);
-                }
-
+		if(checkAgeToVaccinate(age)){
+		  if(rGenInf.getEventProbability() < vaccineCoverage)
+		    it->second->vaccinate(&VE_pos, &VE_neg,rGenInf, 1.0, currentDay);
+		}
+	    }
+	    
                 // catchup vaccination by age
                 if(catchupFlag == true && vaccineDay == currentDay){
                     if(age > vaccineAge * 365 && age < 18 * 365){
-                        if(rGenInf.getEventProbability() < vaccineCoverage)
-                            it->second->vaccinate(&VE_pos, &VE_neg,rGenInf, 1.0, currentDay);
+		      if(rGenInf.getEventProbability() < vaccineCoverage)
+			it->second->vaccinate(&VE_pos, &VE_neg,rGenInf, 1.0, currentDay);
                     }
                 }
-            }
-        }
-
+	}
+	
         // simulate possible imported infection
         if(rGen.getEventProbability() < ForceOfImportation){
-            int serotype = rGen.getRandomNum(4) + 1;
-            if(!it->second->isImmune(serotype)){
-                it->second->infect(currentDay, serotype, &rGenInf);
-            }
+	  int serotype = rGen.getRandomNum(4) + 1;
+	  if(!it->second->isImmune(serotype)){
+	    it->second->infect(currentDay, serotype, &rGenInf);
+	  }
         }
     }
 }
@@ -338,6 +485,8 @@ void Simulation::readSimControlFile(string line) {
     getline(infile, line, ',');
     catchupFlag = (stoi(line.c_str(), NULL, 10) == 0 ? false : true);
     getline(infile, line, ',');
+    vaccinateMultipleAge = (stoi(line.c_str(), NULL, 10) == 0 ? false : true);
+    getline(infile, line, ',');
     outputPath = line;
     getline(infile, line, ',');
     locationFile = line;
@@ -345,6 +494,8 @@ void Simulation::readSimControlFile(string line) {
     trajectoryFile = line;
     getline(infile, line, ',');
     vaccineProfileFile = line;
+    getline(infile, line, ',');
+    vaccinationGroupsFile = line;
     getline(infile, line, ',');
     deathRate = strtod(line.c_str(), NULL);    
     getline(infile, line, ',');
@@ -435,6 +586,34 @@ void Simulation::readVaccineProfileFile() {
         halflife.insert(make_pair(sero,hl * 365.0));
     }
     infile.close();
+}
+
+void Simulation::readVaccinationGroupsFile(){
+  //  printf("Reading vaccinationGroupsFile %s\n",vaccinationGroupsFile.c_str());
+    if (vaccinationGroupsFile.length() == 0) {
+      //      printf("couldn't read vaccinationGroupsFile, please specify a valid file name\n");
+      exit(1);
+    }
+    string line;
+    int maxAge;
+    int minAge;
+    ifstream infile(vaccinationGroupsFile);
+    if(!infile.good()){
+      //      printf("couldn't read vaccinationGroupsFile: %s, please specify a valid file name\n",vaccinationGroupsFile.c_str());
+      exit(1);
+    }
+    while(getline(infile, line, ',')){
+        minAge = strtol(line.c_str(), NULL, 10);
+        getline(infile, line, '\n');
+        maxAge = strtol(line.c_str(), NULL,10);
+	ageGroups.insert(make_pair(minAge,maxAge));
+	//	printf("adding %d, %d to agegroups\n",minAge,maxAge);
+    }
+    infile.close();
+    std::map<int,int>::iterator itAge = ageGroups.begin();
+    /*    for(; itAge != ageGroups.end(); itAge++){
+      printf("ageGroup %d to %d\n",(*itAge).first,(*itAge).second);
+      }*/
 }
 
 

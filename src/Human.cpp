@@ -26,7 +26,7 @@ Human::Human(
     vaccinated = false;
     doses = 0;
     resetRecent();
-
+    seroStatusAtVaccination = false;
     if(bday < currDay - 180){
         immunity_temp = false;
         setImmunityPerm(1,false);
@@ -101,7 +101,11 @@ void Human::vaccinate(
     }
 }
 
-
+void Human::updateSeroStatusAtVaccination(){
+  if(getPreviousInfections() > 0){
+    seroStatusAtVaccination = true;
+  }
+}
 
 void Human::infect(
     int currentDay,

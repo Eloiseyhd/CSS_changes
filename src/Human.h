@@ -29,6 +29,7 @@ private:
     bool immunity_temp;
     unsigned immStartDay;
     unsigned immEndDay;
+    bool seroStatusAtVaccination;
     bool vaccinated;
     unsigned doses;
     int vday;
@@ -63,8 +64,10 @@ public:
     int getRecentInf(){return recent_inf;}
     int getRecentDis(){return recent_dis;}
     int getRecentHosp(){return recent_hosp;}
+    bool getSeroStatusAtVaccination(){return seroStatusAtVaccination;}
     void resetRecent();
     void updateRecent(int,int,int);
+    void updateSeroStatusAtVaccination();
     std::set<std::string> getLocsVisited();
     std::string getHouseID() const;
     int getHouseMemNum() const;

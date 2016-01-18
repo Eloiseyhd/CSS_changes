@@ -23,9 +23,12 @@ public:
     void readSimControlFile(std::string);
     void readLocationFile(std::string);
     void readVaccineProfileFile();
+    void readVaccinationGroupsFile();
     void setLocNeighborhood(double);
     void simEngine();
     void humanDynamics();
+    bool checkAgeToVaccinate(int);
+    int getAgeGroup(int);
     void tests();
     void mosquitoDynamics();
     void generateMosquitoes();
@@ -40,6 +43,7 @@ private:
     std::map<unsigned,double> VE_pos;
     std::map<unsigned,double> VE_neg;
     std::map<unsigned,double> halflife;
+    std::map<int,int> ageGroups;
     unsigned currentDay;
     unsigned numDays;
     unsigned long mozID=0;
@@ -47,9 +51,11 @@ private:
     std::string configLine;
     std::string locationFile;
     std::string vaccineProfileFile;
+    std::string vaccinationGroupsFile;
     std::string vaccinationStrategy;
     bool vaccinationFlag;
     bool catchupFlag;
+    bool vaccinateMultipleAge;
     unsigned vaccineDay;
     unsigned vaccineAge;
     double vaccineCoverage;
