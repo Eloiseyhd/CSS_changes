@@ -53,7 +53,6 @@ string Simulation::readInputs() {
     if(vaccinateMultipleAge){
       readVaccinationGroupsFile();
     }
-
     std::map<int,int>::iterator itAge = ageGroups.begin();
     outpop<<"time,";
     int countGroups = 0;
