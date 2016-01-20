@@ -53,10 +53,10 @@ void Human::reincarnate(unsigned currDay){
     immunity_temp = true;
     immStartDay = bday;
     immEndDay = bday + 180;
-    setImmunityPerm(1,false);
-    setImmunityPerm(2,false);
-    setImmunityPerm(3,false);
-    setImmunityPerm(4,false);
+    updateImmunityPerm(1,false);
+    updateImmunityPerm(2,false);
+    updateImmunityPerm(3,false);
+    updateImmunityPerm(4,false);
     vaccinated = false;
     doses = 0;
 }

@@ -98,7 +98,7 @@ void Simulation::updatePop(){
         age = itHum->second->getAge(currentDay);
 
         if(age >= age_09 && age < age_10){
-            if(itHum->second->getPreviousInfections()){
+            if(itHum->second->getPreviousInfections() > 0){
                 seropos_09++;
             } else {
                 seroneg_09++;
