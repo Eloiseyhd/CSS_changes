@@ -85,7 +85,7 @@ void Simulation::simEngine() {
     }
     }*/
   while(currentDay < numDays){        
-    //    printf("simEngine Entered current day %d, max days %d\n",currentDay, numDays);
+    //        printf("simEngine Entered current day %d, max days %d\n",currentDay, numDays);
     //    if(vaccineDay == currentDay && vaccinationFlag == true){printf("vaccination beings at day: %u\n",currentDay);}
     //    double r = rGen.getEventProbability();
     //    printf("day %d to humdynamics randomnumber r = %.4f\n",currentDay,r);
@@ -284,9 +284,11 @@ bool Simulation::checkAgeToVaccinate(int age_){
   if(vaccinateMultipleAge){
     std::map<int,int>::iterator itAge = ageGroups.begin();
     for(; itAge != ageGroups.end(); itAge++){
-      if(age_ >= (*itAge).first * 365 && age_ <= (*itAge).second * 365){
-	//	printf("This person of age: %d goes in ageGroup %d to %d\n",age_/365,(*itAge).first,(*itAge).second);
-	return true;
+      for(int k = (*itAge).first; k <= (*itAge).second; k++){
+	if(age_ == k * 365){
+	  //	printf("This person of age: %d goes in ageGroup %d to %d\n",age_/365,(*itAge).first,(*itAge).second);
+	  return true;
+	}
       }
     }
   }else{
@@ -332,22 +334,24 @@ void Simulation::humanDynamics() {
         // vaccinate, if applicable
         if(vaccinationFlag == true){
             if(currentDay >= vaccineDay){
-                age = it->second->getAge(currentDay);
+	      if(currentDay == vaccineDay){
 		it->second->updateSeroStatusAtVaccination();
-                // routine vaccination by age
-		if(checkAgeToVaccinate(age)){
-		  if(rGenInf.getEventProbability() < vaccineCoverage)
-		    it->second->vaccinate(&VE_pos, &VE_neg,rGenInf, 1.0, currentDay);
-		}
+	      }
+	      age = it->second->getAge(currentDay);
+	      // routine vaccination by age
+	      if(checkAgeToVaccinate(age)){
+		if(rGenInf.getEventProbability() < vaccineCoverage)
+		  it->second->vaccinate(&VE_pos, &VE_neg,rGenInf, 1.0, currentDay);
+	      }
 	    }
 	    
                 // catchup vaccination by age
-                if(catchupFlag == true && vaccineDay == currentDay){
-                    if(age > vaccineAge * 365 && age < 18 * 365){
-		      if(rGenInf.getEventProbability() < vaccineCoverage)
-			it->second->vaccinate(&VE_pos, &VE_neg,rGenInf, 1.0, currentDay);
-                    }
-                }
+	    if(catchupFlag == true && vaccineDay == currentDay){
+	      if(age > vaccineAge * 365 && age < 18 * 365){
+		if(rGenInf.getEventProbability() < vaccineCoverage)
+		  it->second->vaccinate(&VE_pos, &VE_neg,rGenInf, 1.0, currentDay);
+	      }
+	    }
 	}
 	
         // simulate possible imported infection
