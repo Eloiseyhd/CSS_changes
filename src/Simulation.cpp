@@ -72,7 +72,7 @@ string Simulation::readInputs() {
 void Simulation::simEngine() {
   //  if(vaccinationFlag == true){printf("Vaccination is activated for day %u\n",vaccineDay);}
   while(currentDay < numDays){        
-    printf("simEngine Entered current day %d, max days %d\n",currentDay, numDays);
+    //    printf("simEngine Entered current day %d, max days %d\n",currentDay, numDays);
     //    if(vaccineDay == currentDay && vaccinationFlag == true){printf("vaccination beings at day: %u\n",currentDay);}
     //    double r = rGen.getEventProbability();
     //    printf("day %d to humdynamics randomnumber r = %.4f\n",currentDay,r);
@@ -84,8 +84,7 @@ void Simulation::simEngine() {
     //    printf("day %d after mosdynamics randomnumber r = %.4f\n", currentDay,r);
     if(ceil((currentDay + 1) / 365) != ceil(currentDay / 365)){
       year++;
-      printf("year %d day %d\n",year,currentDay);
-	updatePop();
+      updatePop();
     }
     currentDay++;
   }
