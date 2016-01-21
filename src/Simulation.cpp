@@ -11,11 +11,11 @@
 using namespace std;
 
 
-
 void Simulation::simulate() {
     simEngine();
     out.close();
     outpop.close();
+    outprevac.close();
 }
 
 
@@ -32,6 +32,7 @@ string Simulation::readInputs() {
     // out << "day,infection,disease,age,previous_infections,vaccinated\n";
 
     outputPopFile = outputPath + "/" + simName + "_pop.csv";
+    outputPrevacFile = outputPath + "/" + simName + "_prevac.csv";
     outpop.open(outputPopFile);
     if (!outpop.good()) {
       //      printf("cannot create output file %s\n",outputPopFile.c_str());
@@ -40,7 +41,18 @@ string Simulation::readInputs() {
     outpop << "year,seropos_09,seroneg_09";
     outpop << ",noinf_0008,inf_0008,noinf_0918,inf_0918,noinf_1999,inf_1999"; 
     outpop << ",nodis_0008,dis_0008,nodis_0918,dis_0918,nodis_1999,dis_1999"; 
-    outpop << ",nohosp_0008,hosp_0008,nohosp_0918,hosp_0918,nohosp_1999,hosp_1999\n";
+    outpop << ",nohosp_0008,hosp_0008,nohosp_0918,hosp_0918,nohosp_1999,hosp_1999";
+    outpop << ",seropos_vac_coh1,seropos_vac_inf_coh1,seropos_vac_dis_coh1,seropos_vac_hosp_coh1";
+    outpop << ",seropos_novac_coh1,seropos_novac_inf_coh1,seropos_novac_dis_coh1,seropos_novac_hosp_coh1";
+    outpop << ",seroneg_vac_coh1,seroneg_vac_inf_coh1,seroneg_vac_dis_coh1,seroneg_vac_hosp_coh1";
+    outpop << ",seroneg_novac_coh1,seroneg_novac_inf_coh1,seroneg_novac_dis_coh1,seroneg_novac_hosp_coh1\n";
+
+    outprevac.open(outputPrevacFile);
+    if(!outprevac.good()){
+      printf("cannot create output file %s\n",outputPrevacFile.c_str());
+      exit(1);
+    }
+    outprevac << "age,population,infections,disease_cases,hospitalizations\n";
 
     RandomNumGenerator rgen(rSeed, huImm, emergeFactor, mlife, mrest, halflife);
     rGen = rgen;
@@ -60,7 +72,7 @@ string Simulation::readInputs() {
 void Simulation::simEngine() {
   //  if(vaccinationFlag == true){printf("Vaccination is activated for day %u\n",vaccineDay);}
   while(currentDay < numDays){        
-    //    printf("simEngine Entered current day %d, max days %d\n",currentDay, numDays);
+    printf("simEngine Entered current day %d, max days %d\n",currentDay, numDays);
     //    if(vaccineDay == currentDay && vaccinationFlag == true){printf("vaccination beings at day: %u\n",currentDay);}
     //    double r = rGen.getEventProbability();
     //    printf("day %d to humdynamics randomnumber r = %.4f\n",currentDay,r);
@@ -72,9 +84,9 @@ void Simulation::simEngine() {
     //    printf("day %d after mosdynamics randomnumber r = %.4f\n", currentDay,r);
     if(ceil((currentDay + 1) / 365) != ceil(currentDay / 365)){
       year++;
+      printf("year %d day %d\n",year,currentDay);
 	updatePop();
     }
-    
     currentDay++;
   }
 }
@@ -92,7 +104,19 @@ void Simulation::updatePop(){
     int noinf_0008 = 0, inf_0008 = 0, noinf_0918 = 0, inf_0918 = 0, noinf_1999 = 0, inf_1999 = 0;
     int nodis_0008 = 0, dis_0008 = 0, nodis_0918 = 0, dis_0918 = 0, nodis_1999 = 0, dis_1999 = 0;
     int nohosp_0008 = 0, hosp_0008 = 0, nohosp_0918 = 0, hosp_0918 = 0, nohosp_1999 = 0, hosp_1999 = 0;
-
+    int seropos_vac_coh1 = 0, seropos_novac_coh1 = 0, seroneg_vac_coh1 = 0, seroneg_novac_coh1 = 0;
+    int seropos_vac_inf_coh1 = 0, seropos_vac_dis_coh1 = 0, seropos_vac_hosp_coh1 = 0;
+    int seropos_novac_inf_coh1 = 0, seropos_novac_dis_coh1 = 0, seropos_novac_hosp_coh1 = 0;
+    int seroneg_vac_inf_coh1 = 0, seroneg_vac_dis_coh1 = 0, seroneg_vac_hosp_coh1 = 0;
+    int seroneg_novac_inf_coh1 = 0, seroneg_novac_dis_coh1 = 0, seroneg_novac_hosp_coh1 = 0;
+    int inf[100], dis[100],hosp[100];
+    int popByAge[100];
+    for(int i = 0;i < 100;i++){
+      inf[i] = 0;
+      dis[i] = 0;
+      hosp[i] = 0;
+      popByAge[i] = 0;
+    }
     for(auto itHum = humans.begin(); itHum != humans.end(); itHum++){
         itHum->second->updateAttractiveness(currentDay);
         age = itHum->second->getAge(currentDay);
@@ -151,14 +175,98 @@ void Simulation::updatePop(){
                 hosp_1999++;
             }
         }
+	if(itHum->second->getCohort() == 1){
+	  if(itHum->second->getSeroStatusAtVaccination()){
+	    if(itHum->second->isVaccinated()){
+	      seropos_vac_coh1++;
+	      if(itHum->second->getRecentInf() > 0){
+		seropos_vac_inf_coh1++;
+	      }
+	      if(itHum->second->getRecentDis() > 0){
+		seropos_vac_dis_coh1++;
+		if(itHum->second->getRecentHosp() > 0){
+		  seropos_vac_hosp_coh1++;
+		}
+	      }
+	    }else{
+	      seropos_novac_coh1++;
+	      if(itHum->second->getRecentInf() > 0){
+		seropos_novac_inf_coh1++;
+	      }
+	      if(itHum->second->getRecentDis() > 0){
+		seropos_novac_dis_coh1++;
+		if(itHum->second->getRecentHosp() > 0){
+		  seropos_novac_hosp_coh1++;
+		}
+	      }
+	    }
+	  }else{
+	    if(itHum->second->isVaccinated()){
+	      seroneg_vac_coh1++;
+	      if(itHum->second->getRecentInf() > 0){
+		seroneg_vac_inf_coh1++;
+	      }
+	      if(itHum->second->getRecentDis() > 0){
+		seroneg_vac_dis_coh1++;
+		if(itHum->second->getRecentHosp() > 0){
+		  seroneg_vac_hosp_coh1++;
+		}
+	      }
+	    }else{
+	      seroneg_novac_coh1++;
+	      if(itHum->second->getRecentInf() > 0){
+		seroneg_novac_inf_coh1++;
+	      }
+	      if(itHum->second->getRecentDis() > 0){
+		seroneg_novac_dis_coh1++;
+		if(itHum->second->getRecentHosp() > 0){
+		  seroneg_novac_hosp_coh1++;
+		}
+	      }
+	    }
+	  }
+	}
+
+	// If this is the previous year to the introduction of the vaccine
+	// then get infections, disease cases, and hospitalization by age [0 - 99]
+        if(vaccinationFlag == true){
+            if(currentDay >= vaccineDay && currentDay < vaccineDay + 30){
+		int ageTemp = floor(age / 365);
+		if(ageTemp > 99){
+		  ageTemp = 99;
+		}
+		popByAge[ageTemp]++;
+		if(itHum->second->getRecentInf() > 0){
+		  inf[ageTemp]++;
+		}
+		if(itHum->second->getRecentDis() > 0){
+		  dis[ageTemp]++;
+		}
+		if(itHum->second->getRecentHosp() > 0){
+		  hosp[ageTemp]++;
+		}
+	    }
+	}
         itHum->second->resetRecent();
     }
 
     outpop << year << "," << 
-        seropos_09 << "," << seroneg_09 << "," <<
-        noinf_0008 << "," << inf_0008 << "," << noinf_0918 << "," << inf_0918 << "," << noinf_1999 << "," << inf_1999 << "," << 
-        nodis_0008 << "," << dis_0008 << "," << nodis_0918 << "," << dis_0918  << "," << nodis_1999 << "," << dis_1999 << "," << 
-        nohosp_0008 << "," << hosp_0008 << "," << nohosp_0918 << "," << hosp_0918 << "," << nohosp_1999  << "," << hosp_1999 << "\n";
+      seropos_09 << "," << seroneg_09 << "," <<
+      noinf_0008 << "," << inf_0008 << "," << noinf_0918 << "," << inf_0918 << "," << noinf_1999 << "," << inf_1999 << "," << 
+      nodis_0008 << "," << dis_0008 << "," << nodis_0918 << "," << dis_0918  << "," << nodis_1999 << "," << dis_1999 << "," << 
+      nohosp_0008 << "," << hosp_0008 << "," << nohosp_0918 << "," << hosp_0918 << "," << nohosp_1999  << "," << hosp_1999 << "," <<
+      seropos_vac_coh1 <<  "," << seropos_vac_inf_coh1 << "," << seropos_vac_dis_coh1 << "," << seropos_vac_hosp_coh1 << "," <<
+      seropos_novac_coh1 <<  "," << seropos_novac_inf_coh1 << "," << seropos_novac_dis_coh1 << "," << seropos_novac_hosp_coh1 << "," <<
+      seroneg_vac_coh1 << ","  << seroneg_vac_inf_coh1 << "," << seroneg_vac_dis_coh1 << "," << seroneg_vac_hosp_coh1 << "," <<
+      seroneg_novac_coh1 << ","  << seroneg_novac_inf_coh1 << "," << seroneg_novac_dis_coh1 << "," << seroneg_novac_hosp_coh1 << "\n";
+
+    if(vaccinationFlag == true){
+      if(currentDay >= vaccineDay && currentDay < vaccineDay + 30){
+	for(int i = 0;i < 100;i++){
+	  outprevac << i << "," << popByAge[i] << "," << inf[i] << "," << dis[i] << "," << hosp[i] << "\n";
+	}
+      }
+    }
 }
 
 
@@ -166,7 +274,11 @@ void Simulation::updatePop(){
 void Simulation::humanDynamics() {
     int diff, age, dose;
     bool vaxd = false;
-    //    printf("human dynamics entered\n");
+    int cohort = 0;
+    if (currentDay >= vaccineDay){
+      cohort = floor((currentDay - vaccineDay) / 365) + 1;
+    }
+    //    printf("human dynamics entered cohort %d\n",cohort);
     for (auto it = humans.begin(); it != humans.end(); ++it) {
         // daily mortality for humans by age
         if(rGen.getEventProbability() < (deathRate * it->second->getAge(currentDay)))
@@ -186,10 +298,15 @@ void Simulation::humanDynamics() {
         // vaccinate, if applicable
         if(vaccinationFlag == true){
             if(currentDay >= vaccineDay){
+		if(currentDay == vaccineDay){
+		  it->second->setSeroStatusAtVaccination();
+		}
+
                 age = it->second->getAge(currentDay);
 
                 // routine vaccination by age
                 if(age == vaccineAge * 365){
+		  it->second->setCohort(cohort);
                     if(rGenInf.getEventProbability() < vaccineCoverage)
                         it->second->vaccinate(&VE_pos, &VE_neg,rGenInf, 1.0, currentDay);
                 }

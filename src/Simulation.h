@@ -55,6 +55,7 @@ private:
     double vaccineCoverage;
     std::string outputFile;
     std::string outputPopFile;
+    std::string outputPrevacFile;
     std::string simName;
     unsigned rSeed;
     unsigned rSeedInf;
@@ -73,6 +74,7 @@ private:
 
     std::ofstream out;
     std::ofstream outpop;
+    std::ofstream outprevac;
 };
 
 #endif  /* SIMULATION_H */

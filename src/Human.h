@@ -29,6 +29,7 @@ private:
     bool immunity_temp;
     unsigned immStartDay;
     unsigned immEndDay;
+    bool seroStatusAtVaccination;
     bool vaccinated;
     unsigned doses;
     int vday;
@@ -36,6 +37,7 @@ private:
     int recent_inf;
     int recent_dis;
     int recent_hosp;
+    int cohort;
 
 public:
     std::unique_ptr<Infection> infection;
@@ -59,10 +61,14 @@ public:
     void vaccinate(std::map<unsigned,double> *,std::map<unsigned,double> *,RandomNumGenerator&,double,int);
     void waneVaccination(){vaccinated = false;}
     void checkRecovered(unsigned);
+    void setCohort(int c_){cohort = c_;}
+    int getCohort(){return cohort;}
     bool isVaccinated(){return vaccinated;}
     int getRecentInf(){return recent_inf;}
     int getRecentDis(){return recent_dis;}
     int getRecentHosp(){return recent_hosp;}
+    bool getSeroStatusAtVaccination(){return seroStatusAtVaccination;}
+    void setSeroStatusAtVaccination();
     void resetRecent();
     void updateRecent(int,int,int);
     std::set<std::string> getLocsVisited();
