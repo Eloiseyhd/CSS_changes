@@ -52,7 +52,7 @@ string Simulation::readInputs() {
       printf("cannot create output file %s\n",outputPrevacFile.c_str());
       exit(1);
     }
-    outprevac << "age,population,infections,disease_cases,hospitalizations\n";
+    outprevac << "age,seropos,seroneg\n";
 
     RandomNumGenerator rgen(rSeed, huImm, emergeFactor, mlife, mrest, halflife);
     rGen = rgen;
@@ -108,14 +108,14 @@ void Simulation::updatePop(){
     int seropos_novac_inf_coh1 = 0, seropos_novac_dis_coh1 = 0, seropos_novac_hosp_coh1 = 0;
     int seroneg_vac_inf_coh1 = 0, seroneg_vac_dis_coh1 = 0, seroneg_vac_hosp_coh1 = 0;
     int seroneg_novac_inf_coh1 = 0, seroneg_novac_dis_coh1 = 0, seroneg_novac_hosp_coh1 = 0;
-    int inf[100], dis[100],hosp[100];
-    int popByAge[100];
-    for(int i = 0;i < 100;i++){
+    /*int inf[100], dis[100],hosp[100];
+      int popByAge[100];
+      for(int i = 0;i < 100;i++){
       inf[i] = 0;
       dis[i] = 0;
       hosp[i] = 0;
       popByAge[i] = 0;
-    }
+    }*/
     for(auto itHum = humans.begin(); itHum != humans.end(); itHum++){
         itHum->second->updateAttractiveness(currentDay);
         age = itHum->second->getAge(currentDay);
@@ -226,7 +226,7 @@ void Simulation::updatePop(){
 	  }
 	}
 
-	// If this is the previous year to the introduction of the vaccine
+	/*	// If this is the previous year to the introduction of the vaccine
 	// then get infections, disease cases, and hospitalization by age [0 - 99]
         if(vaccinationFlag == true){
             if(currentDay >= vaccineDay && currentDay < vaccineDay + 30){
@@ -245,7 +245,7 @@ void Simulation::updatePop(){
 		  hosp[ageTemp]++;
 		}
 	    }
-	}
+	    }*/
         itHum->second->resetRecent();
     }
 
@@ -258,14 +258,14 @@ void Simulation::updatePop(){
       seropos_novac_coh1 <<  "," << seropos_novac_inf_coh1 << "," << seropos_novac_dis_coh1 << "," << seropos_novac_hosp_coh1 << "," <<
       seroneg_vac_coh1 << ","  << seroneg_vac_inf_coh1 << "," << seroneg_vac_dis_coh1 << "," << seroneg_vac_hosp_coh1 << "," <<
       seroneg_novac_coh1 << ","  << seroneg_novac_inf_coh1 << "," << seroneg_novac_dis_coh1 << "," << seroneg_novac_hosp_coh1 << "\n";
-
+    /*    
     if(vaccinationFlag == true){
       if(currentDay >= vaccineDay && currentDay < vaccineDay + 30){
 	for(int i = 0;i < 100;i++){
 	  outprevac << i << "," << popByAge[i] << "," << inf[i] << "," << dis[i] << "," << hosp[i] << "\n";
 	}
       }
-    }
+      }*/
 }
 
 
@@ -276,6 +276,13 @@ void Simulation::humanDynamics() {
     int cohort = 0;
     if (currentDay >= vaccineDay){
       cohort = floor((currentDay - vaccineDay) / 365) + 1;
+    }
+    int seroposAtVax[100], seronegAtVax[100];
+    if(currentDay == vaccineDay){
+      for(int i = 0;i < 100;i++){
+       seroposAtVax[i] = 0;
+       seronegAtVax[i] = 0;
+      }
     }
     //    printf("human dynamics entered cohort %d\n",cohort);
     for (auto it = humans.begin(); it != humans.end(); ++it) {
@@ -297,29 +304,39 @@ void Simulation::humanDynamics() {
         // vaccinate, if applicable
         if(vaccinationFlag == true){
             if(currentDay >= vaccineDay){
-		if(currentDay == vaccineDay){
-		  it->second->setSeroStatusAtVaccination();
+	      age = it->second->getAge(currentDay);		
+	      if(currentDay == vaccineDay){
+		it->second->setSeroStatusAtVaccination();
+		
+		// record serostatus by age groups at the day of vaccination
+		int ageTemp = floor(age / 365);
+		if(ageTemp > 99){
+		  ageTemp = 99;
 		}
-
-                age = it->second->getAge(currentDay);
-
-                // routine vaccination by age
-                if(age == vaccineAge * 365){
-		  it->second->setCohort(cohort);
-                    if(rGenInf.getEventProbability() < vaccineCoverage)
-                        it->second->vaccinate(&VE_pos, &VE_neg,rGenInf, 1.0, currentDay);
-                }
-
-                // catchup vaccination by age
-                if(catchupFlag == true && vaccineDay == currentDay){
-                    if(age > vaccineAge * 365 && age < 18 * 365){
-                        if(rGenInf.getEventProbability() < vaccineCoverage)
-                            it->second->vaccinate(&VE_pos, &VE_neg,rGenInf, 1.0, currentDay);
-                    }
-                }
-            }
-        }
-
+		if(it->second->getSeroStatusAtVaccination() == true){
+		  seroposAtVax[ageTemp]++;
+		}else{
+		  seronegAtVax[ageTemp]++;
+		}
+	      }
+	    }
+	    
+	    // routine vaccination by age
+	    if(age == vaccineAge * 365){
+	      it->second->setCohort(cohort);
+	      if(rGenInf.getEventProbability() < vaccineCoverage)
+		it->second->vaccinate(&VE_pos, &VE_neg,rGenInf, 1.0, currentDay);
+	    }
+	    
+	    // catchup vaccination by age
+	    if(catchupFlag == true && vaccineDay == currentDay){
+	      if(age > vaccineAge * 365 && age < 18 * 365){
+		if(rGenInf.getEventProbability() < vaccineCoverage)
+		  it->second->vaccinate(&VE_pos, &VE_neg,rGenInf, 1.0, currentDay);
+	      }
+	    }
+	}
+	
         // simulate possible imported infection
         if(rGen.getEventProbability() < ForceOfImportation){
             int serotype = rGen.getRandomNum(4) + 1;
@@ -327,6 +344,13 @@ void Simulation::humanDynamics() {
                 it->second->infect(currentDay, serotype, &rGenInf);
             }
         }
+    }
+    if(vaccinationFlag == true){
+      if(currentDay == vaccineDay){
+	for(int i = 0;i < 100;i++){
+	  outprevac << i << "," << seroposAtVax[i] << "," << seronegAtVax[i] <<  "\n";
+	}
+      }
     }
 }
 
