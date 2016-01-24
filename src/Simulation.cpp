@@ -277,15 +277,17 @@ void Simulation::humanDynamics() {
     if (currentDay >= vaccineDay){
       cohort = floor((currentDay - vaccineDay) / 365) + 1;
     }
+
     int seroposAtVax[100], seronegAtVax[100];
     if(currentDay == vaccineDay){
-      for(int i = 0;i < 100;i++){
+      for(int i = 0; i < 100; i++){
        seroposAtVax[i] = 0;
        seronegAtVax[i] = 0;
       }
     }
+
     //    printf("human dynamics entered cohort %d\n",cohort);
-    for (auto it = humans.begin(); it != humans.end(); ++it) {
+    for(auto it = humans.begin(); it != humans.end(); ++it){
         // daily mortality for humans by age
         if(rGen.getEventProbability() < (deathRate * it->second->getAge(currentDay)))
             it->second->reincarnate(currentDay);
@@ -304,21 +306,22 @@ void Simulation::humanDynamics() {
         // vaccinate, if applicable
         if(vaccinationFlag == true){
             if(currentDay >= vaccineDay){
-	      age = it->second->getAge(currentDay);		
-	      if(currentDay == vaccineDay){
-		it->second->setSeroStatusAtVaccination();
-		
-		// record serostatus by age groups at the day of vaccination
-		int ageTemp = floor(age / 365);
-		if(ageTemp > 99){
-		  ageTemp = 99;
-		}
-		if(it->second->getSeroStatusAtVaccination() == true){
-		  seroposAtVax[ageTemp]++;
-		}else{
-		  seronegAtVax[ageTemp]++;
-		}
-	      }
+                age = it->second->getAge(currentDay);
+
+                if(currentDay == vaccineDay){
+            		it->second->setSeroStatusAtVaccination();
+
+                // record serostatus by age groups at the day of vaccination
+                int ageTemp = floor(age / 365);
+                if(ageTemp > 99){
+                    ageTemp = 99;
+                }
+                if(it->second->getSeroStatusAtVaccination() == true){
+                    seroposAtVax[ageTemp]++;
+                }else{
+                    seronegAtVax[ageTemp]++;
+                }
+            }
 	    }
 	    
 	    // routine vaccination by age
@@ -619,7 +622,7 @@ void Simulation::readHumanFile(string humanFile) {
                 getline(infile, line, ',');
         }
 
-        unique_ptr<Human> h(new Human(houseID, hMemID, age, gen, trajectories, rGen, currentDay));
+        unique_ptr<Human> h(new Human(houseID, hMemID, age, gen, trajectories, rGen, currentDay, ForceOfImportation));
 
         std::set<std::string> locsVisited = h->getLocsVisited();
         for(std::set<std::string>::iterator itrSet = locsVisited.begin(); itrSet != locsVisited.end(); itrSet++)
