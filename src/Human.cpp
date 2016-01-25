@@ -12,7 +12,8 @@ Human::Human(
     char gen,
     unique_ptr<vector<vector<pair<string, double >> >> &paths,
     RandomNumGenerator& rGen,
-    unsigned currDay)
+    unsigned currDay,
+    double FOI)
 {
     houseID = hID;
     houseMemNum = hMemID;
@@ -30,10 +31,10 @@ Human::Human(
     seroStatusAtVaccination = false;
     if(bday < currDay - 180){
         immunity_temp = false;
-        setImmunityPerm(1,false);
-        setImmunityPerm(2,false);
-        setImmunityPerm(3,false);
-        setImmunityPerm(4,false);
+        setImmunityPerm(1, rGen.getHumanSeropositivity(FOI, double(age / 365)));
+        setImmunityPerm(2, rGen.getHumanSeropositivity(FOI, double(age / 365)));
+        setImmunityPerm(3, rGen.getHumanSeropositivity(FOI, double(age / 365)));
+        setImmunityPerm(4, rGen.getHumanSeropositivity(FOI, double(age / 365)));
     } else {
         immunity_temp = true;
         immStartDay = bday;
@@ -94,12 +95,7 @@ void Human::vaccinate(
     // distributed period with mean 1 year after vaccination
     setImmunityTemp(true);
     setImmStartDay(currDay);
-    if(getPreviousInfections() == 0){
-        setImmEndDay(currDay  + rGen.getVaxHumanImmunity(365));
-    }
-    else{
-        setImmEndDay(currDay + 365 * 100);
-    }
+    setImmEndDay(currDay + 365 + rGen.getVaxHumanImmunity(365));
 }
 
 void Human::setSeroStatusAtVaccination(){
