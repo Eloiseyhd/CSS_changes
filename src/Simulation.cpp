@@ -283,45 +283,52 @@ void Simulation::humanDynamics() {
         // select movement trajectory for the day
         (it->second)->setTrajDay(rGen.getRandomNum(5));
 	
-	if(age == vaccineAge * 365){
-	  it->second->setCohort(cohort);
+	//Assign a cohort
+	if(currentDay >= vaccineDay){
+	  age = it->second->getAge(currentDay);
+	  if(age == vaccineAge * 365){
+	    it->second->setCohort(cohort);
+	  }
 	}
 
         // vaccinate, if applicable
-        if(vaccinationFlag == true){
-	  if(currentDay >= vaccineDay){
-	    age = it->second->getAge(currentDay);
+
+	if(currentDay >= vaccineDay){
+	  age = it->second->getAge(currentDay);
 	    
-	    if(currentDay == vaccineDay){
-	      it->second->setSeroStatusAtVaccination();
+	  if(currentDay == vaccineDay){
+	    it->second->setSeroStatusAtVaccination();
 	      
-	      // record serostatus by age groups at the day of vaccination
-	      int ageTemp = floor(age / 365);
-	      if(ageTemp > 99){
-		ageTemp = 99;
-	      }
-	      if(it->second->getSeroStatusAtVaccination() == true){
-		seroposAtVax[ageTemp]++;
-	      }else{
-		seronegAtVax[ageTemp]++;
-	      }
+	    // record serostatus by age groups at the day of vaccination
+	    int ageTemp = floor(age / 365);
+	    if(ageTemp > 99){
+	      ageTemp = 99;
+	    }
+	    if(it->second->getSeroStatusAtVaccination() == true){
+	      seroposAtVax[ageTemp]++;
+	    }else{
+	      seronegAtVax[ageTemp]++;
 	    }
 	  }
 	    
 	    // routine vaccination by age
-	    if(age == vaccineAge * 365){
-	      //	      it->second->setCohort(cohort);
+	  if(age == vaccineAge * 365){
+	    it->second->setCohort(cohort);
+	    if(vaccinationFlag == true){
 	      if(rGenInf.getEventProbability() < vaccineCoverage)
 		it->second->vaccinate(&VE_pos, &VE_neg,rGenInf, 1.0, currentDay);
 	    }
+	  }
 	    
 	    // catchup vaccination by age
+	  if(vaccinationFlag == true){
 	    if(catchupFlag == true && vaccineDay == currentDay){
 	      if(age > vaccineAge * 365 && age < 18 * 365){
 		if(rGenInf.getEventProbability() < vaccineCoverage)
 		  it->second->vaccinate(&VE_pos, &VE_neg,rGenInf, 1.0, currentDay);
 	      }
 	    }
+	  }
 	}
 	
         // simulate possible imported infection
