@@ -104,12 +104,12 @@ void Mosquito::infectingBite(
     int currentDay,
     int numDays)
 {
-    Human * humBite = whoBite(time, locNow, rGenInf);
+    Human * humBite = whoBite(time, locNow, rGen);
 
     if(humBite != NULL){
       //      printf("Mosquito %lu in loc %s bit human %s-%d\n",mID,locNow->getLocID().c_str(),humBite->getHouseID().c_str(),humBite->getHouseMemNum());
         setState(Mosquito::MozState::REST);
-        setBiteStartDay(currentDay + rGenInf->getMozRestDays());
+        setBiteStartDay(currentDay + rGen->getMozRestDays());
         if(humBite->infection != nullptr){
             humBite->infection->setInfectiousnessHuman(currentDay);
 	    //	    printf("Possible infection for Mosquito from human %s-%d\n",humBite->getHouseID().c_str(),humBite->getHouseMemNum());
@@ -137,13 +137,13 @@ void Mosquito::infectiousBite(
     int numDays,
     std::ofstream * out)
 {
-    Human * humBite = whoBite(time, locNow, rGenInf);
+    Human * humBite = whoBite(time, locNow, rGen);
 
     // if someone is found to bite
     if(humBite != NULL){
         // update the mosquito's status
         setState(Mosquito::MozState::REST);
-        setBiteStartDay(currentDay + rGenInf->getMozRestDays());
+        setBiteStartDay(currentDay + rGen->getMozRestDays());
 
         // if the mosquito is infectious, the human not actively infected, and the infection successful
         if(infection != nullptr && humBite->infection == nullptr && !humBite->isImmune(infection->getInfectionType())){

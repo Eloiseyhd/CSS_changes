@@ -74,8 +74,8 @@ void Simulation::simEngine() {
   while(currentDay < numDays){        
     //    printf("simEngine Entered current day %d, max days %d\n",currentDay, numDays);
     //    if(vaccineDay == currentDay && vaccinationFlag == true){printf("vaccination beings at day: %u\n",currentDay);}
-    //    double r = rGen.getEventProbability();
-    //    printf("day %d to humdynamics randomnumber r = %.4f\n",currentDay,r);
+    double r = rGen.getEventProbability();
+    printf("day %d to humdynamics randomnumber r = %.4f\n",currentDay,r);
     humanDynamics();
     //    r = rGen.getEventProbability();
     //    printf("day %d to mosdynamics randomnumber r = %.4f\n",currentDay,r);
@@ -226,26 +226,6 @@ void Simulation::updatePop(){
 	  }
 	}
 
-	/*	// If this is the previous year to the introduction of the vaccine
-	// then get infections, disease cases, and hospitalization by age [0 - 99]
-        if(vaccinationFlag == true){
-            if(currentDay >= vaccineDay && currentDay < vaccineDay + 30){
-		int ageTemp = floor(age / 365);
-		if(ageTemp > 99){
-		  ageTemp = 99;
-		}
-		popByAge[ageTemp]++;
-		if(itHum->second->getRecentInf() > 0){
-		  inf[ageTemp]++;
-		}
-		if(itHum->second->getRecentDis() > 0){
-		  dis[ageTemp]++;
-		}
-		if(itHum->second->getRecentHosp() > 0){
-		  hosp[ageTemp]++;
-		}
-	    }
-	    }*/
         itHum->second->resetRecent();
     }
 
@@ -302,31 +282,35 @@ void Simulation::humanDynamics() {
 
         // select movement trajectory for the day
         (it->second)->setTrajDay(rGen.getRandomNum(5));
+	
+	if(age == vaccineAge * 365){
+	  it->second->setCohort(cohort);
+	}
 
         // vaccinate, if applicable
         if(vaccinationFlag == true){
-            if(currentDay >= vaccineDay){
-                age = it->second->getAge(currentDay);
-
-                if(currentDay == vaccineDay){
-            		it->second->setSeroStatusAtVaccination();
-
-                // record serostatus by age groups at the day of vaccination
-                int ageTemp = floor(age / 365);
-                if(ageTemp > 99){
-                    ageTemp = 99;
-                }
-                if(it->second->getSeroStatusAtVaccination() == true){
-                    seroposAtVax[ageTemp]++;
-                }else{
-                    seronegAtVax[ageTemp]++;
-                }
-            }
+	  if(currentDay >= vaccineDay){
+	    age = it->second->getAge(currentDay);
+	    
+	    if(currentDay == vaccineDay){
+	      it->second->setSeroStatusAtVaccination();
+	      
+	      // record serostatus by age groups at the day of vaccination
+	      int ageTemp = floor(age / 365);
+	      if(ageTemp > 99){
+		ageTemp = 99;
+	      }
+	      if(it->second->getSeroStatusAtVaccination() == true){
+		seroposAtVax[ageTemp]++;
+	      }else{
+		seronegAtVax[ageTemp]++;
+	      }
 	    }
+	  }
 	    
 	    // routine vaccination by age
 	    if(age == vaccineAge * 365){
-	      it->second->setCohort(cohort);
+	      //	      it->second->setCohort(cohort);
 	      if(rGenInf.getEventProbability() < vaccineCoverage)
 		it->second->vaccinate(&VE_pos, &VE_neg,rGenInf, 1.0, currentDay);
 	    }
