@@ -52,7 +52,7 @@ string Simulation::readInputs() {
       printf("cannot create output file %s\n",outputPrevacFile.c_str());
       exit(1);
     }
-    outprevac << "age,seropos,seroneg\n";
+    outprevac << "age,pop,seropos,seroneg,symptomatic,hospitalized\n";
 
     RandomNumGenerator rgen(rSeed, huImm, emergeFactor, mlife, mrest, halflife);
     rGen = rgen;
@@ -74,8 +74,8 @@ void Simulation::simEngine() {
   while(currentDay < numDays){        
     //    printf("simEngine Entered current day %d, max days %d\n",currentDay, numDays);
     //    if(vaccineDay == currentDay && vaccinationFlag == true){printf("vaccination beings at day: %u\n",currentDay);}
-    double r = rGen.getEventProbability();
-    printf("day %d to humdynamics randomnumber r = %.4f\n",currentDay,r);
+    //    double r = rGen.getEventProbability();
+    //    printf("day %d to humdynamics randomnumber r = %.4f\n",currentDay,r);
     humanDynamics();
     //    r = rGen.getEventProbability();
     //    printf("day %d to mosdynamics randomnumber r = %.4f\n",currentDay,r);
@@ -258,11 +258,13 @@ void Simulation::humanDynamics() {
       cohort = floor((currentDay - vaccineDay) / 365) + 1;
     }
 
-    int seroposAtVax[100], seronegAtVax[100];
+    int seroposAtVax[101], seronegAtVax[101], disAtVax[101], hospAtVax[101];
     if(currentDay == vaccineDay){
-      for(int i = 0; i < 100; i++){
+      for(int i = 0; i < 101; i++){
        seroposAtVax[i] = 0;
        seronegAtVax[i] = 0;
+       disAtVax[i] = 0;
+       hospAtVax[i] = 0;
       }
     }
 
@@ -301,13 +303,19 @@ void Simulation::humanDynamics() {
 	      
 	    // record serostatus by age groups at the day of vaccination
 	    int ageTemp = floor(age / 365);
-	    if(ageTemp > 99){
-	      ageTemp = 99;
+	    if(ageTemp > 100){
+	      ageTemp = 100;
 	    }
 	    if(it->second->getSeroStatusAtVaccination() == true){
 	      seroposAtVax[ageTemp]++;
 	    }else{
 	      seronegAtVax[ageTemp]++;
+	    }
+	    if(it->second->getRecentDis() > 0){
+	      disAtVax[ageTemp]++;
+	    }
+	    if(it->second->getRecentHosp() > 0){
+	      hospAtVax[ageTemp]++;
 	    }
 	  }
 	    
@@ -339,13 +347,13 @@ void Simulation::humanDynamics() {
             }
         }
     }
-    if(vaccinationFlag == true){
-      if(currentDay == vaccineDay){
-	for(int i = 0;i < 100;i++){
-	  outprevac << i << "," << seroposAtVax[i] << "," << seronegAtVax[i] <<  "\n";
-	}
+    //    if(vaccinationFlag == true){
+    if(currentDay == vaccineDay){
+      for(int i = 0;i < 101;i++){
+	outprevac << i << "," << seroposAtVax[i] +  seronegAtVax[i] << "," << seroposAtVax[i] << "," << seronegAtVax[i] << "," <<  disAtVax[i] << "," << hospAtVax[i] <<"\n";
       }
     }
+      //    }
 }
 
 
