@@ -39,6 +39,10 @@ private:
     int recent_hosp;
     int cohort;
 
+    bool infected;
+    bool symptomatic;
+    bool hospitalized;
+
 public:
     std::unique_ptr<Infection> infection;
     void infect(int, unsigned, RandomNumGenerator *);
@@ -63,7 +67,11 @@ public:
     void checkRecovered(unsigned);
     void setCohort(int c_){cohort = c_;}
     int getCohort(){return cohort;}
+
     bool isVaccinated(){return vaccinated;}
+    bool isInfected(){return infected;}
+    bool isSymptomatic(){return symptomatic;}
+    bool isHospitalized(){return hospitalized;}
     int getRecentInf(){return recent_inf;}
     int getRecentDis(){return recent_dis;}
     int getRecentHosp(){return recent_hosp;}
@@ -92,10 +100,6 @@ public:
 	return b->getHouseID() + std::to_string(b->getHouseMemNum()) > a->getHouseID() + std::to_string(a->getHouseMemNum());
       }
     };
-    /*    bool operator< (const Human* h1) const
-    { return houseMemNum < h1->houseMemNum; }
-    */
-
 };
 
 #endif	/* HUMAN_H */

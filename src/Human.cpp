@@ -29,6 +29,10 @@ Human::Human(
     resetRecent();
     cohort = 0;
     seroStatusAtVaccination = false;
+    infected = false;
+    symptomatic = false;
+    hospitalized = false;
+
     if(bday < currDay - 180){
         immunity_temp = false;
         setImmunityPerm(1, rGen.getHumanSeropositivity(FOI, double(age / 365)));
@@ -113,6 +117,8 @@ void Human::infect(
     recent_dis = 0;
     recent_hosp = 0;
 
+    infected = true;
+
     int vaxAdvancement = 0;
     if(vaccinated){
        vaxAdvancement = 1;
@@ -120,25 +126,31 @@ void Human::infect(
     if(getPreviousInfections() + vaxAdvancement == 0){
         if(rGen->getEventProbability() < 0.3){
             recent_dis = infectionType;
+	    symptomatic = true;
             if(rGen->getEventProbability() < 0.111){
                 recent_hosp = infectionType;
+		hospitalized = true;
             }
         }
     }
     else if(getPreviousInfections() + vaxAdvancement == 1){
         if(rGen->getEventProbability() < 0.6){
             recent_dis = infectionType;
+	    symptomatic = true;
             if(rGen->getEventProbability() < 0.20868){
                 recent_hosp = infectionType;
+		hospitalized = true;
             }
         }
     }
     else{
         if(rGen->getEventProbability() < 0.1){
-        recent_dis = infectionType;
-            if(rGen->getEventProbability() < 0.05217){
-                recent_hosp = infectionType;
-            }
+	  recent_dis = infectionType;
+	  symptomatic = true;
+	  if(rGen->getEventProbability() < 0.05217){
+	    recent_hosp = infectionType;
+	    hospitalized = true;
+	  }
         }
     }
 
@@ -371,6 +383,9 @@ void Human::updateAttractiveness(unsigned currDay){
 void Human::checkRecovered(unsigned currDay){
     if(infection->getEndDay() <= currDay){
        infection.reset(nullptr);
+       infected = false;
+       hospitalized = false;
+       symptomatic = false;
     }
 }
 
