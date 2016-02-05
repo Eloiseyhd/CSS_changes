@@ -108,14 +108,6 @@ void Simulation::updatePop(){
     int seropos_novac_inf_coh1 = 0, seropos_novac_dis_coh1 = 0, seropos_novac_hosp_coh1 = 0;
     int seroneg_vac_inf_coh1 = 0, seroneg_vac_dis_coh1 = 0, seroneg_vac_hosp_coh1 = 0;
     int seroneg_novac_inf_coh1 = 0, seroneg_novac_dis_coh1 = 0, seroneg_novac_hosp_coh1 = 0;
-    /*int inf[100], dis[100],hosp[100];
-      int popByAge[100];
-      for(int i = 0;i < 100;i++){
-      inf[i] = 0;
-      dis[i] = 0;
-      hosp[i] = 0;
-      popByAge[i] = 0;
-    }*/
     for(auto itHum = humans.begin(); itHum != humans.end(); itHum++){
         itHum->second->updateAttractiveness(currentDay);
         age = itHum->second->getAge(currentDay);
@@ -238,14 +230,6 @@ void Simulation::updatePop(){
       seropos_novac_coh1 <<  "," << seropos_novac_inf_coh1 << "," << seropos_novac_dis_coh1 << "," << seropos_novac_hosp_coh1 << "," <<
       seroneg_vac_coh1 << ","  << seroneg_vac_inf_coh1 << "," << seroneg_vac_dis_coh1 << "," << seroneg_vac_hosp_coh1 << "," <<
       seroneg_novac_coh1 << ","  << seroneg_novac_inf_coh1 << "," << seroneg_novac_dis_coh1 << "," << seroneg_novac_hosp_coh1 << "\n";
-    /*    
-    if(vaccinationFlag == true){
-      if(currentDay >= vaccineDay && currentDay < vaccineDay + 30){
-	for(int i = 0;i < 100;i++){
-	  outprevac << i << "," << popByAge[i] << "," << inf[i] << "," << dis[i] << "," << hosp[i] << "\n";
-	}
-      }
-      }*/
 }
 
 
@@ -291,23 +275,22 @@ void Simulation::humanDynamics() {
 	
 	
 	if(currentDay >= dayVax0 && currentDay < vaccineDay){
-	  age = it->second->getAge(currentDay);
-	  int ageTemp = floor(age / 365);
-	  if(ageTemp > 100){
-	    ageTemp = 100;
-	  }
-	  
-	  if(it->second->isSymptomatic() == true){
-	    if(it->second->infection->getStartDay() == currentDay){
-	      disAtVax[ageTemp]++;
+	  if(it->second->infection != nullptr){
+	    age = it->second->getAge(currentDay);
+	    int ageTemp = floor(age / 365);
+	    if(ageTemp > 100){
+	      ageTemp = 100;
 	    }
+
+	    if(currentDay == it->second->infection->getStartDay()){	    
+	      if(it->second->isSymptomatic() == true){
+		disAtVax[ageTemp]++;
+	      }
+	      if(it->second->isHospitalized() == true){
+		hospAtVax[ageTemp]++;
+	      }	
+	    }  
 	  }
-	  if(it->second->isHospitalized() == true){
-	    if(it->second->infection->getStartDay() == currentDay){
-	      hospAtVax[ageTemp]++;
-	    }
-	  }
-	  
 	}
 	
 	// vaccinate, if applicable

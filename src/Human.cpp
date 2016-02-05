@@ -56,6 +56,10 @@ void Human::reincarnate(unsigned currDay){
     bday = currDay;
     updateAttractiveness(currDay);
     infection.reset(nullptr);
+    infected = false;
+    hospitalized = false;
+    symptomatic = false;
+    seroStatusAtVaccination = false;
     immunity_temp = true;
     immStartDay = bday;
     immEndDay = bday + 180;
