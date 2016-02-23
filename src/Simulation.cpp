@@ -341,6 +341,7 @@ void Simulation::humanDynamics() {
 	      // routine vaccination by age
 	      if(checkAgeToVaccinate(age)){
 		if(rGenInf.getEventProbability() < vaccineCoverage)
+		  //Modify this to include (a,b,c) parameters
 		  it->second->vaccinate(&VE_pos, &VE_neg,rGenInf, 1.0, currentDay);
 	      }
 	    }
