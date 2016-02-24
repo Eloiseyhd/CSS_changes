@@ -118,6 +118,8 @@ void Simulation::updatePop(){
             } else {
                 seroneg_09++;
             }
+	}
+	if(age < age_09){
             if(itHum->second->getRecentInf() == 0){
                 noinf_0008++;
             } else {
@@ -550,27 +552,23 @@ void Simulation::readVaccineProfileFile() {
         exit(1);
     }
     string line;
-    unsigned sero;
-    double vep;
-    double ven;
-    double hl;
+    char par;
+    double parPos;
+    double parNeg;
 
     ifstream infile(vaccineProfileFile);
     if(!infile.good()){
         exit(1);
     }
     while(getline(infile, line, ',')){
-        sero = strtol(line.c_str(), NULL, 10);
+        par = strtol(line.c_str(), NULL, 10);
         getline(infile, line, ',');
-        vep = strtod(line.c_str(), NULL);
+        parPos = strtod(line.c_str(), NULL);
         getline(infile, line, ',');
-        ven = strtod(line.c_str(), NULL);
-        getline(infile, line, '\n');
-        hl = strtod(line.c_str(), NULL);
+        parNeg = strtod(line.c_str(), NULL);
 
-        VE_pos.insert(make_pair(sero,vep));
-        VE_neg.insert(make_pair(sero,ven));
-        halflife.insert(make_pair(sero,hl * 365.0));
+        VE_pos.insert(make_pair(par,parPos));
+        VE_neg.insert(make_pair(par,parNeg));
     }
     infile.close();
 }
