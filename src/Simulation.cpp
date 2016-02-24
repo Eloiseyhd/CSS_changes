@@ -118,6 +118,9 @@ void Simulation::updatePop(){
             } else {
                 seroneg_09++;
             }
+	}
+
+	if(age < age_09){
             if(itHum->second->getRecentInf() == 0){
                 noinf_0008++;
             } else {
