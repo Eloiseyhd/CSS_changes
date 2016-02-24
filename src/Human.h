@@ -62,7 +62,8 @@ public:
     unsigned getImmEndDay() const;
     unsigned getDoses();
     int getVaccinationDay(){return vday;}
-    double getVE(unsigned sero){return VE.at(sero);}
+    double getRRInf(){return RRInf;}
+
     int getTrajDay(){return trajDay;}
     void setTrajDay(int dayIn){trajDay = dayIn;}
     void vaccinate(std::map<unsigned,double> *,std::map<unsigned,double> *,RandomNumGenerator&,double,int);

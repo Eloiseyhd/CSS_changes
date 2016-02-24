@@ -74,8 +74,8 @@ void Simulation::simEngine() {
   while(currentDay < numDays){        
     //    printf("simEngine Entered current day %d, max days %d\n",currentDay, numDays);
     //    if(vaccineDay == currentDay && vaccinationFlag == true){printf("vaccination beings at day: %u\n",currentDay);}
-    double r = rGen.getEventProbability();
-    printf("day %d to humdynamics randomnumber r = %.4f\n",currentDay,r);
+    //    double r = rGen.getEventProbability();
+    //    printf("day %d to humdynamics randomnumber r = %.4f\n",currentDay,r);
     humanDynamics();
     //    r = rGen.getEventProbability();
     //printf("day %d to mosdynamics randomnumber r = %.4f\n",currentDay,r);
@@ -568,7 +568,7 @@ void Simulation::readVaccineProfileFile() {
         parPos = strtod(line.c_str(), NULL);
         getline(infile, line, '\n');
         parNeg = strtod(line.c_str(), NULL);
-	printf("par %d pos %f neg %f\n",par,parPos,parNeg);
+	//	printf("par %d pos %f neg %f\n",par,parPos,parNeg);
 	if(par <= 2){
 	  VE_pos.insert(make_pair(par,parPos));
 	  VE_neg.insert(make_pair(par,parNeg));
@@ -581,9 +581,10 @@ void Simulation::readVaccineProfileFile() {
       if(itVE == VE_pos.end()){
 	printf("Vaccine profile not defined for parameter %d\n",i);
 	abort();
-      }else{
-	printf("Parameter pos[%d] = %f, neg[%d] = %f\n", i, VE_pos.at(i), i, VE_neg.at(i));
       }
+      /*else{
+		printf("Parameter pos[%d] = %f, neg[%d] = %f\n", i, VE_pos.at(i), i, VE_neg.at(i));
+		}*/
     }
 }
 

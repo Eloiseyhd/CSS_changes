@@ -103,12 +103,12 @@ void Human::vaccinate(
 
     // a vaccinated person has complete protection against all serotypes for an exponentially 
     // distributed period with mean 1 year after vaccination
-    setImmunityTemp(true);
-    setImmStartDay(currDay);
-    setImmEndDay(currDay + 365 + rGen.getVaxHumanImmunity(365));
+    //    setImmunityTemp(true);
+    //setImmStartDay(currDay);
+    //setImmEndDay(currDay + 365 + rGen.getVaxHumanImmunity(365));
 
     // Vaccine efficacy depends on age, serostatus, and three parameters. a, b, c
-    /*
+    
     if(getPreviousInfections() > 0){
       totalVE = 1 - vepos->at(0) / (1 + exp(vepos->at(1) * (getAge(currDay) / 365 - vepos->at(2))));
     }else{
@@ -116,7 +116,7 @@ void Human::vaccinate(
     }
     RRInf = pow(1 - totalVE, propInf);
     RRDis = pow(1 - totalVE, 1 - propInf);
-    printf("VE: %f RRInf %f RRDis %f\n",totalVE,RRInf, RRDis);*/
+    // printf("age %d VE: %f RRInf %f RRDis %f\n",getAge(currDay),totalVE,RRInf, RRDis);
 }
 
 void Human::setSeroStatusAtVaccination(){
@@ -136,12 +136,8 @@ void Human::infect(
 
     infected = true;
 
-    int vaxAdvancement = 0;
-    if(vaccinated){
-       vaxAdvancement = 1;
-    }
-    if(getPreviousInfections() + vaxAdvancement == 0){
-        if(rGen->getEventProbability() < 0.3){
+    if(getPreviousInfections()  == 0){
+      if(rGen->getEventProbability() < 0.3 * (1 - RRDis)){
             recent_dis = infectionType;
 	    symptomatic = true;
             if(rGen->getEventProbability() < 0.111){
@@ -150,8 +146,8 @@ void Human::infect(
             }
         }
     }
-    else if(getPreviousInfections() + vaxAdvancement == 1){
-        if(rGen->getEventProbability() < 0.6){
+    else if(getPreviousInfections() == 1){
+      if(rGen->getEventProbability() < 0.6 * (1 - RRDis)){
             recent_dis = infectionType;
 	    symptomatic = true;
             if(rGen->getEventProbability() < 0.20868){
@@ -161,16 +157,16 @@ void Human::infect(
         }
     }
     else{
-        if(rGen->getEventProbability() < 0.1){
-	  recent_dis = infectionType;
-	  symptomatic = true;
-	  if(rGen->getEventProbability() < 0.05217){
-	    recent_hosp = infectionType;
-	    hospitalized = true;
-	  }
-        }
+      if(rGen->getEventProbability() < 0.1 * (1 - RRDis)){
+	recent_dis = infectionType;
+	symptomatic = true;
+	if(rGen->getEventProbability() < 0.05217){
+	  recent_hosp = infectionType;
+	  hospitalized = true;
+	}
+      }
     }
-
+    
     infection.reset(new Infection(
         currentDay + 1, currentDay + 15, 0.0, infectionType, getPreviousInfections() == 0, recent_dis > 0));
     updateImmunityPerm(infectionType, true);

@@ -147,7 +147,8 @@ void Mosquito::infectiousBite(
 
         // if the mosquito is infectious, the human not actively infected, and the infection successful
         if(infection != nullptr && humBite->infection == nullptr && !humBite->isImmune(infection->getInfectionType())){
-            if(rGenInf->getEventProbability() < infection->getInfectiousness()){
+	  double RRInf = humBite -> getRRInf();
+	  if(rGenInf->getEventProbability() < infection->getInfectiousness() * (1 - RRInf)){
                 humBite->infect(currentDay, infection->getInfectionType(), rGenInf);
             }
         }
