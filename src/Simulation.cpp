@@ -74,8 +74,8 @@ void Simulation::simEngine() {
   while(currentDay < numDays){        
     //    printf("simEngine Entered current day %d, max days %d\n",currentDay, numDays);
     //    if(vaccineDay == currentDay && vaccinationFlag == true){printf("vaccination beings at day: %u\n",currentDay);}
-    //    double r = rGen.getEventProbability();
-    //    printf("day %d to humdynamics randomnumber r = %.4f\n",currentDay,r);
+    double r = rGen.getEventProbability();
+    printf("day %d to humdynamics randomnumber r = %.4f\n",currentDay,r);
     humanDynamics();
     //    r = rGen.getEventProbability();
     //printf("day %d to mosdynamics randomnumber r = %.4f\n",currentDay,r);
@@ -324,7 +324,7 @@ void Simulation::humanDynamics() {
 	    it->second->setCohort(cohort);
 	    if(vaccinationFlag == true){
 	      if(rGenInf.getEventProbability() < vaccineCoverage)
-		it->second->vaccinate(&VE_pos, &VE_neg,rGenInf, 1.0, currentDay);
+		it->second->vaccinate(&VE_pos, &VE_neg,rGenInf, propInf, currentDay);
 	    }
 	  }
 	    
@@ -333,7 +333,7 @@ void Simulation::humanDynamics() {
 	    if(catchupFlag == true && vaccineDay == currentDay){
 	      if(age > vaccineAge * 365 && age < 18 * 365){
 		if(rGenInf.getEventProbability() < vaccineCoverage)
-		  it->second->vaccinate(&VE_pos, &VE_neg,rGenInf, 1.0, currentDay);
+		  it->second->vaccinate(&VE_pos, &VE_neg,rGenInf, propInf, currentDay);
 	      }
 	    }
 	  }
@@ -478,6 +478,8 @@ void Simulation::readSimControlFile(string line) {
     getline(infile, line, ',');
     catchupFlag = (stoi(line.c_str(), NULL, 10) == 0 ? false : true);
     getline(infile, line, ',');
+    propInf = strtod(line.c_str(), NULL);
+    getline(infile, line, ',');
     outputPath = line;
     getline(infile, line, ',');
     locationFile = line;
@@ -552,7 +554,7 @@ void Simulation::readVaccineProfileFile() {
         exit(1);
     }
     string line;
-    char par;
+    unsigned par;
     double parPos;
     double parNeg;
 
@@ -564,13 +566,25 @@ void Simulation::readVaccineProfileFile() {
         par = strtol(line.c_str(), NULL, 10);
         getline(infile, line, ',');
         parPos = strtod(line.c_str(), NULL);
-        getline(infile, line, ',');
+        getline(infile, line, '\n');
         parNeg = strtod(line.c_str(), NULL);
-
-        VE_pos.insert(make_pair(par,parPos));
-        VE_neg.insert(make_pair(par,parNeg));
+	printf("par %d pos %f neg %f\n",par,parPos,parNeg);
+	if(par <= 2){
+	  VE_pos.insert(make_pair(par,parPos));
+	  VE_neg.insert(make_pair(par,parNeg));
+	}
     }
     infile.close();
+    std::map<unsigned,double>::iterator itVE;
+    for(int i = 0; i < 3; i++){
+      itVE = VE_pos.find(i);
+      if(itVE == VE_pos.end()){
+	printf("Vaccine profile not defined for parameter %d\n",i);
+	abort();
+      }else{
+	printf("Parameter pos[%d] = %f, neg[%d] = %f\n", i, VE_pos.at(i), i, VE_neg.at(i));
+      }
+    }
 }
 
 

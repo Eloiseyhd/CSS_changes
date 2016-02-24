@@ -40,6 +40,7 @@ private:
     std::map<unsigned,double> VE_pos;
     std::map<unsigned,double> VE_neg;
     std::map<unsigned,double> halflife;
+    double propInf;
     unsigned currentDay;
     unsigned numDays;
     unsigned long mozID=0;

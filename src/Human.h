@@ -34,6 +34,9 @@ private:
     unsigned doses;
     int vday;
     std::map<unsigned,double> VE;
+    double totalVE;
+    double RRInf;
+    double RRDis;
     int recent_inf;
     int recent_dis;
     int recent_hosp;

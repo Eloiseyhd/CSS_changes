@@ -32,7 +32,9 @@ Human::Human(
     infected = false;
     symptomatic = false;
     hospitalized = false;
-
+    totalVE = 0.0;
+    RRInf = 0.0;
+    RRDis = 0.0;
     if(bday < currDay - 180){
         immunity_temp = false;
         setImmunityPerm(1, rGen.getHumanSeropositivity(FOI, double(age / 365)));
@@ -74,10 +76,10 @@ void Human::reincarnate(unsigned currDay){
 
 
 void Human::vaccinate(
-    std::map<char,double> * vepos,
-    std::map<char,double> * veneg,
+    std::map<unsigned,double> * vepos,
+    std::map<unsigned,double> * veneg,
     RandomNumGenerator& rGen,
-    double partialEfficacy,
+    double propInf,
     int currDay)
 {
     vaccinated = true;
@@ -101,17 +103,20 @@ void Human::vaccinate(
 
     // a vaccinated person has complete protection against all serotypes for an exponentially 
     // distributed period with mean 1 year after vaccination
-    //    setImmunityTemp(true);
-    //    setImmStartDay(currDay);
-    //    setImmEndDay(currDay + 365 + rGen.getVaxHumanImmunity(365));
+    setImmunityTemp(true);
+    setImmStartDay(currDay);
+    setImmEndDay(currDay + 365 + rGen.getVaxHumanImmunity(365));
 
-    // Vaccine efficacy depends on age, and three parameters. a, b, c
-    double ve_t = 0;
+    // Vaccine efficacy depends on age, serostatus, and three parameters. a, b, c
+    /*
     if(getPreviousInfections() > 0){
-ve_t = 1 - vepos
+      totalVE = 1 - vepos->at(0) / (1 + exp(vepos->at(1) * (getAge(currDay) / 365 - vepos->at(2))));
     }else{
+      totalVE = 1 - veneg->at(0) / (1 + exp(veneg->at(1) * (getAge(currDay) / 365 - veneg->at(2))));
     }
-
+    RRInf = pow(1 - totalVE, propInf);
+    RRDis = pow(1 - totalVE, 1 - propInf);
+    printf("VE: %f RRInf %f RRDis %f\n",totalVE,RRInf, RRDis);*/
 }
 
 void Human::setSeroStatusAtVaccination(){
