@@ -17,7 +17,7 @@ writeSimControl.sobol = function(
 {  
   ii = 1
   
-  simControlFile = paste('~/Condor/SimControl_indirect_', simControlNum - 1, '.csv', sep='')
+  simControlFile = paste('~/Condor/SimControl_', simControlNum - 1, '.csv', sep='')
 
   file.connection = file(simControlFile)
 	toWrite = 'SimulationName,Seed,SeedInf,NumDays,VaccineDay,Vaccination,VaccineCoverage,VaccineAge,Catchup,OutputPath,LocationFile,TrajectoryFile,VaccineProfileFile,DeathRate,ForceOfImportation,HumanImmunityDays,EmergenceFactor,MosquitoLifespan,MosquitoInfectiousness,MosquitoMoveProbability,MosquitoRestDays\n'
@@ -29,7 +29,7 @@ writeSimControl.sobol = function(
 	toWrite =
 		paste(
 			toWrite,
-			'sim_indirect_', simControlNum - 1, ',',
+			'sim_', simControlNum - 1, ',',
 			round(scalars$Seed[ii]), ',',
 			round(scalars$SeedInf[ii]), ',',
 			NumDays, ',',

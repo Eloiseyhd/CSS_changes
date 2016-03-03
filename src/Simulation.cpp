@@ -89,6 +89,7 @@ void Simulation::simEngine() {
     //    if(vaccineDay == currentDay && vaccinationFlag == true){printf("vaccination beings at day: %u\n",currentDay);}
     //    double r = rGen.getEventProbability();
     //    printf("day %d to humdynamics randomnumber r = %.4f\n",currentDay,r);
+    //    printf("day %d\n",currentDay);
     humanDynamics();
     //    r = rGen.getEventProbability();
     //    printf("day %d to mosdynamics randomnumber r = %.4f\n",currentDay,r);
@@ -99,7 +100,10 @@ void Simulation::simEngine() {
       year++;
 	updatePop();
 	}*/
-    if(currentDay == 25 * 30){
+    if(currentDay == 1 * 365){
+      updatePop();
+    }
+    if(currentDay  == 2 * 365){
       updatePop();
     }
     if(currentDay  == 3 * 365){
@@ -264,8 +268,9 @@ void Simulation::updatePop(){
     //    printf("attempting to print\n");
     outpop << currentDay << ",";
     for(int i =0; i < totalgroups;i++){ 
-      outpop << ageReports[i].seropos_vac_pop << "," << ageReports[i].seropos_vac_cases << ","<< ageReports[i].seropos_plac_pop << "," <<ageReports[i].seropos_plac_cases << "," << ageReports[i].seropos_vac_hosp << "," <<
-	ageReports[i].seropos_plac_hosp << "," << ageReports[i].seroneg_vac_pop << "," << ageReports[i].seroneg_plac_pop << "," << ageReports[i].seroneg_vac_cases << "," << ageReports[i].seroneg_plac_cases << "," <<
+      outpop << ageReports[i].seropos_vac_pop << "," << ageReports[i].seropos_vac_cases << ","<< ageReports[i].seropos_plac_pop << "," <<ageReports[i].seropos_plac_cases << "," << 
+	ageReports[i].seropos_vac_hosp << "," << ageReports[i].seropos_plac_hosp << "," << 
+	ageReports[i].seroneg_vac_pop << "," << ageReports[i].seroneg_vac_cases << "," << ageReports[i].seroneg_plac_pop << "," << ageReports[i].seroneg_plac_cases << "," <<
 	ageReports[i].seroneg_vac_hosp << "," << ageReports[i].seroneg_plac_hosp;
       if(i == totalgroups-1){
 	outpop<< "\n"; 
