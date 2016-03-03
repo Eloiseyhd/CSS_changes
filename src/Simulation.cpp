@@ -667,7 +667,7 @@ void Simulation::readHumanFile(string humanFile) {
                 getline(infile, line, ',');
         }
 
-        unique_ptr<Human> h(new Human(houseID, hMemID, age, gen, trajectories, rGen, currentDay));
+	unique_ptr<Human> h(new Human(houseID, hMemID, age, gen, trajectories, rGen, currentDay, ForceOfImportation));
 
         std::set<std::string> locsVisited = h->getLocsVisited();
         for(std::set<std::string>::iterator itrSet = locsVisited.begin(); itrSet != locsVisited.end(); itrSet++)

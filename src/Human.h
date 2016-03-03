@@ -80,7 +80,7 @@ public:
     char getGender() const;
     std::vector<std::pair<std::string,double>> const& getTrajectory(unsigned) const;
     std::string getCurrentLoc(double);
-    Human(std::string,int,int,char,std::unique_ptr<std::vector<std::vector<std::pair<std::string,double>>>>&,RandomNumGenerator&,unsigned);
+    Human(std::string,int,int,char,std::unique_ptr<std::vector<std::vector<std::pair<std::string,double>>>>&,RandomNumGenerator&,unsigned,double);
     Human();
     Human(const Human& orig);
     virtual ~Human();
