@@ -286,6 +286,7 @@ int Human::getPreviousInfections(){
 
 
 void Human::setImmunityPerm(unsigned serotype, bool status) {
+    immunity_perm.erase(serotype);
     immunity_perm.insert(make_pair(serotype,status));
 }
 
