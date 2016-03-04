@@ -57,10 +57,11 @@ string Simulation::readInputs() {
     outpop<<"time,";
     int countGroups = 0;
     for(; itAge != ageGroups.end(); itAge++){
-      outpop<< "seropos_vac_pop"<< (*itAge).first<<'-'<<(*itAge).second<< ",seropos_vac_inf"<< (*itAge).first<<'-'<<(*itAge).second<< ",seropos_plac_pop" << (*itAge).first<<'-'<<(*itAge).second<< ",seropos_plac_inf"<<(*itAge).first<<'-'<<(*itAge).second;
-      outpop<<",seropos_vac_hosp"<<(*itAge).first<<'-'<<(*itAge).second<< ",seropos_plac_hosp"<<(*itAge).first<<'-'<<(*itAge).second;
-      outpop<<",seroneg_vac_pop"<< (*itAge).first<<'-'<<(*itAge).second<< ",seroneg_vac_inf"<< (*itAge).first<<'-'<<(*itAge).second<< ",seroneg_plac_pop" << (*itAge).first<<'-'<<(*itAge).second<< ",seroneg_plac_inf"<<(*itAge).first<<'-'<<(*itAge).second;
-      outpop<< ",seroneg_vac_hosp"<<(*itAge).first<<'-'<<(*itAge).second<< ",seroneg_plac_hosp"<<(*itAge).first<<'-'<<(*itAge).second;
+      outpop<< "seropos_vac_pop"<< (*itAge).first<<'-'<<(*itAge).second<< ",seropos_vac_inf"<< (*itAge).first<<'-'<<(*itAge).second << ",seropos_vac_hosp"<<(*itAge).first<<'-'<<(*itAge).second;
+      outpop<<",seroneg_vac_pop"<< (*itAge).first<<'-'<<(*itAge).second<< ",seroneg_vac_inf"<< (*itAge).first<<'-'<<(*itAge).second << ",seroneg_vac_hosp"<<(*itAge).first<<'-'<<(*itAge).second;
+      outpop<<",seropos_plac_pop" << (*itAge).first<<'-'<<(*itAge).second<< ",seropos_plac_inf"<<(*itAge).first<<'-'<<(*itAge).second << ",seropos_plac_hosp"<<(*itAge).first<<'-'<<(*itAge).second;
+      outpop << ",seroneg_plac_pop" << (*itAge).first<<'-'<<(*itAge).second<< ",seroneg_plac_inf"<<(*itAge).first<<'-'<<(*itAge).second << ",seroneg_plac_hosp"<<(*itAge).first<<'-'<<(*itAge).second;
+
       if(countGroups == ageGroups.size()-1){
 	outpop<< "\n"; 
       }else{
@@ -90,7 +91,13 @@ void Simulation::simEngine() {
     //    double r = rGen.getEventProbability();
     //    printf("day %d to humdynamics randomnumber r = %.4f\n",currentDay,r);
     //    printf("day %d\n",currentDay);
+
     humanDynamics();
+
+    // print baseline conditions if is day 0
+    if(currentDay == vaccineDay){
+      updatePop();
+    }
     //    r = rGen.getEventProbability();
     //    printf("day %d to mosdynamics randomnumber r = %.4f\n",currentDay,r);
     mosquitoDynamics();
@@ -174,17 +181,17 @@ void Simulation::updatePop(){
 	  if(itHum->second->getSeroStatusAtVaccination()){
 	    if(itHum->second->isVaccinated()){
 	      ageReports[ageGroup].seropos_vac_pop++;
-	      if(itHum->second->getRecentInf()){
+	      if(itHum->second->getRecentDis()){
 		ageReports[ageGroup].seropos_vac_cases++;
-		if(itHum->second->getRecentDis()){
+		if(itHum->second->getRecentHosp()){
 		  ageReports[ageGroup].seropos_vac_hosp++;
 		}
 	      }
 	    }else{
 	      ageReports[ageGroup].seropos_plac_pop++;
-	      if(itHum->second->getRecentInf()){
+	      if(itHum->second->getRecentDis()){
 		ageReports[ageGroup].seropos_plac_cases++;
-		if(itHum->second->getRecentDis()){
+		if(itHum->second->getRecentHosp()){
 		  ageReports[ageGroup].seropos_plac_hosp++;
 		}
 	      }
@@ -192,86 +199,33 @@ void Simulation::updatePop(){
 	  }else{
 	    if(itHum->second->isVaccinated()){
 	      ageReports[ageGroup].seroneg_vac_pop++;
-	      if(itHum->second->getRecentInf()){
+	      if(itHum->second->getRecentDis()){
 		ageReports[ageGroup].seroneg_vac_cases++;
-		if(itHum->second->getRecentDis()){
+		if(itHum->second->getRecentHosp()){
 		  ageReports[ageGroup].seroneg_vac_hosp++;
 		}
 	      }
 	    }else{
 	      ageReports[ageGroup].seroneg_plac_pop++;
-	      if(itHum->second->getRecentInf()){
+	      if(itHum->second->getRecentDis()){
 		ageReports[ageGroup].seroneg_plac_cases++;
-		if(itHum->second->getRecentDis()){
+		if(itHum->second->getRecentHosp()){
 		  ageReports[ageGroup].seroneg_plac_hosp++;
 		}
 	      }
 	    }
 	  }
 	}
-	/*        if(age >= age_09 && age < age_10){
-            if(itHum->second->getPreviousInfections()){
-                seropos_09++;
-            } else {
-                seroneg_09++;
-            }
-            if(itHum->second->getRecentInf() == 0){
-                noinf_0008++;
-            } else {
-                inf_0008++;
-            }
-            if(itHum->second->getRecentDis() == 0){
-                nodis_0008++;
-            } else {
-                dis_0008++;
-            }
-            if(itHum->second->getRecentHosp() == 0){
-                nohosp_0008++;
-            } else {
-                hosp_0008++;
-            }
-        } else if(age < age_19){
-            if(itHum->second->getRecentInf() == 0){
-                noinf_0918++;
-            } else {
-                inf_0918++;
-            }
-            if(itHum->second->getRecentDis() == 0){
-                nodis_0918++;
-            } else {
-                dis_0918++;
-            }
-            if(itHum->second->getRecentHosp() == 0){
-                nohosp_0918++;
-            } else {
-                hosp_0918++;
-            }
-        } else {
-            if(itHum->second->getRecentInf() == 0){
-                noinf_1999++;
-            } else {
-                inf_1999++;
-            }
-            if(itHum->second->getRecentDis() == 0){
-                nodis_1999++;
-            } else {
-                dis_1999++;
-            }
-            if(itHum->second->getRecentHosp() == 0){
-                nohosp_1999++;
-            } else {
-                hosp_1999++;
-            }
-	    }*/
+
         itHum->second->resetRecent();
     }
     //    printf("attempting to print\n");
     outpop << currentDay << ",";
     for(int i =0; i < totalgroups;i++){ 
-      outpop << ageReports[i].seropos_vac_pop << "," << ageReports[i].seropos_vac_cases << ","<< ageReports[i].seropos_plac_pop << "," <<ageReports[i].seropos_plac_cases << "," << 
-	ageReports[i].seropos_vac_hosp << "," << ageReports[i].seropos_plac_hosp << "," << 
-	ageReports[i].seroneg_vac_pop << "," << ageReports[i].seroneg_vac_cases << "," << ageReports[i].seroneg_plac_pop << "," << ageReports[i].seroneg_plac_cases << "," <<
-	ageReports[i].seroneg_vac_hosp << "," << ageReports[i].seroneg_plac_hosp;
+      outpop << ageReports[i].seropos_vac_pop << "," << ageReports[i].seropos_vac_cases << ","<< ageReports[i].seropos_vac_hosp <<  "," << 
+	ageReports[i].seroneg_vac_pop << "," << ageReports[i].seroneg_vac_cases << "," << ageReports[i].seroneg_vac_hosp << "," <<
+	ageReports[i].seropos_plac_pop << "," <<ageReports[i].seropos_plac_cases << "," << ageReports[i].seropos_plac_hosp << "," << 
+	ageReports[i].seroneg_plac_pop << "," << ageReports[i].seroneg_plac_cases << "," <<  ageReports[i].seroneg_plac_hosp;
       if(i == totalgroups-1){
 	outpop<< "\n"; 
       }else{
@@ -337,19 +291,19 @@ void Simulation::humanDynamics() {
         (it->second)->setTrajDay(rGen.getRandomNum(5));
 
         // vaccinate, if applicable
-        if(vaccinationFlag == true){
-            if(currentDay >= vaccineDay){
-	      if(currentDay == vaccineDay){
-		it->second->updateSeroStatusAtVaccination();
-	      }
-	      age = it->second->getAge(currentDay);
-	      // routine vaccination by age
-	      if(checkAgeToVaccinate(age)){
-		if(rGenInf.getEventProbability() < vaccineCoverage)
-		  //Modify this to include (a,b,c) parameters
-		  it->second->vaccinate(&VE_pos, &VE_neg,rGenInf, 1.0, currentDay);
-	      }
+	if(currentDay >= vaccineDay){
+	  if(currentDay == vaccineDay){
+	    it->second->updateSeroStatusAtVaccination();
+	  }
+	  if(vaccinationFlag == true){
+	    age = it->second->getAge(currentDay);
+	    // routine vaccination by age
+	    if(checkAgeToVaccinate(age)){
+	      if(rGenInf.getEventProbability() < vaccineCoverage)
+		//Modify this to include (a,b,c) parameters
+		it->second->vaccinate(&VE_pos, &VE_neg,rGenInf, 1.0, currentDay);
 	    }
+	 
 	    
                 // catchup vaccination by age
 	    if(catchupFlag == true && vaccineDay == currentDay){
@@ -358,15 +312,16 @@ void Simulation::humanDynamics() {
 		  it->second->vaccinate(&VE_pos, &VE_neg,rGenInf, 1.0, currentDay);
 	      }
 	    }
+	  }
 	}
 	
         // simulate possible imported infection
-        if(rGen.getEventProbability() < ForceOfImportation){
+	if(rGen.getEventProbability() < ForceOfImportation){
 	  int serotype = rGen.getRandomNum(4) + 1;
 	  if(!it->second->isImmune(serotype)){
 	    it->second->infect(currentDay, serotype, &rGenInf);
 	  }
-        }
+	}	
     }
 }
 

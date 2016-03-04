@@ -52,6 +52,9 @@ unsigned RandomNumGenerator::getVaxHumanImmunity(unsigned immdays) {
 
 
 bool RandomNumGenerator::getHumanSeropositivity(double FOI, double age) {
+  /*  double r_ = getEventProbability();
+  double prob_ = 1 - exp(-FOI * age);
+  printf("age %f foi %f RNG: %f prob %f\n",age,FOI,r_,prob_);*/
     if(getEventProbability() < 1 - exp(-FOI * age)){
         return true;
     } else {

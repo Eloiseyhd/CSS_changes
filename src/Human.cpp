@@ -30,10 +30,13 @@ Human::Human(
     seroStatusAtVaccination = false;
     if(bday < currDay - 180){
         immunity_temp = false;
-        setImmunityPerm(1, rGen.getHumanSeropositivity(FOI, double(age / 365)));
-        setImmunityPerm(2, rGen.getHumanSeropositivity(FOI, double(age / 365)));
-        setImmunityPerm(3, rGen.getHumanSeropositivity(FOI, double(age / 365)));
-        setImmunityPerm(4, rGen.getHumanSeropositivity(FOI, double(age / 365)));
+	//	bool isSeropositive = false;
+	//	isSeropositive = rGen.getHumanSeropositivity(FOI, double(age / 365));
+	//	printf("Force of Importation: %f age %d age %f day %d\n",FOI, age, double(age),currDay);
+        setImmunityPerm(1, rGen.getHumanSeropositivity(FOI, double(age/1.0)));
+        setImmunityPerm(2, rGen.getHumanSeropositivity(FOI, double(age/1.0 )));
+        setImmunityPerm(3, rGen.getHumanSeropositivity(FOI, double(age/1.0)));
+        setImmunityPerm(4, rGen.getHumanSeropositivity(FOI, double(age/1.0)));
     } else {
         immunity_temp = true;
         immStartDay = bday;
@@ -250,22 +253,25 @@ bool Human::isImmune(unsigned serotype) const {
 int Human::getPreviousInfections(){
     int previnf = 0;
 
-    if(immunity_perm[1])
+    for(int i = 1;i < 5;i++){
+      if(immunity_perm[i] == true){
         previnf++;
-    if(immunity_perm[2])
-        previnf++;
-    if(immunity_perm[3])
-        previnf++;
-    if(immunity_perm[4])
-        previnf++;
-
+      }
+    }
     return previnf;
 }
 
 
 
 void Human::setImmunityPerm(unsigned serotype, bool status) {
+    immunity_perm.erase(serotype);
     immunity_perm.insert(make_pair(serotype,status));
+
+    /*    if(status == true){
+      printf("Human %s %d immune to serotype %d and prev inf %d\n", houseID.c_str(),houseMemNum,serotype,getPreviousInfections());
+    }else{
+      printf("Human %s %d not immune to serotype %d and prev inf %d\n", houseID.c_str(),houseMemNum,serotype,getPreviousInfections());
+      }*/
 }
 
 
