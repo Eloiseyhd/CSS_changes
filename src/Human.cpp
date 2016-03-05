@@ -35,10 +35,10 @@ Human::Human(
 
     if(bday < currDay - 180){
         immunity_temp = false;
-        setImmunityPerm(1, rGen.getHumanSeropositivity(FOI, double(age / 365)));
-        setImmunityPerm(2, rGen.getHumanSeropositivity(FOI, double(age / 365)));
-        setImmunityPerm(3, rGen.getHumanSeropositivity(FOI, double(age / 365)));
-        setImmunityPerm(4, rGen.getHumanSeropositivity(FOI, double(age / 365)));
+        setImmunityPerm(1, rGen.getHumanSeropositivity(FOI, double(age) / 365.0));
+        setImmunityPerm(2, rGen.getHumanSeropositivity(FOI, double(age) / 365.0));
+        setImmunityPerm(3, rGen.getHumanSeropositivity(FOI, double(age) / 365.0));
+        setImmunityPerm(4, rGen.getHumanSeropositivity(FOI, double(age) / 365.0));
     } else {
         immunity_temp = true;
         immStartDay = bday;
