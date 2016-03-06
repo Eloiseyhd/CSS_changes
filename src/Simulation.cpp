@@ -24,40 +24,18 @@ string Simulation::readInputs() {
     readSimControlFile(configLine);
     outputPath.erase(remove(outputPath.begin(), outputPath.end(), '\"'), outputPath.end());
 
-    // outputFile = outputPath + "/" + simName + ".csv";
-    // out.open(outputFile);
-    // if (!out.good()) {
-    //     exit(1);
-    // }
-    // out << "day,infection,disease,age,previous_infections,vaccinated\n";
-
     outputPopFile = outputPath + "/" + simName + "_pop.csv";
-    outputPrevacFile = outputPath + "/" + simName + "_prevac.csv";
     outpop.open(outputPopFile);
     if (!outpop.good()) {
-      //      printf("cannot create output file %s\n",outputPopFile.c_str());
         exit(1);
     }
-    outpop << "year,seropos_09,seroneg_09";
-    outpop << ",noinf_0008,inf_0008,noinf_0918,inf_0918,noinf_1999,inf_1999"; 
-    outpop << ",nodis_0008,dis_0008,nodis_0918,dis_0918,nodis_1999,dis_1999"; 
-    outpop << ",nohosp_0008,hosp_0008,nohosp_0918,hosp_0918,nohosp_1999,hosp_1999";
-    outpop << ",seropos_vac_coh1,seropos_vac_inf_coh1,seropos_vac_dis_coh1,seropos_vac_hosp_coh1";
-    outpop << ",seropos_novac_coh1,seropos_novac_inf_coh1,seropos_novac_dis_coh1,seropos_novac_hosp_coh1";
-    outpop << ",seroneg_vac_coh1,seroneg_vac_inf_coh1,seroneg_vac_dis_coh1,seroneg_vac_hosp_coh1";
-    outpop << ",seroneg_novac_coh1,seroneg_novac_inf_coh1,seroneg_novac_dis_coh1,seroneg_novac_hosp_coh1\n";
+    outpop << "year,avg_age_first,seropos_09,seroneg_09,seropos_10,seroneg_10,seropos_11,seroneg_11,seropos_12,seroneg_12";
+    outpop << ",seropos_13,seroneg_13,seropos_14,seroneg_14,seropos_15,seroneg_15,seropos_16,seroneg_16,seropos_17,seroneg_17"; 
 
-    outprevac.open(outputPrevacFile);
-    if(!outprevac.good()){
-      printf("cannot create output file %s\n",outputPrevacFile.c_str());
-      exit(1);
-    }
-    outprevac << "age,pop,seropos,seroneg,symptomatic,hospitalized\n";
-
-    RandomNumGenerator rgen(rSeed, huImm, emergeFactor, mlife, mrest, halflife);
+    RandomNumGenerator rgen(rSeed, huImm, emergeFactor, mlife, mbite, halflife);
     rGen = rgen;
 
-    RandomNumGenerator rgen2(rSeedInf, huImm, emergeFactor, mlife, mrest, halflife);
+    RandomNumGenerator rgen2(rSeedInf, huImm, emergeFactor, mlife, mbite, halflife);
     rGenInf = rgen2;
 
     readVaccineProfileFile();
@@ -70,47 +48,39 @@ string Simulation::readInputs() {
 
 
 void Simulation::simEngine() {
-  //  if(vaccinationFlag == true){printf("Vaccination is activated for day %u\n",vaccineDay);}
-  while(currentDay < numDays){        
-    //    printf("simEngine Entered current day %d, max days %d\n",currentDay, numDays);
-    //    if(vaccineDay == currentDay && vaccinationFlag == true){printf("vaccination beings at day: %u\n",currentDay);}
-    //    double r = rGen.getEventProbability();
-    //    printf("day %d to humdynamics randomnumber r = %.4f\n",currentDay,r);
-    humanDynamics();
-    //    r = rGen.getEventProbability();
-    //printf("day %d to mosdynamics randomnumber r = %.4f\n",currentDay,r);
-    mosquitoDynamics();
-    //    r = rGen.getEventProbability();
-    //    printf("day %d after mosdynamics randomnumber r = %.4f\n", currentDay,r);
-    if(ceil((currentDay + 1) / 365) != ceil(currentDay / 365)){
-      year++;
-      updatePop();
+    while(currentDay < numDays){        
+        humanDynamics();
+        mosquitoDynamics();
+
+        if(ceil(double(currentDay + 1) / 365.0) != ceil(double(currentDay) / 365.0)){
+            year++;
+            updatePop();
+        }
+        currentDay++;
     }
-    currentDay++;
-  }
 }
 
 
 
 void Simulation::updatePop(){
-  //  printf("update pop year: %u\n",year);
     int count;
     int age;
-    int age_09 = 9 * 365;
-    int age_10 = 10 * 365;
-    int age_19 = 19 * 365;
-    int seropos_09 = 0, seroneg_09 = 0;
-    int noinf_0008 = 0, inf_0008 = 0, noinf_0918 = 0, inf_0918 = 0, noinf_1999 = 0, inf_1999 = 0;
-    int nodis_0008 = 0, dis_0008 = 0, nodis_0918 = 0, dis_0918 = 0, nodis_1999 = 0, dis_1999 = 0;
-    int nohosp_0008 = 0, hosp_0008 = 0, nohosp_0918 = 0, hosp_0918 = 0, nohosp_1999 = 0, hosp_1999 = 0;
-    int seropos_vac_coh1 = 0, seropos_novac_coh1 = 0, seroneg_vac_coh1 = 0, seroneg_novac_coh1 = 0;
-    int seropos_vac_inf_coh1 = 0, seropos_vac_dis_coh1 = 0, seropos_vac_hosp_coh1 = 0;
-    int seropos_novac_inf_coh1 = 0, seropos_novac_dis_coh1 = 0, seropos_novac_hosp_coh1 = 0;
-    int seroneg_vac_inf_coh1 = 0, seroneg_vac_dis_coh1 = 0, seroneg_vac_hosp_coh1 = 0;
-    int seroneg_novac_inf_coh1 = 0, seroneg_novac_dis_coh1 = 0, seroneg_novac_hosp_coh1 = 0;
+    double avg_age_first = 0.0;
+    int num_first = 0;
+    int age_09 = 9 * 365, age_10 = 10 * 365, age_11 = 11 * 365, age_12 = 12 * 365, age_13 = 13 * 365,
+        age_14 = 14 * 365, age_15 = 15 * 365, age_16 = 16 * 365, age_17 = 17 * 365, age_18 = 18 * 365;
+    int seropos_09 = 0, seroneg_09 = 0, seropos_10 = 0, seroneg_10 = 0, seropos_11 = 0, seroneg_11 = 0,
+        seropos_12 = 0, seroneg_12 = 0, seropos_13 = 0, seroneg_13 = 0, seropos_14 = 0, seroneg_14 = 0,
+        seropos_15 = 0, seroneg_15 = 0, seropos_16 = 0, seroneg_16 = 0, seropos_17 = 0, seroneg_17 = 0;
+
     for(auto itHum = humans.begin(); itHum != humans.end(); itHum++){
         itHum->second->updateAttractiveness(currentDay);
-        age = itHum->second->getAge(currentDay);
+        age = itHum->second->getAgeDays(currentDay);
+
+        if(itHum->second->getRecentInf() && itHum->second->getPreviousInfections() == 1){
+            avg_age_first += itHum->second->getAgeDays(currentDay);
+            num_first++;
+        }
 
         if(age >= age_09 && age < age_10){
             if(itHum->second->getPreviousInfections() > 0){
@@ -118,150 +88,105 @@ void Simulation::updatePop(){
             } else {
                 seroneg_09++;
             }
-	}
-	if(age < age_09){
-            if(itHum->second->getRecentInf() == 0){
-                noinf_0008++;
+    	}
+        if(age >= age_10 && age < age_11){
+            if(itHum->second->getPreviousInfections() > 0){
+                seropos_10++;
             } else {
-                inf_0008++;
-            }
-            if(itHum->second->getRecentDis() == 0){
-                nodis_0008++;
-            } else {
-                dis_0008++;
-            }
-            if(itHum->second->getRecentHosp() == 0){
-                nohosp_0008++;
-            } else {
-                hosp_0008++;
-            }
-        } else if(age < age_19){
-            if(itHum->second->getRecentInf() == 0){
-                noinf_0918++;
-            } else {
-                inf_0918++;
-            }
-            if(itHum->second->getRecentDis() == 0){
-                nodis_0918++;
-            } else {
-                dis_0918++;
-            }
-            if(itHum->second->getRecentHosp() == 0){
-                nohosp_0918++;
-            } else {
-                hosp_0918++;
-            }
-        } else {
-            if(itHum->second->getRecentInf() == 0){
-                noinf_1999++;
-            } else {
-                inf_1999++;
-            }
-            if(itHum->second->getRecentDis() == 0){
-                nodis_1999++;
-            } else {
-                dis_1999++;
-            }
-            if(itHum->second->getRecentHosp() == 0){
-                nohosp_1999++;
-            } else {
-                hosp_1999++;
+                seroneg_10++;
             }
         }
-	if(itHum->second->getCohort() == 1){
-	  if(itHum->second->getSeroStatusAtVaccination()){
-	    if(itHum->second->isVaccinated()){
-	      seropos_vac_coh1++;
-	      if(itHum->second->getRecentInf() > 0){
-		seropos_vac_inf_coh1++;
-	      }
-	      if(itHum->second->getRecentDis() > 0){
-		seropos_vac_dis_coh1++;
-		if(itHum->second->getRecentHosp() > 0){
-		  seropos_vac_hosp_coh1++;
-		}
-	      }
-	    }else{
-	      seropos_novac_coh1++;
-	      if(itHum->second->getRecentInf() > 0){
-		seropos_novac_inf_coh1++;
-	      }
-	      if(itHum->second->getRecentDis() > 0){
-		seropos_novac_dis_coh1++;
-		if(itHum->second->getRecentHosp() > 0){
-		  seropos_novac_hosp_coh1++;
-		}
-	      }
-	    }
-	  }else{
-	    if(itHum->second->isVaccinated()){
-	      seroneg_vac_coh1++;
-	      if(itHum->second->getRecentInf() > 0){
-		seroneg_vac_inf_coh1++;
-	      }
-	      if(itHum->second->getRecentDis() > 0){
-		seroneg_vac_dis_coh1++;
-		if(itHum->second->getRecentHosp() > 0){
-		  seroneg_vac_hosp_coh1++;
-		}
-	      }
-	    }else{
-	      seroneg_novac_coh1++;
-	      if(itHum->second->getRecentInf() > 0){
-		seroneg_novac_inf_coh1++;
-	      }
-	      if(itHum->second->getRecentDis() > 0){
-		seroneg_novac_dis_coh1++;
-		if(itHum->second->getRecentHosp() > 0){
-		  seroneg_novac_hosp_coh1++;
-		}
-	      }
-	    }
-	  }
-	}
+        if(age >= age_11 && age < age_12){
+            if(itHum->second->getPreviousInfections() > 0){
+                seropos_11++;
+            } else {
+                seroneg_11++;
+            }
+        }
+        if(age >= age_12 && age < age_13){
+            if(itHum->second->getPreviousInfections() > 0){
+                seropos_12++;
+            } else {
+                seroneg_12++;
+            }
+        }
+        if(age >= age_13 && age < age_14){
+            if(itHum->second->getPreviousInfections() > 0){
+                seropos_13++;
+            } else {
+                seroneg_13++;
+            }
+        }
+        if(age >= age_14 && age < age_15){
+            if(itHum->second->getPreviousInfections() > 0){
+                seropos_14++;
+            } else {
+                seroneg_14++;
+            }
+        }
+        if(age >= age_15 && age < age_16){
+            if(itHum->second->getPreviousInfections() > 0){
+                seropos_15++;
+            } else {
+                seroneg_15++;
+            }
+        }
+        if(age >= age_16 && age < age_17){
+            if(itHum->second->getPreviousInfections() > 0){
+                seropos_16++;
+            } else {
+                seroneg_16++;
+            }
+        }
+        if(age >= age_17 && age < age_18){
+            if(itHum->second->getPreviousInfections() > 0){
+                seropos_17++;
+            } else {
+                seroneg_17++;
+            }
+        }
 
         itHum->second->resetRecent();
     }
 
-    outpop << year << "," << 
-      seropos_09 << "," << seroneg_09 << "," <<
-      noinf_0008 << "," << inf_0008 << "," << noinf_0918 << "," << inf_0918 << "," << noinf_1999 << "," << inf_1999 << "," << 
-      nodis_0008 << "," << dis_0008 << "," << nodis_0918 << "," << dis_0918  << "," << nodis_1999 << "," << dis_1999 << "," << 
-      nohosp_0008 << "," << hosp_0008 << "," << nohosp_0918 << "," << hosp_0918 << "," << nohosp_1999  << "," << hosp_1999 << "," <<
-      seropos_vac_coh1 <<  "," << seropos_vac_inf_coh1 << "," << seropos_vac_dis_coh1 << "," << seropos_vac_hosp_coh1 << "," <<
-      seropos_novac_coh1 <<  "," << seropos_novac_inf_coh1 << "," << seropos_novac_dis_coh1 << "," << seropos_novac_hosp_coh1 << "," <<
-      seroneg_vac_coh1 << ","  << seroneg_vac_inf_coh1 << "," << seroneg_vac_dis_coh1 << "," << seroneg_vac_hosp_coh1 << "," <<
-      seroneg_novac_coh1 << ","  << seroneg_novac_inf_coh1 << "," << seroneg_novac_dis_coh1 << "," << seroneg_novac_hosp_coh1 << "\n";
+    avg_age_first = avg_age_first / double(num_first) / 365.0;
+
+    outpop << year << "," << avg_age_first << ","
+      << seropos_09 << "," << seroneg_09 << "," << seropos_10 << "," << seroneg_10 << ","
+      << seropos_11 << "," << seroneg_11 << "," << seropos_12 << "," << seroneg_12 << ","
+      << seropos_13 << "," << seroneg_13 << "," << seropos_14 << "," << seroneg_14 << ","
+      << seropos_15 << "," << seroneg_15 << "," << seropos_16 << "," << seroneg_16 << ","
+      << seropos_17 << "," << seroneg_17 << "\n";
 }
 
 
 
 void Simulation::humanDynamics() {
-    int diff, age, dose;
+    int diff, age;
     bool vaxd = false;
     int cohort = 0;
 
-    if (currentDay >= vaccineDay){
-      cohort = floor((currentDay - vaccineDay) / 365) + 1;
+    if(currentDay >= vaccineDay){
+        cohort = floor(double(currentDay - vaccineDay) / 365.0) + 1;
     }
 
     int dayVax0 = vaccineDay - 365;
     if(dayVax0 < 0){
-      dayVax0 = 0;
+        dayVax0 = 0;
     }
 
     if(currentDay == dayVax0){
-      for(int i = 0; i < 101; i++){
-       seroposAtVax[i] = 0;
-       seronegAtVax[i] = 0;
-       disAtVax[i] = 0;
-       hospAtVax[i] = 0;
-      }
+        for(int i = 0; i < 101; i++){
+            seroposAtVax[i] = 0;
+            seronegAtVax[i] = 0;
+            disAtVax[i] = 0;
+            hospAtVax[i] = 0;
+        }
     }
-    //    printf("human dynamics entered cohort %d\n",cohort);
+
     for(auto it = humans.begin(); it != humans.end(); ++it){
         // daily mortality for humans by age
-        if(rGen.getEventProbability() < (deathRate * it->second->getAge(currentDay)))
+        if(rGen.getEventProbability() < (deathRate * it->second->getAgeDays(currentDay)))
             it->second->reincarnate(currentDay);
 
         // update temporary cross-immunity status if necessary
@@ -274,70 +199,7 @@ void Simulation::humanDynamics() {
 
         // select movement trajectory for the day
         (it->second)->setTrajDay(rGen.getRandomNum(5));
-	
-	
-	if(currentDay >= dayVax0 && currentDay < vaccineDay){
-	  if(it->second->infection != nullptr){
-	    age = it->second->getAge(currentDay);
-	    int ageTemp = floor(age / 365);
-	    if(ageTemp > 100){
-	      ageTemp = 100;
-	    }
 
-	    if(currentDay == it->second->infection->getStartDay()){	    
-	      if(it->second->isSymptomatic() == true){
-		disAtVax[ageTemp]++;
-	      }
-	      if(it->second->isHospitalized() == true){
-		hospAtVax[ageTemp]++;
-	      }	
-	    }  
-	  }
-	}
-	
-	// vaccinate, if applicable
-
-	if(currentDay >= vaccineDay){
-	  age = it->second->getAge(currentDay);
-
-	  //record seroprevalence the day vaccination begins
-
-	  int ageTemp = floor(age / 365);
-	  if(ageTemp > 100){
-	    ageTemp = 100;
-	  }
-
-	  if(currentDay == vaccineDay){
-	    it->second->setSeroStatusAtVaccination();
-	    if(it->second->getSeroStatusAtVaccination() == true){
-	      seroposAtVax[ageTemp]++;
-	    }else{
-	      seronegAtVax[ageTemp]++;
-	    }
-	  }
-
-
-
-	    // routine vaccination by age
-	  if(age == vaccineAge * 365){
-	    // Assign a cohort
-	    it->second->setCohort(cohort);
-	    if(vaccinationFlag == true){
-	      if(rGenInf.getEventProbability() < vaccineCoverage)
-		it->second->vaccinate(&VE_pos, &VE_neg,rGenInf, propInf, currentDay);
-	    }
-	  }
-	    
-	    // catchup vaccination by age
-	  if(vaccinationFlag == true){
-	    if(catchupFlag == true && vaccineDay == currentDay){
-	      if(age > vaccineAge * 365 && age < 18 * 365){
-		if(rGenInf.getEventProbability() < vaccineCoverage)
-		  it->second->vaccinate(&VE_pos, &VE_neg,rGenInf, propInf, currentDay);
-	      }
-	    }
-	  }
-	}
         // simulate possible imported infection
         if(rGen.getEventProbability() < ForceOfImportation){
             int serotype = rGen.getRandomNum(4) + 1;
@@ -345,18 +207,75 @@ void Simulation::humanDynamics() {
                 it->second->infect(currentDay, serotype, &rGenInf);
             }
         }
-    }
 
-    if(currentDay == vaccineDay){
-      for(int i = 0;i < 101;i++){
-	outprevac << i << "," << seroposAtVax[i] +  seronegAtVax[i] << "," << seroposAtVax[i] << "," << seronegAtVax[i] << "," <<  disAtVax[i] << "," << hospAtVax[i] <<"\n";
-      }
+        // in the year before vaccination, record disease episodes
+		if(currentDay >= dayVax0 && currentDay < vaccineDay){
+            if(it->second->infection != nullptr){
+                age = it->second->getAgeDays(currentDay);
+                int ageTemp = floor(double(age) / 365.0);
+                if(ageTemp > 100){
+                    ageTemp = 100;
+                }
+                if(currentDay == it->second->infection->getStartDay()){
+                    if(it->second->isSymptomatic() == true){
+                        disAtVax[ageTemp]++;
+                    }
+                    if(it->second->isHospitalized() == true){
+                        hospAtVax[ageTemp]++;
+                    }	
+                }
+            }
+        }
+
+        // record seroprevalence on the day vaccination begins
+        if(currentDay >= vaccineDay){
+            age = it->second->getAgeDays(currentDay);
+            int ageTemp = floor(double(age) / 365.0);
+            if(ageTemp > 100){
+                ageTemp = 100;
+            }
+            if(currentDay == vaccineDay){
+                it->second->setSeroStatusAtVaccination();
+                if(it->second->getSeroStatusAtVaccination() == true){
+                    seroposAtVax[ageTemp]++;
+                }else{
+                    seronegAtVax[ageTemp]++;
+                }
+                for(int i = 0; i < 101; i++){
+                    outprevac << i << "," << seroposAtVax[i] + seronegAtVax[i] << "," << seroposAtVax[i] << "," << seronegAtVax[i] << "," <<  disAtVax[i] << "," << hospAtVax[i] <<"\n";
+                }
+            }
+        }
+
+    	// vaccination
+        if(vaccinationFlag == true){
+            // routine vaccination by age
+            if(age == vaccineAge * 365){
+                // assign a cohort
+                it->second->setCohort(cohort);
+                if(rGenInf.getEventProbability() < vaccineCoverage){
+                    it->second->vaccinate(&VE_pos, &VE_neg, propInf, currentDay);
+                }
+            }
+
+            // catchup vaccination
+            if(catchupFlag == true && vaccineDay == currentDay){
+                if(age > vaccineAge * 365 && age < 18 * 365){
+                    if(rGenInf.getEventProbability() < vaccineCoverage){
+                        it->second->vaccinate(&VE_pos, &VE_neg, propInf, currentDay);
+                    }
+                }
+            }
+        }
     }
 }
 
 
 
-void Simulation::mosquitoDynamics() {
+void Simulation::mosquitoDynamics(){
+    double biteTime, dieTime;
+    bool biteTaken;
+
     generateMosquitoes();
 
     for(auto it = mosquitoes.begin(); it != mosquitoes.end();){
@@ -366,16 +285,14 @@ void Simulation::mosquitoDynamics() {
         }
  
         // determine if the mosquito will bite and/or die today, and if so at what time
-        double biteTime = double(numDays + 1), dieTime = double(numDays + 1);
- 
+        biteTime = double(numDays + 1);
+        dieTime = double(numDays + 1); 
         if(it->second->getBiteStartDay() <= double(currentDay + 1)){
-            it->second->setState(Mosquito::MozState::BITE);
             biteTime = it->second->getBiteStartDay() - double(currentDay);
-            if(biteTime < 0){
+            if(biteTime < 0.0){
                 biteTime = rGenInf.getEventProbability();
             }
         }
- 
         if(it->second->getDDay() <= double(currentDay + 1)){
             dieTime = it->second->getDDay() - double(currentDay);
         }
@@ -389,25 +306,36 @@ void Simulation::mosquitoDynamics() {
         }
 
         // if the mosquito bites first, then let it bite and then see about dying
-        if(biteTime < dieTime && biteTime <= 1.0){
-    	  it->second->takeBite(biteTime,locations[it->second->getLocationID()].get(),&rGen,&rGenInf,currentDay,numDays,&out);
-            if(dieTime < 1.0){
-                auto it_temp = it;
-                it++;
-                mosquitoes.erase(it_temp);
-                continue;
+        while(biteTime < dieTime && biteTime <= 1.0){
+            biteTaken = it->second->takeBite(biteTime,locations[it->second->getLocationID()].get(),&rGen,&rGenInf,currentDay,numDays,&out);
+            it->second->setBiteStartDay(currentDay + rGen.getMozRestDays());
+            biteTime = it->second->getBiteStartDay() - double(currentDay);
+
+            if(!biteTaken){
+                string newLoc = locations.find(it->first)->second->getRandomCloseLoc(rGen);
+                if(newLoc != "TOO_FAR_FROM_ANYWHERE"){
+                    it->second->setLocation(newLoc);
+                    mosquitoes.insert(make_pair(newLoc, move(it->second)));
+                    auto it_temp = it;
+                    it++;
+                    mosquitoes.erase(it_temp);
+                }
             }
+        }
+
+        if(dieTime < 1.0){
+            auto it_temp = it;
+            it++;
+            mosquitoes.erase(it_temp);
+            continue;
         }
  
         // let the mosquito move if that happens today 
     	double moveProb = rGen.getEventProbability();
-	//	printf("Mosquito: %u in location %s move prob %.4f vs %.4f\n", it->second->getMosquitoID(),it->first.c_str(),moveProb,mozMoveProbability);
-        if(moveProb < mozMoveProbability) {
+        if(moveProb < mozMoveProbability){
             string newLoc = locations.find(it->first)->second->getRandomCloseLoc(rGen);
-	    //	    printf("Mosquito: %u possibly moves to new location: %s\n",it->second->getMosquitoID(),newLoc.c_str());
-            if(newLoc != "TOO_FAR_FROM_ANYWHERE") {
+            if(newLoc != "TOO_FAR_FROM_ANYWHERE"){
                 it->second->setLocation(newLoc);
-		//		printf("Mosquito: %u move to new location: %s\n",it->second->getMosquitoID(),newLoc.c_str());
                 mosquitoes.insert(make_pair(newLoc, move(it->second)));
                 auto it_temp = it;
                 it++;
@@ -429,11 +357,11 @@ void Simulation::generateMosquitoes(){
     int mozCount = 0;
 
     for(auto& x : locations){
-        mozCount = rGen.getMozEmerge(x.second->getMozzes());
+        mozCount = rGen.getMozEmerge(x.second->getEmergenceRate());
 
         for(int i = 0; i < mozCount; i++){
             unique_ptr<Mosquito> moz(new Mosquito(
-                mozID++, currentDay, double(currentDay) + rGen.getMozLifeSpan(), double(currentDay) + rGen.getMozRestDays(), x.first));
+                double(currentDay) + rGen.getMozLifeSpan(), double(currentDay) + rGen.getMozRestDays(), x.first));
             mosquitoes.insert(make_pair(x.first, move(moz)));
         }
     }
@@ -441,12 +369,12 @@ void Simulation::generateMosquitoes(){
 
 
 
-void Simulation::setLocNeighborhood(double dist) {
-    for (auto it1 = locations.begin(); it1 != locations.end(); ++it1) {
+void Simulation::setLocNeighborhood(double dist){
+    for(auto it1 = locations.begin(); it1 != locations.end(); ++it1){
         auto it2 = it1;
         it2++;
-        for (; it2 != locations.end(); ++it2) {
-            if (it1->second->getDistanceFromLoc(*it2->second) <= dist) {
+        for(; it2 != locations.end(); ++it2){
+            if(it1->second->getDistanceFromLoc(*it2->second) <= dist){
                 it1->second->addCloseLoc(it2->first);
                 it2->second->addCloseLoc(it1->first);
             }
@@ -502,7 +430,7 @@ void Simulation::readSimControlFile(string line) {
     getline(infile, line, ',');
     mozMoveProbability = strtod(line.c_str(), NULL);
     getline(infile, line, ',');
-    mrest = strtod(line.c_str(), NULL);
+    mbite = strtod(line.c_str(), NULL);
 }
 
 
@@ -540,7 +468,7 @@ void Simulation::readLocationFile(string locFile) {
         while (infile.peek() == '\n')
             infile.ignore(1, '\n');
 
-        unique_ptr<Location> location(new Location(locID, locType, x, y, mozzes));
+        unique_ptr<Location> location(new Location(locID, locType, x, y, 1.0));
         locations.insert(make_pair(locID, move(location)));
 
     }
@@ -549,12 +477,12 @@ void Simulation::readLocationFile(string locFile) {
 
 
 
-void Simulation::readVaccineProfileFile() {
-    if (vaccineProfileFile.length() == 0) {
+void Simulation::readVaccineProfileFile(){
+    if(vaccineProfileFile.length() == 0){
         exit(1);
     }
     string line;
-    unsigned par;
+    unsigned par = 0;
     double parPos;
     double parNeg;
 
@@ -563,35 +491,22 @@ void Simulation::readVaccineProfileFile() {
         exit(1);
     }
     while(getline(infile, line, ',')){
-        par = strtol(line.c_str(), NULL, 10);
-        getline(infile, line, ',');
         parPos = strtod(line.c_str(), NULL);
         getline(infile, line, '\n');
         parNeg = strtod(line.c_str(), NULL);
-	//	printf("par %d pos %f neg %f\n",par,parPos,parNeg);
-	if(par <= 2){
-	  VE_pos.insert(make_pair(par,parPos));
-	  VE_neg.insert(make_pair(par,parNeg));
-	}
+        if(par <= 2){
+            VE_pos.insert(make_pair(par, parPos));
+            VE_neg.insert(make_pair(par, parNeg));
+        }
+        par++;
     }
     infile.close();
-    std::map<unsigned,double>::iterator itVE;
-    for(int i = 0; i < 3; i++){
-      itVE = VE_pos.find(i);
-      if(itVE == VE_pos.end()){
-	printf("Vaccine profile not defined for parameter %d\n",i);
-	abort();
-      }
-      /*else{
-		printf("Parameter pos[%d] = %f, neg[%d] = %f\n", i, VE_pos.at(i), i, VE_neg.at(i));
-		}*/
-    }
 }
 
 
 
 void Simulation::readHumanFile(string humanFile) {
-    if (humanFile.length() == 0) {
+    if(humanFile.length() == 0){
         exit(1);
     }
     string line, houseID;
@@ -600,13 +515,13 @@ void Simulation::readHumanFile(string humanFile) {
     char gen;
 
     ifstream infile(humanFile);
-    if (!infile.good()) {
+    if(!infile.good()){
         exit(1);
     }
-    while (getline(infile, line, ',')) {
+    while(getline(infile, line, ',')){
         unique_ptr < vector < vector < pair<string, double >> >> trajectories(new vector < vector < pair<string, double >> >());
 
-        for (int i = 0; i < 5; i++) {
+        for(int i = 0; i < 5; i++){
             houseID = line;
             getline(infile, line, ',');
             hMemID = strtol(line.c_str(), NULL, 10);
@@ -615,33 +530,36 @@ void Simulation::readHumanFile(string humanFile) {
             getline(infile, line, ',');
             age = strtol(line.c_str(), NULL, 10);
 
-            vector < pair<string, double >> path;
+            vector<pair<string,double>> path;
             getline(infile, line);
             stringstream ss;
             ss << line;
-            while (getline(ss, line, ',')) {
+            while(getline(ss, line, ',')){
                 string hID = line;
                 getline(ss, line, ',');
                 double timeSpent = strtod(line.c_str(), NULL);
                 path.push_back(make_pair(hID, timeSpent));
             }
             trajectories->push_back(move(path));
-            if (i < 4)
+            if(i < 4){
                 getline(infile, line, ',');
+            }
         }
 
         unique_ptr<Human> h(new Human(houseID, hMemID, age, gen, trajectories, rGen, currentDay, ForceOfImportation));
 
         std::set<std::string> locsVisited = h->getLocsVisited();
-        for(std::set<std::string>::iterator itrSet = locsVisited.begin(); itrSet != locsVisited.end(); itrSet++)
+        for(std::set<std::string>::iterator itrSet = locsVisited.begin(); itrSet != locsVisited.end(); itrSet++){
             if(locations.find(*itrSet) != locations.end()){
                 locations.find(*itrSet)->second->addHuman(h.get());
             }
+        }
 
         humans.insert(make_pair(houseID, move(h)));
 
-        while (infile.peek() == '\n')
-            infile.ignore(1, '\n');
+        while (infile.peek() == '\n'){
+            infile.ignore(1, '\n');            
+        }
     }
     infile.close();
 }

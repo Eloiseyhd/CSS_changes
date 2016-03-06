@@ -55,21 +55,24 @@ abline(v=c(2,9,16),lty=3)
 
 # plot 3 different scenarios about the relative proportion of risk reduction
 # attributable to reduction in risk or disease versus reduction in risk of infection
+pdf(file='../outputs/VE_inf_dis.pdf',width=6.5,heigh=3.2)
+par(oma=c(4,4.5,.5,.5),mar=rep(.5,4))
 layout(matrix(1:3,1,3))
 
 prop.inf = .1
-RR_dis.pos = (1 - pmax(0,VE.age(VE.fit$par[1], VE.fit$par[2], VE.fit$par[3], ages.all))) ^ (1 - prop.inf)
-RR_inf.pos = (1 - pmax(0,VE.age(VE.fit$par[1], VE.fit$par[2], VE.fit$par[3], ages.all))) ^ prop.inf
-RR_dis.neg = (1 - pmax(0,VE.age(VE.fit$par[4], VE.fit$par[5], VE.fit$par[6], ages.all))) ^ (1 - prop.inf)
-RR_inf.neg = (1 - pmax(0,VE.age(VE.fit$par[4], VE.fit$par[5], VE.fit$par[6], ages.all))) ^ prop.inf
+RR_dis.pos = (1 - VE.age(VE.fit$par[1], VE.fit$par[2], VE.fit$par[3], ages.all)) ^ (1 - prop.inf)
+RR_inf.pos = (1 - VE.age(VE.fit$par[1], VE.fit$par[2], VE.fit$par[3], ages.all)) ^ prop.inf
+RR_dis.neg = (1 - VE.age(VE.fit$par[4], VE.fit$par[5], VE.fit$par[6], ages.all)) ^ (1 - prop.inf)
+RR_inf.neg = (1 - VE.age(VE.fit$par[4], VE.fit$par[5], VE.fit$par[6], ages.all)) ^ prop.inf
 
 RR_VCD_prot.fun(a, b, c, age)
 ages.all = seq(0,40,.01)
 plot(
   ages.all,
   RR_dis.pos,
-  type='l', ylim=c(0,1), col = 2, lwd = 2, las=1,
-  xlab = 'Age', ylab = 'Relative risk of infection or disease')
+  type='l', ylim=c(0,1.1), col = 2, lwd = 2, las=1, xaxs='i', yaxs='i',
+  xlab = '', ylab = '')
+mtext('Relative risk of infection or disease', side = 2, line = 3.25)
 lines(
   ages.all,
   RR_dis.neg,
@@ -82,21 +85,24 @@ lines(
   ages.all,
   RR_inf.neg,
   col = 4, lwd = 2, lty = 3)
+text(x=28,y=1.05,cex=1.3,labels='Prop. inf. = 0.10')
+abline(h=1,lty=3)
 
 
 prop.inf = .49
-RR_dis.pos = (1 - pmax(0,VE.age(VE.fit$par[1], VE.fit$par[2], VE.fit$par[3], ages.all))) ^ (1 - prop.inf)
-RR_inf.pos = (1 - pmax(0,VE.age(VE.fit$par[1], VE.fit$par[2], VE.fit$par[3], ages.all))) ^ prop.inf
-RR_dis.neg = (1 - pmax(0,VE.age(VE.fit$par[4], VE.fit$par[5], VE.fit$par[6], ages.all))) ^ (1 - prop.inf)
-RR_inf.neg = (1 - pmax(0,VE.age(VE.fit$par[4], VE.fit$par[5], VE.fit$par[6], ages.all))) ^ prop.inf
+RR_dis.pos = (1 - VE.age(VE.fit$par[1], VE.fit$par[2], VE.fit$par[3], ages.all)) ^ (1 - prop.inf)
+RR_inf.pos = (1 - VE.age(VE.fit$par[1], VE.fit$par[2], VE.fit$par[3], ages.all)) ^ prop.inf
+RR_dis.neg = (1 - VE.age(VE.fit$par[4], VE.fit$par[5], VE.fit$par[6], ages.all)) ^ (1 - prop.inf)
+RR_inf.neg = (1 - VE.age(VE.fit$par[4], VE.fit$par[5], VE.fit$par[6], ages.all)) ^ prop.inf
 
 RR_VCD_prot.fun(a, b, c, age)
 ages.all = seq(0,40,.01)
 plot(
   ages.all,
   RR_dis.pos,
-  type='l', ylim=c(0,1), col = 2, lwd = 2, las=1,
-  xlab = 'Age', ylab = 'Relative risk of infection or disease')
+  type='l', ylim=c(0,1.1), col = 2, lwd = 2, las=1, xaxs='i', yaxs='i', yaxt='n',
+  xlab = '', ylab = '')
+mtext('Age', side = 1, line = 3)
 lines(
   ages.all,
   RR_dis.neg,
@@ -109,21 +115,23 @@ lines(
   ages.all,
   RR_inf.neg,
   col = 4, lwd = 2, lty = 3)
+text(x=28,y=1.05,cex=1.3,labels='Prop. inf. = 0.49')
+abline(h=1,lty=3)
 
 
 prop.inf = .9
-RR_dis.pos = (1 - pmax(0,VE.age(VE.fit$par[1], VE.fit$par[2], VE.fit$par[3], ages.all))) ^ (1 - prop.inf)
-RR_inf.pos = (1 - pmax(0,VE.age(VE.fit$par[1], VE.fit$par[2], VE.fit$par[3], ages.all))) ^ prop.inf
-RR_dis.neg = (1 - pmax(0,VE.age(VE.fit$par[4], VE.fit$par[5], VE.fit$par[6], ages.all))) ^ (1 - prop.inf)
-RR_inf.neg = (1 - pmax(0,VE.age(VE.fit$par[4], VE.fit$par[5], VE.fit$par[6], ages.all))) ^ prop.inf
+RR_dis.pos = (1 - VE.age(VE.fit$par[1], VE.fit$par[2], VE.fit$par[3], ages.all)) ^ (1 - prop.inf)
+RR_inf.pos = (1 - VE.age(VE.fit$par[1], VE.fit$par[2], VE.fit$par[3], ages.all)) ^ prop.inf
+RR_dis.neg = (1 - VE.age(VE.fit$par[4], VE.fit$par[5], VE.fit$par[6], ages.all)) ^ (1 - prop.inf)
+RR_inf.neg = (1 - VE.age(VE.fit$par[4], VE.fit$par[5], VE.fit$par[6], ages.all)) ^ prop.inf
 
 RR_VCD_prot.fun(a, b, c, age)
 ages.all = seq(0,40,.01)
 plot(
   ages.all,
   RR_dis.pos,
-  type='l', ylim=c(0,1), col = 2, lwd = 2, las=1,
-  xlab = 'Age', ylab = 'Relative risk of infection or disease')
+  type='l', ylim=c(0,1.1), col = 2, lwd = 2, las=1, xaxs='i', yaxs='i', yaxt='n',
+  xlab = '', ylab = '')
 lines(
   ages.all,
   RR_dis.neg,
@@ -136,4 +144,7 @@ lines(
   ages.all,
   RR_inf.neg,
   col = 4, lwd = 2, lty = 3)
+text(x=28,y=1.05,cex=1.3,labels='Prop. inf. = 0.90')
+abline(h=1,lty=3)
 
+dev.off()

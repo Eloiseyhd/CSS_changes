@@ -1,6 +1,6 @@
 source('functions.R')
 
-reps = 1000
+reps = 200
 
 HumanImmunityDays = rep(686,2)
 EmergenceFactor = c(.01,1.99)
@@ -8,7 +8,6 @@ MosquitoLifespan = c(2,6)
 MosquitoInfectiousness = c(.01,.4)
 MosquitoMoveProbability = rep(0.3,2)
 MosquitoRestDays = rep(2/3,2)
-ForceOfImportation = c(-log(.01)/(9*365+182),-log(.1)/(9*365+182))
 Seed = c(1,as.integer(Sys.time()))
 SeedInf = Seed
 
@@ -19,16 +18,25 @@ scalars = sobol(vars = list(
   MosquitoInfectiousness = MosquitoInfectiousness,
   MosquitoMoveProbability = MosquitoMoveProbability,
   MosquitoRestDays = MosquitoRestDays,
-  ForceOfImportation = ForceOfImportation,
   Seed = Seed,
   SeedInf = SeedInf),
   reps)
+
+scalars = rbind(scalars,scalars,scalars,scalars,scalars)
+scalars$ForceOfImportation = c(
+  rep(.000025,reps),
+  rep(.00011,reps),
+  rep(.0002,reps),
+  rep(.00036,reps),
+  rep(.00069,reps)
+)
 
 for(ii in 1 : nrow(scalars)){
   writeSimControl.sobol(
     simControlNum = ii,
     reps = 1,
-    NumDays = 365 * 100,
+    NumDays = 365 * 50,
+    VaccineDay = 0,
     Vaccination = 0,
     OutputPath = '.',
     LocationFile = 'locations_20150801.csv',
@@ -39,8 +47,8 @@ for(ii in 1 : nrow(scalars)){
   writeSimControl.sobol(
     simControlNum = nrow(scalars) + ii,
     reps = 1,
-    NumDays = 365 * 100,
-    VaccineDay = 365 * 70,
+    NumDays = 365 * 50,
+    VaccineDay = 365 * 20,
     Vaccination = 1,
     VaccineCoverage = .8,
     VaccineAge = 9,
@@ -54,8 +62,8 @@ for(ii in 1 : nrow(scalars)){
   writeSimControl.sobol(
     simControlNum = 2 * nrow(scalars) + ii,
     reps = 1,
-    NumDays = 365 * 100,
-    VaccineDay = 365 * 70,
+    NumDays = 365 * 50,
+    VaccineDay = 365 * 20,
     Vaccination = 1,
     VaccineCoverage = .8,
     VaccineAge = 9,
@@ -69,8 +77,8 @@ for(ii in 1 : nrow(scalars)){
   writeSimControl.sobol(
     simControlNum = 3 * nrow(scalars) + ii,
     reps = 1,
-    NumDays = 365 * 100,
-    VaccineDay = 365 * 70,
+    NumDays = 365 * 50,
+    VaccineDay = 365 * 20,
     Vaccination = 1,
     VaccineCoverage = .5,
     VaccineAge = 9,
@@ -84,8 +92,8 @@ for(ii in 1 : nrow(scalars)){
   writeSimControl.sobol(
     simControlNum = 4 * nrow(scalars) + ii,
     reps = 1,
-    NumDays = 365 * 100,
-    VaccineDay = 365 * 70,
+    NumDays = 365 * 50,
+    VaccineDay = 365 * 20,
     Vaccination = 1,
     VaccineCoverage = .8,
     VaccineAge = 16,

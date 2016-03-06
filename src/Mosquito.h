@@ -12,39 +12,24 @@
 
 class Mosquito {
 public:
-    enum MozState {BITE, REST};
-    unsigned getMosquitoID() const;
     std::string getLocationID() const;
     void setLocation(std::string);
     double getDDay() const;
-    unsigned getMID() const;
-    MozState getState() const;
-    void setState(MozState);
     void setBiteStartDay(double);
     double getBiteStartDay();
-    void setFly(bool);
-    bool getFly() const;
-    void takeBite(double,Location *,RandomNumGenerator *, RandomNumGenerator *,int,int,std::ofstream *);
+    bool takeBite(double,Location *,RandomNumGenerator *, RandomNumGenerator *,int,int,std::ofstream *);
     Human * whoBite(double,Location *,RandomNumGenerator *);
-    void infectingBite(double,Location *,RandomNumGenerator *,RandomNumGenerator *,int,int);
-    void infectiousBite(double,Location *,RandomNumGenerator *,RandomNumGenerator *,int,int,std::ofstream *);
-    std::string printInfections() const;
-    std::string toString() const;
-    Mosquito(unsigned long, unsigned, double, double, std::string);
+    bool infectingBite(double,Location *,RandomNumGenerator *,RandomNumGenerator *,int,int);
+    bool infectiousBite(double,Location *,RandomNumGenerator *,RandomNumGenerator *,int,int,std::ofstream *);
+    Mosquito(double, double, std::string);
     Mosquito();
     Mosquito(const Mosquito& orig);
     virtual ~Mosquito();
     std::unique_ptr<Infection> infection;
 private:
-    unsigned long mID;
-    MozState mState;
     std::string locationID;
-    unsigned bday;
     double dday;
-    double biteStartDay;
-    bool fly;
-    
+    double biteStartDay;    
 };
 
 #endif	/* MOSQUITO_H */
-

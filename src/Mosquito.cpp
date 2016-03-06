@@ -3,10 +3,6 @@
 
 using namespace std;
 
-unsigned Mosquito::getMosquitoID() const {
-    return mID;
-}
-
 string Mosquito::getLocationID() const {
     return locationID;
 }
@@ -19,18 +15,6 @@ double Mosquito::getDDay() const {
     return dday;
 }
 
-unsigned Mosquito::getMID() const {
-    return mID;
-}
-
-Mosquito::MozState Mosquito::getState() const {
-    return mState;
-}
-
-void Mosquito::setState(MozState st) {
-    mState = st;
-}
-
 void Mosquito::setBiteStartDay(double d) {
     biteStartDay = d;
 }
@@ -39,11 +23,7 @@ double Mosquito::getBiteStartDay() {
     return biteStartDay;
 }
 
-string Mosquito::printInfections() const {
-    return "\n to do";
-}
-
-void Mosquito::takeBite(
+bool Mosquito::takeBite(
     double time,
     Location * locNow,
     RandomNumGenerator * rGen,
@@ -53,12 +33,14 @@ void Mosquito::takeBite(
     std::ofstream * out)
 {
     if(infection == nullptr){
-      infectingBite(time, locNow, rGen, rGenInf, currentDay, numDays);
+        return infectingBite(time, locNow, rGen, rGenInf, currentDay, numDays);
     }
-    else if(infection->getInfectiousness() > 0.0){
-      infectiousBite(time, locNow, rGen, rGenInf, currentDay, numDays, out);
+    else if(infection->getInfectiousness() >= 0.0){
+        return infectiousBite(time, locNow, rGen, rGenInf, currentDay, numDays, out);
     }
+    return false;
 }
+
 
 
 Human * Mosquito::whoBite(
@@ -73,7 +55,6 @@ Human * Mosquito::whoBite(
         std::string currentLoc = (*itrHum)->getCurrentLoc(time);
         if(currentLoc == locationID){
             humanMap.insert(std::pair<Human *,double>(*itrHum,(*itrHum)->getAttractiveness()));
-	    //	    printf("Mosquito %lu in loc %s can bite human %s-%d\n",mID,locNow->getLocID().c_str(),(*itrHum)->getHouseID().c_str(),(*itrHum)->getHouseMemNum());
         }
     }
 
@@ -96,7 +77,7 @@ Human * Mosquito::whoBite(
 
 
 
-void Mosquito::infectingBite(
+bool Mosquito::infectingBite(
     double time,
     Location * locNow,
     RandomNumGenerator * rGen,
@@ -107,28 +88,25 @@ void Mosquito::infectingBite(
     Human * humBite = whoBite(time, locNow, rGen);
 
     if(humBite != NULL){
-      //      printf("Mosquito %lu in loc %s bit human %s-%d\n",mID,locNow->getLocID().c_str(),humBite->getHouseID().c_str(),humBite->getHouseMemNum());
-        setState(Mosquito::MozState::REST);
-        setBiteStartDay(currentDay + rGen->getMozRestDays());
         if(humBite->infection != nullptr){
             humBite->infection->setInfectiousnessHuman(currentDay);
-	    //	    printf("Possible infection for Mosquito from human %s-%d\n",humBite->getHouseID().c_str(),humBite->getHouseMemNum());
             if(rGenInf->getEventProbability() < humBite->infection->getInfectiousness()){
                 double sday = double(currentDay) + rGenInf->getMozLatencyDays();
                 int eday = numDays + 1;
                 infection.reset(new Infection(
                     round(sday), eday, 0.0, humBite->infection->getInfectionType(), 0, 0));
-		//		printf("Mosquito bit human %s-%d is infected\n",humBite->getHouseID().c_str(),humBite->getHouseMemNum());
             }
-        }        
+        }
+        setBiteStartDay(currentDay + rGen->getMozRestDays());
+        return true;
     }else{
-      //      printf("Mosquito %lu in loc %s could not find anybody to bite\n",mID,locNow->getLocID().c_str());
+        return false;
     }
 }
 
 
 
-void Mosquito::infectiousBite(
+bool Mosquito::infectiousBite(
     double time,
     Location * locNow,
     RandomNumGenerator * rGen,
@@ -139,54 +117,26 @@ void Mosquito::infectiousBite(
 {
     Human * humBite = whoBite(time, locNow, rGen);
 
-    // if someone is found to bite
     if(humBite != NULL){
-        // update the mosquito's status
-        setState(Mosquito::MozState::REST);
-        setBiteStartDay(currentDay + rGen->getMozRestDays());
-
-        // if the mosquito is infectious, the human not actively infected, and the infection successful
         if(infection != nullptr && humBite->infection == nullptr && !humBite->isImmune(infection->getInfectionType())){
-	  double RRInf = humBite -> getRRInf();
-	  if(rGenInf->getEventProbability() < infection->getInfectiousness() * (1 - RRInf)){
+            if(rGenInf->getEventProbability() < infection->getInfectiousness()){
                 humBite->infect(currentDay, infection->getInfectionType(), rGenInf);
             }
         }
+        setBiteStartDay(currentDay + rGen->getMozRestDays());
+        return true;
+    }else{
+        return false;
     }
 }
 
 
 
-Mosquito::Mosquito(unsigned long id, unsigned bd, double dd, double bsd, string loc) {
-    mID = id;
-    bday = bd;
+Mosquito::Mosquito(double dd, double bsd, string loc) {
     locationID = loc;
     dday = dd;
-    mState = Mosquito::MozState::BITE;
     biteStartDay = bsd;
     infection.reset(nullptr);
-    fly = false;
-}
-
-
-
-string Mosquito::toString() const {
-    stringstream ss;
-    ss << locationID << " " << mID <<" " << bday << " " << dday;
-    infection->toString();
-    return ss.str();
-}
-
-
-
-bool Mosquito::getFly() const {
-    return fly;
-}
-
-
-
-void Mosquito::setFly(bool f) {
-    fly = f;
 }
 
 

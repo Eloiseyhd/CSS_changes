@@ -90,14 +90,14 @@ string RandomNumGenerator::toString() const {
 
 RandomNumGenerator::RandomNumGenerator(
     unsigned s, unsigned huImm, double efactor, double mlife,
-    double mrest, std::map<unsigned,double> hlife)
+    double mbite, std::map<unsigned,double> hlife)
 {
     seed = s;
     gen.seed(s);
     huImmunity = huImm;
     emergeFactor = efactor;
     mozLife = mlife;
-    mozRest = mrest;
+    mozRest = mbite;
     halflife = hlife;
 }
 

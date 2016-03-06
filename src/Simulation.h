@@ -65,7 +65,7 @@ private:
     unsigned humanInfectionDays;
     unsigned huImm;
     double mlife;
-    double mrest;
+    double mbite;
     double emergeFactor;
     double biteProbablity;
     double mozInfectiousness;   
