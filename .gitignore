@@ -1,1 +1,23 @@
+#ignore weird files
+.DS_Store
+.*
+*~
+#*#
+#*
+src/#*#
+src/*~
+# ignore the files necessary to run
+Runfiles/*
+bk.src/*
+bk.srcTrial/*
 bk*
+
+#ignore the .o files
+obj/*
+
+#ignore the Makefile
+Makefile
+
+#ignore the excecutable
+DengueSim
+.DS_Store
