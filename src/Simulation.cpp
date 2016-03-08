@@ -12,13 +12,14 @@ using namespace std;
 
 
 struct ecoStats{
-  int ageInf[100];
-  int ageDis[100];
-  int ageHosp[100];
+  int ageInf[101];
+  int ageDis[101];
+  int ageHosp[101];
+  int vac[101];
+  int pop[101];
   int year;
 };
 
-std::vector<ecoStats> ageEcoReports;
 
 void Simulation::simulate() {
     simEngine();
@@ -26,8 +27,6 @@ void Simulation::simulate() {
     outpop.close();
     outprevac.close();
     outeco.close();
-
-    ageEcoReports.clear();
 }
 
 
@@ -72,7 +71,15 @@ string Simulation::readInputs() {
       printf("cannot create output file %s\n",outputEcoFile.c_str());
       exit(1);
     }
-    outeco << "age,pop,seropos,seroneg,symptomatic,hospitalized\n";
+    outeco << "year,";
+    for(int i = 0;i < 101;i++){
+      outeco << "age"<< i << "Pop," << "age" << i << "vac," << "age" << i << "Inf,"<< "age" << i << "Dis," << "age" << i << "Hosp";
+      if(i == 100){
+	outeco << "\n";
+      }else{
+	outeco << ",";
+      }
+    }
 
     RandomNumGenerator rgen(rSeed, huImm, emergeFactor, mlife, mrest, halflife);
     rGen = rgen;
@@ -106,6 +113,7 @@ void Simulation::simEngine() {
       year++;
       updatePop();
     }
+    //    updatePop();
     currentDay++;
   }
 }
@@ -130,11 +138,25 @@ void Simulation::updatePop(){
     int seropos_novac_inf_coh1 = 0, seropos_novac_dis_coh1 = 0, seropos_novac_hosp_coh1 = 0;
     int seroneg_vac_inf_coh1 = 0, seroneg_vac_dis_coh1 = 0, seroneg_vac_hosp_coh1 = 0;
     int seroneg_novac_inf_coh1 = 0, seroneg_novac_dis_coh1 = 0, seroneg_novac_hosp_coh1 = 0;
+    ecoStats econTemp;
+
+    econTemp.year = year;
+    for(int i = 0;i < 101;i++){
+      econTemp.ageInf[i] = 0;
+      econTemp.ageDis[i] = 0;
+      econTemp.ageHosp[i] = 0;
+      econTemp.pop[i] = 0;
+      econTemp.vac[i] = 0;
+    }
 
     for(auto itHum = humans.begin(); itHum != humans.end(); itHum++){
         itHum->second->updateAttractiveness(currentDay);
         age = itHum->second->getAge(currentDay);
-
+	int ageTemp = floor(age / 365);
+	if(ageTemp > 100){
+	  ageTemp = 100;
+	}
+	
         if(age >= age_09 && age < age_10){
             if(itHum->second->getPreviousInfections() > 0){
                 seropos_09++;
@@ -192,6 +214,20 @@ void Simulation::updatePop(){
                 hosp_1999++;
             }
         }
+	econTemp.pop[ageTemp]++;
+	if(itHum->second->isVaccinated()){
+	  econTemp.vac[ageTemp]++;
+	}
+	if(itHum->second->getRecentInf() > 0){
+	  econTemp.ageInf[ageTemp]++;
+	}
+	if(itHum->second->getRecentDis() > 0){
+	  econTemp.ageDis[ageTemp]++;
+	}
+	if(itHum->second->getRecentHosp() > 0){
+	  econTemp.ageHosp[ageTemp]++;
+	}
+	
 	if(itHum->second->getCohort() == 1){
 	  if(itHum->second->getSeroStatusAtVaccination()){
 	    if(itHum->second->isVaccinated()){
@@ -256,6 +292,16 @@ void Simulation::updatePop(){
       seropos_novac_coh1 <<  "," << seropos_novac_inf_coh1 << "," << seropos_novac_dis_coh1 << "," << seropos_novac_hosp_coh1 << "," <<
       seroneg_vac_coh1 << ","  << seroneg_vac_inf_coh1 << "," << seroneg_vac_dis_coh1 << "," << seroneg_vac_hosp_coh1 << "," <<
       seroneg_novac_coh1 << ","  << seroneg_novac_inf_coh1 << "," << seroneg_novac_dis_coh1 << "," << seroneg_novac_hosp_coh1 << "\n";
+
+    outeco << year << ",";
+    for(int i = 0;i < 101;i++){
+      outeco << econTemp.pop[i] << "," << econTemp.vac[i] << "," << econTemp.ageInf[i] << "," << econTemp.ageDis[i] << "," << econTemp.ageHosp[i];
+      if(i == 100){
+	outeco << "\n";
+      }else{
+	outeco << ",";
+      }
+    }
 }
 
 
