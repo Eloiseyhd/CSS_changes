@@ -11,12 +11,23 @@
 using namespace std;
 
 
+struct ecoStats{
+  int ageInf[100];
+  int ageDis[100];
+  int ageHosp[100];
+  int year;
+};
+
+std::vector<ecoStats> ageEcoReports;
+
 void Simulation::simulate() {
     simEngine();
     out.close();
     outpop.close();
     outprevac.close();
     outeco.close();
+
+    ageEcoReports.clear();
 }
 
 
@@ -63,9 +74,6 @@ string Simulation::readInputs() {
     }
     outeco << "age,pop,seropos,seroneg,symptomatic,hospitalized\n";
 
-
-
-
     RandomNumGenerator rgen(rSeed, huImm, emergeFactor, mlife, mrest, halflife);
     rGen = rgen;
 
@@ -104,6 +112,8 @@ void Simulation::simEngine() {
 
 
 
+
+
 void Simulation::updatePop(){
   //  printf("update pop year: %u\n",year);
     int count;
@@ -120,6 +130,7 @@ void Simulation::updatePop(){
     int seropos_novac_inf_coh1 = 0, seropos_novac_dis_coh1 = 0, seropos_novac_hosp_coh1 = 0;
     int seroneg_vac_inf_coh1 = 0, seroneg_vac_dis_coh1 = 0, seroneg_vac_hosp_coh1 = 0;
     int seroneg_novac_inf_coh1 = 0, seroneg_novac_dis_coh1 = 0, seroneg_novac_hosp_coh1 = 0;
+
     for(auto itHum = humans.begin(); itHum != humans.end(); itHum++){
         itHum->second->updateAttractiveness(currentDay);
         age = itHum->second->getAge(currentDay);

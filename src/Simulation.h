@@ -74,7 +74,6 @@ private:
     unsigned year;
     int seroposAtVax[101], seronegAtVax[101], disAtVax[101], hospAtVax[101];
 
-
     std::ofstream out;
     std::ofstream outpop;
     std::ofstream outprevac;
