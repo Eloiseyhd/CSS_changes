@@ -18,7 +18,7 @@ writeSimControl.sobol = function(
 {  
   ii = 1
   
-  simControlFile = paste('../simulator/SimControl_', simControlNum, '.csv', sep='')
+  simControlFile = paste('~/Condor/SimControl_', simControlNum - 1, '.csv', sep='')
 
   file.connection = file(simControlFile)
 	toWrite = 'SimulationName,Seed,SeedInf,NumDays,VaccineDay,Vaccination,VaccineCoverage,VaccineAge,Catchup,PropInf,OutputPath,LocationFile,TrajectoryFile,VaccineProfileFile,DeathRate,ForceOfImportation,HumanImmunityDays,EmergenceFactor,MosquitoLifespan,MosquitoInfectiousness,MosquitoMoveProbability,MosquitoBiting\n'

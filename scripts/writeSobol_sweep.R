@@ -1,10 +1,10 @@
 source('functions_sweep.R')
 
-reps = 50
+reps = 1000
 
 ForceOfImportation = c(1e-7,1e-4)
 EmergenceFactor = c(.01,1.99)
-MosquitoLifespan = c(2,10)
+MosquitoLifespan = c(3,10)
 MosquitoInfectiousness = c(.01,.99)
 HumanImmunityDays = rep(686,2)
 MosquitoMoveProbability = rep(0.3,2)
@@ -28,12 +28,12 @@ for(ii in 1 : nrow(scalars)){
   writeSimControl.sobol(
     simControlNum = ii,
     reps = 1,
-    NumDays = 365 * 2,
+    NumDays = 365 * 50,
     VaccineDay = 0,
     Vaccination = 0,
-    OutputPath = '../simulator/data/Output',
-    LocationFile = '../simulator/data/Input/locations_20150801.csv',
-    VaccineProfileFile = '../simulator/data/Input/vaccine_profile_age.csv',
-    DemographyFile = '../simulator/data/Input/demo_rates_peru.csv',
+    OutputPath = '.',
+    LocationFile = 'locations_20150801.csv',
+    VaccineProfileFile = 'vaccine_profile_age.csv',
+    DemographyFile = 'demo_rates_peru.csv',
     scalars = scalars[ii,])
 }
