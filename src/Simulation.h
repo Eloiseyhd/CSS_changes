@@ -56,6 +56,7 @@ private:
     std::string outputFile;
     std::string outputPopFile;
     std::string outputPrevacFile;
+    std::string outputEcoFile;
     std::string simName;
     unsigned rSeed;
     unsigned rSeedInf;
@@ -77,6 +78,7 @@ private:
     std::ofstream out;
     std::ofstream outpop;
     std::ofstream outprevac;
+    std::ofstream outeco;
 };
 
 #endif  /* SIMULATION_H */

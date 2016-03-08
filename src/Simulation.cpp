@@ -16,6 +16,7 @@ void Simulation::simulate() {
     out.close();
     outpop.close();
     outprevac.close();
+    outeco.close();
 }
 
 
@@ -33,6 +34,7 @@ string Simulation::readInputs() {
 
     outputPopFile = outputPath + "/" + simName + "_pop.csv";
     outputPrevacFile = outputPath + "/" + simName + "_prevac.csv";
+    outputEcoFile = outputPath + "/" + simName + "_eco.csv";
     outpop.open(outputPopFile);
     if (!outpop.good()) {
       //      printf("cannot create output file %s\n",outputPopFile.c_str());
@@ -53,6 +55,16 @@ string Simulation::readInputs() {
       exit(1);
     }
     outprevac << "age,pop,seropos,seroneg,symptomatic,hospitalized\n";
+
+    outeco.open(outputEcoFile);
+    if(!outeco.good()){
+      printf("cannot create output file %s\n",outputEcoFile.c_str());
+      exit(1);
+    }
+    outeco << "age,pop,seropos,seroneg,symptomatic,hospitalized\n";
+
+
+
 
     RandomNumGenerator rgen(rSeed, huImm, emergeFactor, mlife, mrest, halflife);
     rGen = rgen;
