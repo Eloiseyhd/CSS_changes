@@ -173,11 +173,6 @@ void Human::infect(
     unsigned infectionType,
     RandomNumGenerator * rGen)
 {
-    infected = true;
-    recent_inf = 1;
-    recent_dis = 0;
-    recent_hosp = 0;
-
     double RRInf = 1.0;
     double RRDis = 1.0;
     double totalVE = 0.0;
@@ -192,30 +187,48 @@ void Human::infect(
         RRInf = pow(1.0 - totalVE, propInf);
         RRDis = pow(1.0 - totalVE, 1.0 - propInf);
     }
+
     if(rGen->getEventProbability() < RRInf){
+	infected = true;
+	recent_inf = 1;
+	recent_dis = 0;
+	recent_hosp = 0;
+	
 	if(getPreviousInfections() == 0){
 	    if(rGen->getEventProbability() < 0.25 * RRDis){
 		recent_dis = infectionType;
 		symptomatic = true;
+		if(rGen->getEventProbability() < 0.111){
+		    recent_hosp = infectionType;
+		    hospitalized = true;
+		}
 	    }
 	} else if(getPreviousInfections() == 1) {
 	    if(rGen->getEventProbability() < 0.69 * RRDis){
 		recent_dis = infectionType;
 		symptomatic = true;
+		if(rGen->getEventProbability() < 0.20868){
+		    recent_hosp = infectionType;
+		    hospitalized = true;
+		}
 	    }
 	} else {
 	    if(rGen->getEventProbability() < 0.07 * RRDis){
 		recent_dis = infectionType;
 		symptomatic = true;
+		if(rGen->getEventProbability() < 0.05217){
+		    recent_hosp = infectionType;
+		    hospitalized = true;
+		}
 	    }
 	}
+	infection.reset(new Infection(
+	      currentDay + 1, currentDay + 15, 0.0, infectionType, getPreviousInfections() == 0, recent_dis > 0));
+	updateImmunityPerm(infectionType, true);
+	setImmunityTemp(true);
+	setImmStartDay(currentDay);
+	setImmEndDay(currentDay + 15 + rGen->getHumanImmunity());
     }
-    infection.reset(new Infection(
-			currentDay + 1, currentDay + 15, 0.0, infectionType, getPreviousInfections() == 0, recent_dis > 0));
-    updateImmunityPerm(infectionType, true);
-    setImmunityTemp(true);
-    setImmStartDay(currentDay);
-    setImmEndDay(currentDay + 15 + rGen->getHumanImmunity());
 }
 
 
