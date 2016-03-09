@@ -40,6 +40,7 @@ private:
     std::unique_ptr<std::vector<std::vector<std::pair<std::string,double>>>> trajectories;
     bool vaccinated;
     int vday;
+    int wday;
     std::map<unsigned,double> * veneg;
     std::map<unsigned,double> * vepos;
     
@@ -92,8 +93,8 @@ public:
     void updateBodySize(unsigned);
     void updateImmunityPerm(unsigned,bool);
     void updateRecent(int,int,int);
-    void vaccinate(std::map<unsigned,double> *,std::map<unsigned,double> *,double,int);
-    void waneVaccination(){vaccinated = false;}
+    void vaccinate(std::map<unsigned,double> *,std::map<unsigned,double> *,double,int,RandomNumGenerator&,unsigned);
+    void waneVaccination(int currDay){if(currDay >= wday){vaccinated = false;}}
 
     struct sortid{
         bool operator() (const Human *a, const Human *b)const{

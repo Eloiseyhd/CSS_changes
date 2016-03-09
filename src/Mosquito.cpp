@@ -119,7 +119,7 @@ bool Mosquito::infectiousBite(
 
     if(humBite != NULL){
         if(infection != nullptr && humBite->infection == nullptr && !humBite->isImmune(infection->getInfectionType())){
-            if(rGenInf->getEventProbability() < infection->getInfectiousness()){
+	    if(rGenInf->getEventProbability() < infection->getInfectiousness()){
                 humBite->infect(currentDay, infection->getInfectionType(), rGenInf);
             }
         }

@@ -8,6 +8,7 @@ using namespace std;
 Human::Human(
     string hID,
     int hMemID,
+    
     int age,
     char gen,
     unique_ptr<vector<vector<pair<string, double >> >> &paths,
@@ -31,6 +32,7 @@ Human::Human(
     infected = false;
     symptomatic = false;
     hospitalized = false;
+    wday = 0;
     if(bday < currDay - 180){
         immunity_temp = false;
         setImmunityPerm(1, rGen.getHumanSeropositivity(FOI, double(currDay - bday)));
@@ -52,10 +54,10 @@ Human::Human(
 
 void Human::checkRecovered(unsigned currDay){
     if(infection->getEndDay() <= currDay){
-       infection.reset(nullptr);
-       infected = false;
-       hospitalized = false;
-       symptomatic = false;
+	infection.reset(nullptr);
+	infected = false;
+	hospitalized = false;
+	symptomatic = false;
     }
 }
 
@@ -81,7 +83,7 @@ double Human::getBodySize() const {
 
 std::string Human::getCurrentLoc(double time){
     std::vector<std::pair<std::string,double>>::iterator itrLoc = (*trajectories)[trajDay].begin();
-
+    
     for(double runSum = 0; runSum < time && itrLoc != (*trajectories)[trajDay].end(); itrLoc++){
         runSum += itrLoc->second;
     }
@@ -90,7 +92,7 @@ std::string Human::getCurrentLoc(double time){
     } else {
         itrLoc--;
     }
-
+    
     return itrLoc->first;
 }
 
@@ -179,36 +181,37 @@ void Human::infect(
     double RRInf = 1.0;
     double RRDis = 1.0;
     double totalVE = 0.0;
-
+    
     if(vaccinated){
         if(getPreviousInfections() > 0){
-          totalVE = 1.0 - vepos->at(0) / (1.0 + exp(vepos->at(1) * (double(getAgeDays(currentDay)) / 365.0 - vepos->at(2))));
+	    totalVE = 1.0 - vepos->at(0) / (1.0 + exp(vepos->at(1) * (double(getAgeDays(currentDay)) / 365.0 - vepos->at(2))));
         }else{
-          totalVE = 1.0 - veneg->at(0) / (1.0 + exp(veneg->at(1) * (double(getAgeDays(currentDay)) / 365.0 - veneg->at(2))));
+	    totalVE = 1.0 - veneg->at(0) / (1.0 + exp(veneg->at(1) * (double(getAgeDays(currentDay)) / 365.0 - veneg->at(2))));
         }
+	
         RRInf = pow(1.0 - totalVE, propInf);
         RRDis = pow(1.0 - totalVE, 1.0 - propInf);
     }
-
-    if(getPreviousInfections() == 0){
-        if(rGen->getEventProbability() < 0.25 * RRDis){
-            recent_dis = infectionType;
-            symptomatic = true;
-        }
-    } else if(getPreviousInfections() == 1) {
-        if(rGen->getEventProbability() < 0.69 * RRDis){
-            recent_dis = infectionType;
-            symptomatic = true;
-        }
-    } else {
-        if(rGen->getEventProbability() < 0.07 * RRDis){
-            recent_dis = infectionType;
-            symptomatic = true;
-        }
+    if(rGen->getEventProbability() < RRInf){
+	if(getPreviousInfections() == 0){
+	    if(rGen->getEventProbability() < 0.25 * RRDis){
+		recent_dis = infectionType;
+		symptomatic = true;
+	    }
+	} else if(getPreviousInfections() == 1) {
+	    if(rGen->getEventProbability() < 0.69 * RRDis){
+		recent_dis = infectionType;
+		symptomatic = true;
+	    }
+	} else {
+	    if(rGen->getEventProbability() < 0.07 * RRDis){
+		recent_dis = infectionType;
+		symptomatic = true;
+	    }
+	}
     }
-
     infection.reset(new Infection(
-        currentDay + 1, currentDay + 15, 0.0, infectionType, getPreviousInfections() == 0, recent_dis > 0));
+			currentDay + 1, currentDay + 15, 0.0, infectionType, getPreviousInfections() == 0, recent_dis > 0));
     updateImmunityPerm(infectionType, true);
     setImmunityTemp(true);
     setImmStartDay(currentDay);
@@ -238,7 +241,7 @@ void Human::initiateBodySize(unsigned currDay, RandomNumGenerator& rGen){
 
 bool Human::isImmune(unsigned serotype) const {
     bool immunity = false;
-
+    
     if(immunity_temp){
         immunity = true;
     } else if(immunity_perm.at(serotype)) {
@@ -360,16 +363,17 @@ void Human::vaccinate(
     std::map<unsigned,double> * veposIn,
     std::map<unsigned,double> * venegIn,
     double propInfIn,
-    int currDay)
+    int currDay,
+    RandomNumGenerator& rGen,
+    unsigned wan)
 {
     vaccinated = true;
     vepos = veposIn;
     veneg = venegIn;
     propInf = propInfIn;
     vday = currDay;
+    wday = rGen.getWaningTime(wan) + vday;
 }
-
-
 
 
 Human::Human() {

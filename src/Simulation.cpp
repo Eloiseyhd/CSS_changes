@@ -76,12 +76,12 @@ void Simulation::updatePop(){
     for(auto itHum = humans.begin(); itHum != humans.end(); itHum++){
         itHum->second->updateAttractiveness(currentDay);
         age = itHum->second->getAgeDays(currentDay);
-
+	
         if(itHum->second->getRecentInf() && itHum->second->getPreviousInfections() == 1){
             avg_age_first += itHum->second->getAgeDays(currentDay);
             num_first++;
         }
-
+	
         if(age >= age_09 && age < age_10){
             if(itHum->second->getPreviousInfections() > 0){
                 seropos_09++;
@@ -150,7 +150,7 @@ void Simulation::updatePop(){
     }
 
     avg_age_first = avg_age_first / double(num_first) / 365.0;
-
+        
     outpop << year << "," << avg_age_first << ","
       << seropos_09 << "," << seroneg_09 << "," << seropos_10 << "," << seroneg_10 << ","
       << seropos_11 << "," << seroneg_11 << "," << seropos_12 << "," << seroneg_12 << ","
@@ -169,7 +169,7 @@ void Simulation::humanDynamics() {
     if(currentDay >= vaccineDay){
         cohort = floor(double(currentDay - vaccineDay) / 365.0) + 1;
     }
-
+    
     int dayVax0 = vaccineDay - 365;
     if(dayVax0 < 0){
         dayVax0 = 0;
@@ -188,18 +188,18 @@ void Simulation::humanDynamics() {
         // daily mortality for humans by age
         if(rGen.getEventProbability() < (deathRate * it->second->getAgeDays(currentDay)))
             it->second->reincarnate(currentDay);
-
+	
         // update temporary cross-immunity status if necessary
         if(currentDay == it->second->getImmEndDay())
             it->second->setImmunityTemp(false);
-
+	
         // update infection status if necessary
         if(it->second->infection != nullptr)
             it->second->checkRecovered(currentDay);
-
+	
         // select movement trajectory for the day
         (it->second)->setTrajDay(rGen.getRandomNum(5));
-
+	
         // simulate possible imported infection
         if(rGen.getEventProbability() < ForceOfImportation){
             int serotype = rGen.getRandomNum(4) + 1;
@@ -209,7 +209,7 @@ void Simulation::humanDynamics() {
         }
 
         // in the year before vaccination, record disease episodes
-		if(currentDay >= dayVax0 && currentDay < vaccineDay){
+	if(currentDay >= dayVax0 && currentDay < vaccineDay){
             if(it->second->infection != nullptr){
                 age = it->second->getAgeDays(currentDay);
                 int ageTemp = floor(double(age) / 365.0);
@@ -226,7 +226,7 @@ void Simulation::humanDynamics() {
                 }
             }
         }
-
+	
         // record seroprevalence on the day vaccination begins
         if(currentDay >= vaccineDay){
             age = it->second->getAgeDays(currentDay);
@@ -246,23 +246,26 @@ void Simulation::humanDynamics() {
                 }
             }
         }
-
+	
     	// vaccination
         if(vaccinationFlag == true){
+	    if(it->second->isVaccinated()){
+		it->second->waneVaccination(currentDay);
+	    }
             // routine vaccination by age
             if(age == vaccineAge * 365){
                 // assign a cohort
                 it->second->setCohort(cohort);
                 if(rGenInf.getEventProbability() < vaccineCoverage){
-                    it->second->vaccinate(&VE_pos, &VE_neg, propInf, currentDay);
+                    it->second->vaccinate(&VE_pos, &VE_neg, propInf, currentDay,rGenInf,vacWan);
                 }
             }
-
+	    
             // catchup vaccination
             if(catchupFlag == true && vaccineDay == currentDay){
                 if(age > vaccineAge * 365 && age < 18 * 365){
                     if(rGenInf.getEventProbability() < vaccineCoverage){
-                        it->second->vaccinate(&VE_pos, &VE_neg, propInf, currentDay);
+                        it->second->vaccinate(&VE_pos, &VE_neg, propInf, currentDay,rGenInf,vacWan);
                     }
                 }
             }
@@ -421,6 +424,8 @@ void Simulation::readSimControlFile(string line) {
     ForceOfImportation = strtod(line.c_str(),NULL);
     getline(infile, line, ',');
     huImm = strtol(line.c_str(), NULL, 10);
+    getline(infile, line, ',');
+    vacWan = strtol(line.c_str(), NULL, 10);
     getline(infile, line, ',');
     emergeFactor = strtod(line.c_str(), NULL);    
     getline(infile, line, ',');

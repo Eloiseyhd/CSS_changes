@@ -53,6 +53,7 @@ private:
     bool catchupFlag;
     unsigned vaccineDay;
     unsigned vaccineAge;
+    unsigned vacWan;
     double vaccineCoverage;
     std::string outputFile;
     std::string outputPopFile;
