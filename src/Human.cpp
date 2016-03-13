@@ -25,20 +25,18 @@ Human::Human(
     infection.reset(nullptr);
     updateAttractiveness(currDay);
     vaccinated = false;
-    doses = 0;
     resetRecent();
     cohort = 0;
     seroStatusAtVaccination = false;
     infected = false;
     symptomatic = false;
     hospitalized = false;
-
     if(bday < currDay - 180){
         immunity_temp = false;
-        setImmunityPerm(1, rGen.getHumanSeropositivity(FOI, double(age) / 365.0));
-        setImmunityPerm(2, rGen.getHumanSeropositivity(FOI, double(age) / 365.0));
-        setImmunityPerm(3, rGen.getHumanSeropositivity(FOI, double(age) / 365.0));
-        setImmunityPerm(4, rGen.getHumanSeropositivity(FOI, double(age) / 365.0));
+        setImmunityPerm(1, rGen.getHumanSeropositivity(FOI, double(currDay - bday)));
+        setImmunityPerm(2, rGen.getHumanSeropositivity(FOI, double(currDay - bday)));
+        setImmunityPerm(3, rGen.getHumanSeropositivity(FOI, double(currDay - bday)));
+        setImmunityPerm(4, rGen.getHumanSeropositivity(FOI, double(currDay - bday)));
     } else {
         immunity_temp = true;
         immStartDay = bday;
@@ -52,152 +50,24 @@ Human::Human(
 
 
 
-void Human::reincarnate(unsigned currDay){
-    bday = currDay;
-    updateAttractiveness(currDay);
-    infection.reset(nullptr);
-    infected = false;
-    hospitalized = false;
-    symptomatic = false;
-    seroStatusAtVaccination = false;
-    immunity_temp = true;
-    immStartDay = bday;
-    immEndDay = bday + 180;
-    updateImmunityPerm(1,false);
-    updateImmunityPerm(2,false);
-    updateImmunityPerm(3,false);
-    updateImmunityPerm(4,false);
-    vaccinated = false;
-    doses = 0;
-}
-
-
-
-void Human::vaccinate(
-    std::map<unsigned,double> * vepos,
-    std::map<unsigned,double> * veneg,
-    RandomNumGenerator& rGen,
-    double partialEfficacy,
-    int currDay)
-{
-    vaccinated = true;
-    doses++;
-    vday = currDay;
-
-    // unsigned infectionCount = 0;
-    // for(auto it = immunity_perm.begin(); it != immunity_perm.end(); it++){
-    //     if(it->second){infectionCount++;}
-    // }
-
-    // if(infectionCount == 0){
-    //     for(auto it = veneg->begin(); it != veneg->end(); it++){
-    //         VE.insert(make_pair(it->first, 1.0 - pow(1.0 - partialEfficacy * it->second, .5)));
-    //     }
-    // } else {
-    //     for(auto it = vepos->begin(); it != vepos->end(); it++){
-    //         VE.insert(make_pair(it->first, 1.0 - pow(1.0 - partialEfficacy * it->second, .5)));
-    //     }
-    // }
-
-    // a vaccinated person has complete protection against all serotypes for an exponentially 
-    // distributed period with mean 1 year after vaccination
-    setImmunityTemp(true);
-    setImmStartDay(currDay);
-    setImmEndDay(currDay + 365 + rGen.getVaxHumanImmunity(365));
-}
-
-void Human::setSeroStatusAtVaccination(){
-  if(getPreviousInfections() > 0){
-    seroStatusAtVaccination = true;
-  }
-}
-
-void Human::infect(
-    int currentDay,
-    unsigned infectionType,
-    RandomNumGenerator * rGen)
-{
-    recent_inf = 1;
-    recent_dis = 0;
-    recent_hosp = 0;
-
-    infected = true;
-
-    int vaxAdvancement = 0;
-    if(vaccinated){
-       vaxAdvancement = 1;
+void Human::checkRecovered(unsigned currDay){
+    if(infection->getEndDay() <= currDay){
+       infection.reset(nullptr);
+       infected = false;
+       hospitalized = false;
+       symptomatic = false;
     }
-    if(getPreviousInfections() + vaxAdvancement == 0){
-        if(rGen->getEventProbability() < 0.3){
-            recent_dis = infectionType;
-	    symptomatic = true;
-            if(rGen->getEventProbability() < 0.111){
-                recent_hosp = infectionType;
-		hospitalized = true;
-            }
-        }
-    }
-    else if(getPreviousInfections() + vaxAdvancement == 1){
-        if(rGen->getEventProbability() < 0.6){
-            recent_dis = infectionType;
-	    symptomatic = true;
-            if(rGen->getEventProbability() < 0.20868){
-                recent_hosp = infectionType;
-		hospitalized = true;
-            }
-        }
-    }
-    else{
-        if(rGen->getEventProbability() < 0.1){
-	  recent_dis = infectionType;
-	  symptomatic = true;
-	  if(rGen->getEventProbability() < 0.05217){
-	    recent_hosp = infectionType;
-	    hospitalized = true;
-	  }
-        }
-    }
-
-    infection.reset(new Infection(
-        currentDay + 1, currentDay + 15, 0.0, infectionType, getPreviousInfections() == 0, recent_dis > 0));
-    updateImmunityPerm(infectionType, true);
-    setImmunityTemp(true);
-    setImmStartDay(currentDay);
-    setImmEndDay(currentDay + 15 + rGen->getHumanImmunity());
 }
 
 
 
-std::set<std::string> Human::getLocsVisited(){
-    std::set<std::string> locsVisited;
-
-    int numTrajs = trajectories->size();
-    std::vector<std::pair<std::string,double>>::iterator itr;
-
-    for(int i = 0; i < numTrajs; i++){
-        for(itr = trajectories->at(i).begin(); itr != trajectories->at(i).end(); itr++){
-            locsVisited.insert(itr->first);
-        }
-    }
-
-    return locsVisited;
+double Human::getAttractiveness() const {
+    return attractiveness;
 }
 
 
 
-string Human::getHouseID() const {
-    return houseID;
-}
-
-
-
-int Human::getHouseMemNum() const {
-    return houseMemNum;
-}
-
-
-
-int Human::getAge(unsigned currDay) const {
+int Human::getAgeDays(unsigned currDay) const {
     return currDay - bday;
 }
 
@@ -209,8 +79,19 @@ double Human::getBodySize() const {
 
 
 
-double Human::getAttractiveness() const {
-    return attractiveness;
+std::string Human::getCurrentLoc(double time){
+    std::vector<std::pair<std::string,double>>::iterator itrLoc = (*trajectories)[trajDay].begin();
+
+    for(double runSum = 0; runSum < time && itrLoc != (*trajectories)[trajDay].end(); itrLoc++){
+        runSum += itrLoc->second;
+    }
+    if((*trajectories)[trajDay].size() == 1){
+        itrLoc = (*trajectories)[trajDay].begin();
+    } else {
+        itrLoc--;
+    }
+
+    return itrLoc->first;
 }
 
 
@@ -233,28 +114,31 @@ unsigned Human::getImmEndDay() const {
 
 
 
-void Human::setImmStartDay(unsigned d) {
-    immStartDay = d;
+string Human::getHouseID() const {
+    return houseID;
 }
 
 
 
-void Human::setImmEndDay(unsigned d) {
-    immEndDay = d;
+int Human::getHouseMemNum() const {
+    return houseMemNum;
 }
 
 
 
-bool Human::isImmune(unsigned serotype) const {
-    bool immunity = false;
+std::set<std::string> Human::getLocsVisited(){
+    std::set<std::string> locsVisited;
 
-    if(immunity_temp){
-        immunity = true;
-    } else if(immunity_perm.at(serotype)) {
-        immunity = true;
+    int numTrajs = trajectories->size();
+    std::vector<std::pair<std::string,double>>::iterator itr;
+
+    for(int i = 0; i < numTrajs; i++){
+        for(itr = trajectories->at(i).begin(); itr != trajectories->at(i).end(); itr++){
+            locsVisited.insert(itr->first);
+        }
     }
 
-    return immunity;
+    return locsVisited;
 }
 
 
@@ -276,66 +160,68 @@ int Human::getPreviousInfections(){
 
 
 
-void Human::setImmunityPerm(unsigned serotype, bool status) {
-    immunity_perm.insert(make_pair(serotype,status));
-}
-
-
-
-void Human::updateImmunityPerm(unsigned serotype, bool status) {
-    immunity_perm.erase(serotype);
-    immunity_perm.insert(make_pair(serotype,status));
-}
-
-
-
-void Human::setImmunityTemp(bool status) {
-    immunity_temp = status;
-}
-
-
-
-void Human::resetRecent(){
-    recent_inf = 0;
-    recent_dis = 0;
-    recent_hosp = 0;
-}
-
-
-
-void Human::updateRecent(int infIn, int disIn, int hospIn){
-    if(infIn > 0){
-        recent_inf = infIn;
-    }
-    if(disIn > 0){
-        recent_dis = disIn;
-    }
-    if(hospIn > 0){
-        recent_hosp = hospIn;
-    }
-}
-
-
-
 std::vector<std::pair<std::string, double >> const& Human::getTrajectory(unsigned i) const {
     return (*trajectories.get())[i];
 }
 
 
 
-std::string Human::getCurrentLoc(double time){
-    std::vector<std::pair<std::string,double>>::iterator itrLoc = (*trajectories)[trajDay].begin();
+void Human::infect(
+    int currentDay,
+    unsigned infectionType,
+    RandomNumGenerator * rGen,
+    double normdev)
+{
+    infected = true;
+    recent_inf = 1;
+    recent_dis = 0;
+    recent_hosp = 0;
 
-    for(double runSum = 0; runSum < time && itrLoc != (*trajectories)[trajDay].end(); itrLoc++){
-        runSum += itrLoc->second;
+    double RR = 1.0;
+    double RRInf = 1.0;
+    double RRDis = 1.0;
+    double totalVE = 0.0;
+
+    if(vaccinated){
+        if(getPreviousInfections() > 0){
+          totalVE = 1.0 - vepos->at(0) / (1.0 + exp(vepos->at(1) * (double(getAgeDays(currentDay)) / 365.0 - vepos->at(2))));
+        }else{
+          totalVE = 1.0 - veneg->at(0) / (1.0 + exp(veneg->at(1) * (double(getAgeDays(currentDay)) / 365.0 - veneg->at(2))));
+        }
+        RR = exp(log(1.0 - totalVE) + pow(1.0 / 100.5 + normdev / (100.0 * (1.0 - totalVE) + 0.5), 0.5));
+        RRInf = pow(RR, propInf);
+        RRDis = pow(RR, 1.0 - propInf);
     }
-    if((*trajectories)[trajDay].size() == 1){
-        itrLoc = (*trajectories)[trajDay].begin();
+
+    if(getPreviousInfections() == 0){
+        if(rGen->getEventProbability() < 0.908 * RRDis){
+            recent_dis = infectionType;
+            symptomatic = true;
+            if(rGen->getEventProbability() < 0.008){
+                recent_hosp = infectionType;
+            }
+        }
+    } else if(getPreviousInfections() == 1) {
+        if(rGen->getEventProbability() < 0.908 * RRDis){
+            recent_dis = infectionType;
+            symptomatic = true;
+            if(rGen->getEventProbability() < 0.03){
+                recent_hosp = infectionType;
+            }
+        }
     } else {
-        itrLoc--;
+        if(rGen->getEventProbability() < 0.785 * 0.908 * RRDis){
+            recent_dis = infectionType;
+            symptomatic = true;
+        }
     }
 
-    return itrLoc->first;
+    infection.reset(new Infection(
+        currentDay + 1, currentDay + 15, 0.0, infectionType, getPreviousInfections() == 0, recent_dis > 0));
+    updateImmunityPerm(infectionType, true);
+    setImmunityTemp(true);
+    setImmStartDay(currentDay);
+    setImmEndDay(currentDay + 15 + rGen->getHumanImmunity());
 }
 
 
@@ -359,6 +245,87 @@ void Human::initiateBodySize(unsigned currDay, RandomNumGenerator& rGen){
 
 
 
+bool Human::isImmune(unsigned serotype) const {
+    bool immunity = false;
+
+    if(immunity_temp){
+        immunity = true;
+    } else if(immunity_perm.at(serotype)) {
+        immunity = true;
+    }
+
+    return immunity;
+}
+
+
+
+void Human::reincarnate(unsigned currDay){
+    bday = currDay;
+    updateAttractiveness(currDay);
+    infection.reset(nullptr);
+    infected = false;
+    hospitalized = false;
+    symptomatic = false;
+    seroStatusAtVaccination = false;
+    immunity_temp = true;
+    immStartDay = bday;
+    immEndDay = bday + 180;
+    updateImmunityPerm(1,false);
+    updateImmunityPerm(2,false);
+    updateImmunityPerm(3,false);
+    updateImmunityPerm(4,false);
+}
+
+
+
+void Human::resetRecent(){
+    recent_inf = 0;
+    recent_dis = 0;
+    recent_hosp = 0;
+}
+
+
+
+void Human::setImmEndDay(unsigned d) {
+    immEndDay = d;
+}
+
+
+
+void Human::setImmStartDay(unsigned d) {
+    immStartDay = d;
+}
+
+
+
+void Human::setImmunityPerm(unsigned serotype, bool status) {
+    immunity_perm.erase(serotype);
+    immunity_perm.insert(make_pair(serotype,status));
+}
+
+
+
+void Human::setImmunityTemp(bool status) {
+    immunity_temp = status;
+}
+
+
+
+void Human::setSeroStatusAtVaccination(){
+  if(getPreviousInfections() > 0){
+    seroStatusAtVaccination = true;
+  }
+}
+
+
+
+void Human::updateAttractiveness(unsigned currDay){
+    updateBodySize(currDay);
+    attractiveness = pow(bodySize, 1.541);
+}
+
+
+
 void Human::updateBodySize(unsigned currDay){
     if(gender == 'F'){
         if(currDay - bday >= 6030){
@@ -377,20 +344,38 @@ void Human::updateBodySize(unsigned currDay){
 
 
 
-void Human::updateAttractiveness(unsigned currDay){
-    updateBodySize(currDay);
-    attractiveness = pow(bodySize, 1.541);
+void Human::updateImmunityPerm(unsigned serotype, bool status) {
+    immunity_perm.erase(serotype);
+    immunity_perm.insert(make_pair(serotype,status));
 }
 
 
 
-void Human::checkRecovered(unsigned currDay){
-    if(infection->getEndDay() <= currDay){
-       infection.reset(nullptr);
-       infected = false;
-       hospitalized = false;
-       symptomatic = false;
+void Human::updateRecent(int infIn, int disIn, int hospIn){
+    if(infIn > 0){
+        recent_inf = infIn;
     }
+    if(disIn > 0){
+        recent_dis = disIn;
+    }
+    if(hospIn > 0){
+        recent_hosp = hospIn;
+    }
+}
+
+
+
+void Human::vaccinate(
+    std::map<unsigned,double> * veposIn,
+    std::map<unsigned,double> * venegIn,
+    double propInfIn,
+    int currDay)
+{
+    vaccinated = true;
+    vepos = veposIn;
+    veneg = venegIn;
+    propInf = propInfIn;
+    vday = currDay;
 }
 
 

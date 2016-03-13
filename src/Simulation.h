@@ -34,12 +34,14 @@ public:
     void updatePop();
     virtual ~Simulation();
 private:
+    double normdev;
     std::map <std::string,std::unique_ptr<Location>> locations;
     std::multimap<std::string,std::unique_ptr<Mosquito>> mosquitoes;
     std::multimap<std::string,std::unique_ptr<Human>> humans;
     std::map<unsigned,double> VE_pos;
     std::map<unsigned,double> VE_neg;
     std::map<unsigned,double> halflife;
+    double propInf;
     unsigned currentDay;
     unsigned numDays;
     unsigned long mozID=0;
@@ -64,7 +66,7 @@ private:
     unsigned humanInfectionDays;
     unsigned huImm;
     double mlife;
-    double mrest;
+    double mbite;
     double emergeFactor;
     double biteProbablity;
     double mozInfectiousness;   

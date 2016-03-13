@@ -18,10 +18,10 @@ int main(int argc, char** argv) {
     char *configFileName;
     //    printf("DenSim started\n");
     if (argc != 2 && argc != 3 && argc != 5) { // Check for number of input arguments
-      //      printf("not enough arguments.\n");
+           // printf("not enough arguments.\n");
       exit(1); // Exit if not enough arguments
     } else if (argc == 2) {
-      //      printf("Simulation Control file: %s\n",argv[1]);
+           // printf("Simulation Control file: %s\n",argv[1]);
       chrono::time_point<chrono::high_resolution_clock> begin, end, newSimBegin;
       begin = chrono::high_resolution_clock::now();
       configFileName = argv [1];
@@ -31,10 +31,10 @@ int main(int argc, char** argv) {
       
       ifstream infile(conFile);
       if (!infile.good()) {
-	//	printf("Cannot read simulation control file: %s\n",configFileName);
+		// printf("Cannot read simulation control file: %s\n",configFileName);
 	exit(1);
       }
-      //      printf("Simulation control file successfully read\n");
+      // printf("Simulation control file successfully read\n");
       string line;
       getline(infile, line);
       while (getline(infile, line)) {
@@ -44,8 +44,10 @@ int main(int argc, char** argv) {
 	end = chrono::high_resolution_clock::now();
 	min = chrono::duration_cast<std::chrono::nanoseconds> (end-newSimBegin).count()/ 60000000000.;
 	sec = (min - (int)min)*60.0;
-	
+	           // printf("Simulation control file successfully read\n");
+
 	sim.simulate();
+           // printf("Simulation control file successfully read\n");
 	
 	end = chrono::high_resolution_clock::now();
 	min = chrono::duration_cast<std::chrono::nanoseconds> (end-newSimBegin).count()/ 60000000000.;
