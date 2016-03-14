@@ -48,7 +48,11 @@ string Simulation::readInputs() {
 
 void Simulation::simEngine() {
     while(currentDay < numDays){
-        cout << currentDay << ", ";
+        cout << currentDay << endl;
+
+        for(auto itLoc = locations.begin(); itLoc != locations.end(); itLoc++){
+            itLoc->second->updateInfectedVisitor();
+        }
 
         humanDynamics();
         mosquitoDynamics();

@@ -32,10 +32,10 @@ Location::Location(string lID, string lType, double x, double y, double e) {
     yCor = y;
     emergenceRate = e;
     closeLocs.reset(new vector<string>());
+    infectedVisitor = false;
 }
 
 string Location::getRandomCloseLoc(RandomNumGenerator& rGen) {
-    
     int i = closeLocs->size();
     if (i > 0)
         return (*closeLocs)[rGen.getMozNextLoc(i)];
@@ -63,3 +63,19 @@ Location::Location(const Location& orig) {
 
 Location::~Location() {
 }
+
+
+
+void Location::updateInfectedVisitor(){
+    infectedVisitor = false;
+    for(auto itHum = humans.begin(); itHum != humans.end(); itHum++){
+        if((*itHum)->infection != nullptr){
+            infectedVisitor = true;
+            return;
+        }
+    }
+}
+
+
+
+

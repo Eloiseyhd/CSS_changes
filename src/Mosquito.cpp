@@ -34,7 +34,12 @@ bool Mosquito::takeBite(
     double normdev)
 {
     if(infection == nullptr){
-        return infectingBite(time, locNow, rGen, rGenInf, currentDay, numDays);
+        if(locNow->getInfectedVisitor()){
+            return infectingBite(time, locNow, rGen, rGenInf, currentDay, numDays);            
+        } else {
+            setBiteStartDay(currentDay + rGen->getMozRestDays());
+            return true;
+        }
     }
     else if(infection->getInfectiousness() >= 0.0){
         return infectiousBite(time, locNow, rGen, rGenInf, currentDay, numDays, out, normdev);
