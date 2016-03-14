@@ -177,7 +177,7 @@ void Simulation::updatePop(){
         age = itHum->second->getAge(currentDay);
 	int ageGroup = getAgeGroup(age);
 	//	printf("Human of age %d goes in agegroup %d - %d\n",age/365,ageGroup, ageReports[ageGroup].age);
-	if(ageGroup >=0){
+	if(ageGroup >= 0){
 	  if(itHum->second->getSeroStatusAtVaccination()){
 	    if(itHum->second->isVaccinated()){
 	      ageReports[ageGroup].seropos_vac_pop++;
