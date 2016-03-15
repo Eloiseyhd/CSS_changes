@@ -184,11 +184,11 @@ void Human::infect(
 
     if(vaccinated){
         if(getPreviousInfections() > 0){
-          totalVE = 1.0 - vepos->at(0) / (1.0 + exp(vepos->at(1) * (double(getAgeDays(currentDay)) / 365.0 - vepos->at(2))));
+            totalVE = 1.0 - vepos->at(0) / (1.0 + exp(vepos->at(1) * (double(getAgeDays(currentDay)) / 365.0 - vepos->at(2))));
         }else{
-          totalVE = 1.0 - veneg->at(0) / (1.0 + exp(veneg->at(1) * (double(getAgeDays(currentDay)) / 365.0 - veneg->at(2))));
+            totalVE = 1.0 - veneg->at(0) / (1.0 + exp(veneg->at(1) * (double(getAgeDays(currentDay)) / 365.0 - veneg->at(2))));
         }
-        RR = exp(log(1.0 - totalVE) + pow(1.0 / 100.5 + normdev / (100.0 * (1.0 - totalVE) + 0.5), 0.5));
+        RR = exp(log(1.0 - totalVE) + normdev * pow(1.0 / 100.5 + 1.0 / (100.0 * (1.0 - totalVE) + 0.5), 0.5));
         RRInf = pow(RR, propInf);
         RRDis = pow(RR, 1.0 - propInf);
     }
