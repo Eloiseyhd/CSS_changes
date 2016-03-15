@@ -63,6 +63,7 @@ void Human::reincarnate(unsigned currDay){
     setImmunityPerm(4,false);
     vaccinated = false;
     doses = 0;
+    vAge = 0;
 }
 
 
@@ -98,10 +99,10 @@ void Human::vaccinate(
     setImmunityTemp(true);
     setImmStartDay(currDay);
     if(getPreviousInfections() == 0){
-        setImmEndDay(currDay  + rGen.getVaxHumanImmunity(365));
+	setImmEndDay(currDay  + rGen.getVaxHumanImmunity(365));
     }
     else{
-        setImmEndDay(currDay + 365 * 100);
+	setImmEndDay(currDay + 365 * 100);
     }
 }
 

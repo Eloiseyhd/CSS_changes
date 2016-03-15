@@ -57,10 +57,10 @@ string Simulation::readInputs() {
     outpop<<"time,";
     int countGroups = 0;
     for(; itAge != ageGroups.end(); itAge++){
-      outpop<< "seropos_vac_pop"<< (*itAge).first<<'-'<<(*itAge).second<< ",seropos_vac_inf"<< (*itAge).first<<'-'<<(*itAge).second << ",seropos_vac_hosp"<<(*itAge).first<<'-'<<(*itAge).second;
-      outpop<<",seroneg_vac_pop"<< (*itAge).first<<'-'<<(*itAge).second<< ",seroneg_vac_inf"<< (*itAge).first<<'-'<<(*itAge).second << ",seroneg_vac_hosp"<<(*itAge).first<<'-'<<(*itAge).second;
-      outpop<<",seropos_plac_pop" << (*itAge).first<<'-'<<(*itAge).second<< ",seropos_plac_inf"<<(*itAge).first<<'-'<<(*itAge).second << ",seropos_plac_hosp"<<(*itAge).first<<'-'<<(*itAge).second;
-      outpop << ",seroneg_plac_pop" << (*itAge).first<<'-'<<(*itAge).second<< ",seroneg_plac_inf"<<(*itAge).first<<'-'<<(*itAge).second << ",seroneg_plac_hosp"<<(*itAge).first<<'-'<<(*itAge).second;
+      outpop<< "seropos_vac_pop"<< (*itAge).first<<'-'<<(*itAge).second<< ",seropos_vac_dis"<< (*itAge).first<<'-'<<(*itAge).second << ",seropos_vac_hosp"<<(*itAge).first<<'-'<<(*itAge).second;
+      outpop<<",seroneg_vac_pop"<< (*itAge).first<<'-'<<(*itAge).second<< ",seroneg_vac_dis"<< (*itAge).first<<'-'<<(*itAge).second << ",seroneg_vac_hosp"<<(*itAge).first<<'-'<<(*itAge).second;
+      outpop<<",seropos_plac_pop" << (*itAge).first<<'-'<<(*itAge).second<< ",seropos_plac_dis"<<(*itAge).first<<'-'<<(*itAge).second << ",seropos_plac_hosp"<<(*itAge).first<<'-'<<(*itAge).second;
+      outpop << ",seroneg_plac_pop" << (*itAge).first<<'-'<<(*itAge).second<< ",seroneg_plac_dis"<<(*itAge).first<<'-'<<(*itAge).second << ",seroneg_plac_hosp"<<(*itAge).first<<'-'<<(*itAge).second;
 
       if(countGroups == ageGroups.size()-1){
 	outpop<< "\n"; 
@@ -143,6 +143,7 @@ void Simulation::updatePop(){
   //  printf("update pop year: %u\n",year);
     int count;
     int age;
+    int vAge;
     int age_09 = 9 * 365;
     int age_10 = 10 * 365;
     int age_19 = 19 * 365;
@@ -175,7 +176,8 @@ void Simulation::updatePop(){
       //      printf("updating statistics\n");
         itHum->second->updateAttractiveness(currentDay);
         age = itHum->second->getAge(currentDay);
-	int ageGroup = getAgeGroup(age);
+	vAge = itHum->second->getVaccinationAge();
+	int ageGroup = getAgeGroup(vAge);
 	//	printf("Human of age %d goes in agegroup %d - %d\n",age/365,ageGroup, ageReports[ageGroup].age);
 	if(ageGroup >= 0){
 	  if(itHum->second->getSeroStatusAtVaccination()){
@@ -243,17 +245,16 @@ bool Simulation::checkAgeToVaccinate(int age_){
   if(vaccinateMultipleAge){
     std::map<int,int>::iterator itAge = ageGroups.begin();
     for(; itAge != ageGroups.end(); itAge++){
-      for(int k = (*itAge).first; k <= (*itAge).second; k++){
-	if(age_ == k * 365){
-	  //	printf("This person of age: %d goes in ageGroup %d to %d\n",age_/365,(*itAge).first,(*itAge).second);
-	  return true;
+	//      for(int k = (*itAge).first; k <= (*itAge).second; k++){
+	if(age_ >= (*itAge).first * 365 && age_ <= (*itAge).second * 365){
+	    //	    printf("This person of age: %d goes in ageGroup %d to %d\n",age_/365,(*itAge).first,(*itAge).second);
+	    return true;
 	}
-      }
     }
   }else{
-    if(age_ == vaccineAge * 365){
-      return true;
-    }
+      if(age_ == vaccineAge * 365){
+	  return true;
+      }
   }
   return false;
 }
@@ -291,32 +292,31 @@ void Simulation::humanDynamics() {
         (it->second)->setTrajDay(rGen.getRandomNum(5));
 
         // vaccinate, if applicable
-	if(currentDay >= vaccineDay){
-	  if(currentDay == vaccineDay){
-	    it->second->updateSeroStatusAtVaccination();
-	  }
-	  if(vaccinationFlag == true){
+	if(currentDay == vaccineDay){
 	    age = it->second->getAge(currentDay);
+	    it->second->setVaccinationAge(age);
+	    it->second->updateSeroStatusAtVaccination();
+	    if(vaccinationFlag == true){
 	    // routine vaccination by age
-	    if(checkAgeToVaccinate(age)){
-	      if(rGenInf.getEventProbability() < vaccineCoverage)
-		//Modify this to include (a,b,c) parameters
-		it->second->vaccinate(&VE_pos, &VE_neg,rGenInf, 1.0, currentDay);
-	    }
-	 
-	    
+		if(checkAgeToVaccinate(age)){
+		    if(rGenInf.getEventProbability() < vaccineCoverage)
+			//Modify this to include (a,b,c) parameters
+			it->second->vaccinate(&VE_pos, &VE_neg,rGenInf, 1.0, currentDay);
+		}
+		
+		
                 // catchup vaccination by age
-	    if(catchupFlag == true && vaccineDay == currentDay){
-	      if(age > vaccineAge * 365 && age < 18 * 365){
-		if(rGenInf.getEventProbability() < vaccineCoverage)
-		  it->second->vaccinate(&VE_pos, &VE_neg,rGenInf, 1.0, currentDay);
-	      }
+		if(catchupFlag == true && vaccineDay == currentDay){
+		    if(age > vaccineAge * 365 && age < 18 * 365){
+			if(rGenInf.getEventProbability() < vaccineCoverage)
+			    it->second->vaccinate(&VE_pos, &VE_neg,rGenInf, 1.0, currentDay);
+		    }
+		}
 	    }
-	  }
 	}
 	
         // simulate possible imported infection
-	if(rGen.getEventProbability() < ForceOfImportation){
+	if(rGen.getEventProbability() < ForceOfImportationTrial / 365.0){
 	  int serotype = rGen.getRandomNum(4) + 1;
 	  if(!it->second->isImmune(serotype)){
 	    it->second->infect(currentDay, serotype, &rGenInf);
@@ -464,6 +464,8 @@ void Simulation::readSimControlFile(string line) {
     deathRate = strtod(line.c_str(), NULL);    
     getline(infile, line, ',');
     ForceOfImportation = strtod(line.c_str(),NULL);
+    getline(infile, line, ',');
+    ForceOfImportationTrial = strtod(line.c_str(),NULL);
     getline(infile, line, ',');
     huImm = strtol(line.c_str(), NULL, 10);
     getline(infile, line, ',');

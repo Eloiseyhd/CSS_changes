@@ -76,6 +76,7 @@ private:
     double mozInfectiousness;   
     double mozMoveProbability;
     double ForceOfImportation;
+    double ForceOfImportationTrial;
     unsigned year;
 
     std::ofstream out;

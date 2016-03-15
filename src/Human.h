@@ -33,6 +33,7 @@ private:
     bool vaccinated;
     unsigned doses;
     int vday;
+    int vAge;
     std::map<unsigned,double> VE;
     int recent_inf;
     int recent_dis;
@@ -65,6 +66,8 @@ public:
     int getRecentDis(){return recent_dis;}
     int getRecentHosp(){return recent_hosp;}
     bool getSeroStatusAtVaccination(){return seroStatusAtVaccination;}
+    void setVaccinationAge(int age_){vAge = age_;}
+    int getVaccinationAge(){return vAge;}
     void resetRecent();
     void updateRecent(int,int,int);
     void updateSeroStatusAtVaccination();
