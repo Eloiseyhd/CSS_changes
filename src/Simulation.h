@@ -8,6 +8,7 @@
 #include "Location.h"
 #include "Mosquito.h"
 #include "RandomNumGenerator.h"
+#include "Report.h"
 
 class Simulation {
 public:
@@ -50,11 +51,13 @@ private:
     std::string locationFile;
     std::string vaccineProfileFile;
     std::string vaccinationStrategy;
+    std::string reportsFile;
     bool vaccinationFlag;
     bool catchupFlag;
     unsigned vaccineDay;
     unsigned vaccineAge;
     double vaccineCoverage;
+    Report OutputReport;
     std::string outputFile;
     std::string outputPopFile;
     std::string outputPrevacFile;

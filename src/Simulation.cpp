@@ -24,11 +24,14 @@ string Simulation::readInputs() {
     readSimControlFile(configLine);
     outputPath.erase(remove(outputPath.begin(), outputPath.end(), '\"'), outputPath.end());
 
+    OutputReport.setupReport(reportsFile);
+
     outputPopFile = outputPath + "/" + simName + "_pop.csv";
     outpop.open(outputPopFile);
     if (!outpop.good()) {
         exit(1);
     }
+
     outpop << "year,avg_age_first,seropos_09,seroneg_09,noinf,inf,nodis,dis,nohosp,hosp\n" << endl; 
 
     RandomNumGenerator rgen(rSeed, huImm, emergeFactor, mlife, mbite, halflife);
@@ -40,7 +43,6 @@ string Simulation::readInputs() {
     readVaccineProfileFile();
     readLocationFile(locationFile);
     readHumanFile(trajectoryFile);
-
     return simName;
 }
 
@@ -55,6 +57,7 @@ void Simulation::simEngine() {
         }
 
         humanDynamics();
+	OutputReport.printReport(currentDay);
         mosquitoDynamics();
 
         if(ceil(double(currentDay + 1) / 365.0) != ceil(double(currentDay) / 365.0)){
@@ -63,6 +66,7 @@ void Simulation::simEngine() {
         }
         currentDay++;
     }
+    OutputReport.finalizeReport();
 }
 
 
@@ -210,8 +214,6 @@ void Simulation::humanDynamics() {
         if(vaccinationFlag == true){
             // routine vaccination by age
             if(age == vaccineAge * 365){
-                // assign a cohort
-                it->second->setCohort(cohort);
                 if(rGenInf.getEventProbability() < vaccineCoverage){
                     it->second->vaccinate(&VE_pos, &VE_neg, propInf, currentDay);
                 }
@@ -226,6 +228,13 @@ void Simulation::humanDynamics() {
                 }
             }
         }
+	OutputReport.updateReport(currentDay,(it->second).get());
+	
+	// assign a cohort the day of vaccination 
+	if(vaccineDay == currentDay){
+	    it->second->setCohort(cohort);
+	    it->second->setAgeTrialEnrollment(age);
+	}
     }
 }
 
@@ -366,6 +375,8 @@ void Simulation::readSimControlFile(string line) {
     catchupFlag = (stoi(line.c_str(), NULL, 10) == 0 ? false : true);
     getline(infile, line, ',');
     outputPath = line;
+    getline(infile, line, ',');
+    reportsFile = line;
     getline(infile, line, ',');
     locationFile = line;
     getline(infile, line, ',');

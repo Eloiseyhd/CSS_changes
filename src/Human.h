@@ -40,6 +40,7 @@ private:
     std::unique_ptr<std::vector<std::vector<std::pair<std::string,double>>>> trajectories;
     bool vaccinated;
     int vday;
+    int tAge;
     std::map<unsigned,double> * veneg;
     std::map<unsigned,double> * vepos;
     
@@ -71,6 +72,8 @@ public:
     int getTrajDay(){return trajDay;}
     std::vector<std::pair<std::string,double>> const& getTrajectory(unsigned) const;
     int getVaccinationDay(){return vday;}
+    void setAgeTrialEnrollment(int age_){tAge = age_;}
+    int getAgeTrialEnrollment(){return tAge;}
     void infect(int, unsigned, RandomNumGenerator *, double);
     void initiateBodySize(unsigned,RandomNumGenerator&);
     bool isHospitalized(){return hospitalized;}
