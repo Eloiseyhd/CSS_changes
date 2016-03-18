@@ -71,7 +71,7 @@ Report::Report(){
 
 
 
-void Report::setupReport(string file) {
+void Report::setupReport(string file, string outputPath_, string simName_) {
     if (file.length() == 0) {
 	printf("File name %s is empty\n",file.c_str());
 	exit(1);
@@ -121,10 +121,6 @@ void Report::setupReport(string file) {
 	if(line2 == "groups_print_total_ages"){
 	    printGroupsTotalAges = parsePrintFlag(line3);
 	}
-	if(line2 == "groups_output_file"){
-	    outputGroupsFile = parseOutputFile(line3);
-	}
-
 	// Cohort variables
 	if(line2 == "cohort_events"){
 	    parseEvents(line3,cohortEvents);
@@ -144,12 +140,10 @@ void Report::setupReport(string file) {
 	if(line2 == "cohort_print"){
 	    reportCohort = parsePrintFlag(line3);
 	}
-	if(line2 == "cohort_output_file"){
-	    outputCohortFile = parseOutputFile(line3);
-	}
     }
     infile.close();
     if(reportGroups == true){
+	outputGroupsFile = outputPath_ + "/" + simName_ + "_pop.csv";
 	outGroups.open(outputGroupsFile);
 	if (!outGroups.good()) {
 	    printf("file %s is broken\n", outputGroupsFile.c_str());
@@ -158,6 +152,7 @@ void Report::setupReport(string file) {
     }
 
     if(reportCohort == true){
+	outputCohortFile = outputPath_ + "/" + simName_ + "_cohort.csv";
 	outCohort.open(outputCohortFile);
 	if (!outCohort.good()) {
 	    printf("file %s is broken\n", outputCohortFile.c_str());
@@ -170,11 +165,7 @@ void Report::setupReport(string file) {
     printHeaders();
 
 }
-std::string Report::parseOutputFile(std::string line){
-    std::size_t space_p = line.find_first_not_of(" ");
-    std::string output_file_temp = line.substr(space_p);
-    return output_file_temp;
-}
+
 bool Report::parsePrintFlag(std::string line){
    bool print_temp = (stoi(line.c_str(), NULL, 10) == 0 ? false : true);
    return print_temp;
@@ -630,6 +621,7 @@ void Report::updateCohortReport(int currDay, Human * h){
     }
     // get group based on age at trial enrollment
     int cohortAgeGroup = getGroup(h->getAgeTrialEnrollment(),cohortAges); 
+    //    printf("Human Cohort %d group[%d] and age at enrollment %f\n",cohortNum, cohortAgeGroup, (double) h->getAgeTrialEnrollment()/365.0);
     if(cohortAgeGroup < 0){
 	return;
     }

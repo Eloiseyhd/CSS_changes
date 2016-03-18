@@ -24,8 +24,8 @@ string Simulation::readInputs() {
     readSimControlFile(configLine);
     outputPath.erase(remove(outputPath.begin(), outputPath.end(), '\"'), outputPath.end());
 
-    OutputReport.setupReport(reportsFile);
-
+    OutputReport.setupReport(reportsFile,outputPath,simName);
+    /*
     outputPopFile = outputPath + "/" + simName + "_pop.csv";
     outpop.open(outputPopFile);
     if (!outpop.good()) {
@@ -33,7 +33,7 @@ string Simulation::readInputs() {
     }
 
     outpop << "year,avg_age_first,seropos_09,seroneg_09,noinf,inf,nodis,dis,nohosp,hosp\n" << endl; 
-
+    */
     RandomNumGenerator rgen(rSeed, huImm, emergeFactor, mlife, mbite, halflife);
     rGen = rgen;
 
@@ -72,17 +72,16 @@ void Simulation::simEngine() {
 
 
 void Simulation::updatePop(){
-    int count;
-    int age;
-    double avg_age_first = 0.0;
-    int num_first = 0;
-    int age_09 = 9 * 365, age_10 = 10 * 365;
-    int seropos_09 = 0, seroneg_09 = 0, noinf = 0, inf = 0, nodis = 0, dis = 0, nohosp = 0, hosp = 0;
+    //    int age;
+    //    double avg_age_first = 0.0;
+    //    int num_first = 0;
+    //    int age_09 = 9 * 365, age_10 = 10 * 365;
+    //    int seropos_09 = 0, seroneg_09 = 0, noinf = 0, inf = 0, nodis = 0, dis = 0, nohosp = 0, hosp = 0;
 
     for(auto itHum = humans.begin(); itHum != humans.end(); itHum++){
         itHum->second->updateAttractiveness(currentDay);
-        age = itHum->second->getAgeDays(currentDay);
-
+	/*       
+	age = itHum->second->getAgeDays(currentDay);
         if(itHum->second->getRecentInf() && itHum->second->getPreviousInfections() == 1){
             avg_age_first += itHum->second->getAgeDays(currentDay);
             num_first++;
@@ -113,12 +112,13 @@ void Simulation::updatePop(){
         }
 
         itHum->second->resetRecent();
+	*/
     }
 
-    avg_age_first = avg_age_first / double(num_first) / 365.0;
+    //    avg_age_first = avg_age_first / double(num_first) / 365.0;
 
-    outpop << year << "," << avg_age_first << "," << seropos_09 << "," << seroneg_09 << ","
-      << noinf << "," << inf << "," << nodis << "," << dis << "," << nohosp << "," << hosp << "\n";
+    //    outpop << year << "," << avg_age_first << "," << seropos_09 << "," << seroneg_09 << ","
+    //	   << noinf << "," << inf << "," << nodis << "," << dis << "," << nohosp << "," << hosp << "\n";
 }
 
 
@@ -170,7 +170,7 @@ void Simulation::humanDynamics() {
                 }
             }
         }
-
+	age = it->second->getAgeDays(currentDay);
   //       // in the year before vaccination, record disease episodes
 		// if(currentDay >= dayVax0 && currentDay < vaccineDay){
   //           if(it->second->infection != nullptr){

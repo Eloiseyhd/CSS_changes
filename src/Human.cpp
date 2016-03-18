@@ -27,10 +27,12 @@ Human::Human(
     vaccinated = false;
     resetRecent();
     cohort = 0;
+    tAge = 0;
     seroStatusAtVaccination = false;
     infected = false;
     symptomatic = false;
     hospitalized = false;
+
     if(bday < currDay - 180){
         immunity_temp = false;
         setImmunityPerm(1, rGen.getHumanSeropositivity(FOI, double(currDay - bday)));

@@ -87,7 +87,6 @@ private:
     bool parsePrintFlag(std::string line);
     bool parseGroupsAgeFirst(std::string line);
 
-    std::string parseOutputFile(std::string line);
     int getGroup(int, std::vector<rangeStruct>);
 
 public:
@@ -97,7 +96,7 @@ public:
     Report(const Report& orig);
     virtual ~Report();
 
-    void setupReport(std::string);
+    void setupReport(std::string, std::string, std::string);
     void updateReport(int, Human *);
     void printReport(int);
     void printHeaders();
