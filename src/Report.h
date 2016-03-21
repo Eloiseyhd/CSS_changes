@@ -75,16 +75,15 @@ private:
 
     int ageEvents[5];
     int ageStatus[4];
-    std::vector<int> ages;
-    int ageLB;
-    int ageUB;
-    int ageReportPeriod;
-    int ageReportStart;
-    int ageReportEnd;
+    rangeStruct discreteAges;
+    int ageReportPeriod[3];
+    int ageMaxIndex;
+    std::vector<reportStats> ageStats;
 
     void parseEvents(std::string line, int *);
     void parseStatus(std::string line, int *);
     void parseGroupsAges(std::string line, std::vector<rangeStruct> *);
+    rangeStruct parseDiscreteAges(std::string);
     void parsePeriod(std::string line, int *);
 
     bool parseComplement(std::string line);
@@ -106,14 +105,18 @@ public:
     void printHeaders();
     void printGroupsHeader();
     void printCohortHeader();
+    void printAgesHeader();
     void printGroupsReport(int);
     void printCohortReport(int);
+    void printAgesReport(int);
     void updateCohortReport(int, Human *);
     void updateGroupsReport(int, Human *);
+    void updateAgesReport(int, Human *);
 
     void resetReports();
     void resetGroupStats();
     void resetCohortStats();
+    void resetAgeStats();
     void finalizeReport();
 
 };
