@@ -224,7 +224,7 @@ void Human::infect(
     }
 
     infection.reset(new Infection(
-        currentDay + 1, currentDay + 15, 0.0, infectionType, getPreviousInfections() == 0, recent_dis > 0));
+        currentDay + 1, currentDay + 15, 0.0, infectionType, getPreviousInfections() == 0, recent_dis > 0, exp(rGen->getRandomNormal() * 0.2701716 + 1.750673)));
     updateImmunityPerm(infectionType, true);
     setImmunityTemp(true);
     setImmStartDay(currentDay);

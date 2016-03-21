@@ -14,7 +14,7 @@ public:
     void setInfectiousnessHuman(int);
     void setInfectiousnessMosquito(double);
     std::string toString() const;
-    Infection(unsigned, unsigned, double, unsigned, bool, bool);
+    Infection(unsigned, unsigned, double, unsigned, bool, bool, double);
     Infection();
     Infection(const Infection& orig);
     virtual ~Infection();
@@ -25,6 +25,7 @@ private:
     unsigned infType;
     bool primary;
     bool symptomatic;
+    double IIP;
 };
 
 #endif	/* INFECTION_H */

@@ -23,21 +23,23 @@ void Infection::setInfectiousnessMosquito(double in){
     infectiousness = in;
 }
 
+
+
 void Infection::setInfectiousnessHuman(int currentDay){
     if(symptomatic){
         if(primary){
-            infectiousness = exp(-0.08100656 * pow(double(currentDay - startDay) - 8.01514839, 2)) / 1.41486939;
+            infectiousness = exp(-0.2784750 * pow(double(currentDay - startDay) - (IIP - 0.2880570), 2)) / 0.9107737;
         }
         else{
-            infectiousness = exp(-0.08451596 * pow(double(currentDay - startDay) - 7.67747506, 2)) / 1.61700365;
+            infectiousness = exp(-0.2784750 * pow(double(currentDay - startDay) - (IIP - 0.2880570), 2)) / 0.9107737;
         }
     }
     else{
         if(primary){
-            infectiousness = exp(-0.07656046 * pow(double(currentDay - startDay) - 8.33716190, 2)) / 1.53965462;
+            infectiousness = exp(-0.2784750 * pow(double(currentDay - startDay) - (IIP - 0.2880570), 2)) / 0.9107737;
         }
         else{
-            infectiousness = exp(-0.08387661 * pow(double(currentDay - startDay) - 7.87813540, 2)) / 1.81578963;
+            infectiousness = exp(-0.2784750 * pow(double(currentDay - startDay) - (IIP - 0.2880570), 2)) / 0.9107737;
         }
     }
 }
@@ -48,13 +50,14 @@ string Infection::toString() const {
     return ss.str();
 }
 
-Infection::Infection(unsigned sd, unsigned ed, double infn, unsigned ityp, bool prim, bool symp) {
+Infection::Infection(unsigned sd, unsigned ed, double infn, unsigned ityp, bool prim, bool symp, double IIPin) {
     startDay = sd;
     endDay = ed;
     infectiousness = infn;
     infType = ityp;
     primary = prim;
     symptomatic = symp;
+    IIP = IIPin;
 }
 
 Infection::Infection() {

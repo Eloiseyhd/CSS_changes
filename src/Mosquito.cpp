@@ -102,7 +102,7 @@ bool Mosquito::infectingBite(
                 double sday = double(currentDay) + rGenInf->getMozLatencyDays();
                 int eday = numDays + 1;
                 infection.reset(new Infection(
-                    round(sday), eday, 0.0, humBite->infection->getInfectionType(), 0, 0));
+                    round(sday), eday, 0.0, humBite->infection->getInfectionType(), 0, 0, 0.0));
             }
         }
         setBiteStartDay(currentDay + rGen->getMozRestDays());
