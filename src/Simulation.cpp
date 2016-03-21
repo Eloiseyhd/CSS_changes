@@ -48,6 +48,7 @@ void Simulation::simEngine() {
         }
 
         humanDynamics();
+	outputReport.printReport(currentDay);
         mosquitoDynamics();
 
         if(ceil(double(currentDay + 1) / 365.0) != ceil(double(currentDay) / 365.0)){
