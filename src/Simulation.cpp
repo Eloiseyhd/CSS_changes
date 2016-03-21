@@ -137,6 +137,7 @@ void Simulation::humanDynamics() {
                 }
             }
         }
+        
     	outputReport.updateReport(currentDay,(it->second).get());
     	
     	// assign a cohort the day of vaccination 
