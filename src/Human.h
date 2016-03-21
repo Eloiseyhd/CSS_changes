@@ -74,7 +74,7 @@ public:
     int getVaccinationDay(){return vday;}
     void setAgeTrialEnrollment(int age_){tAge = age_;}
     int getAgeTrialEnrollment(){return tAge;}
-    void infect(int, unsigned, RandomNumGenerator *, double);
+    void infect(int, unsigned, RandomNumGenerator *, std::map<unsigned,double> *, std::map<unsigned,double> *, double);
     void initiateBodySize(unsigned,RandomNumGenerator&);
     bool isHospitalized(){return hospitalized;}
     bool isImmune(unsigned) const;

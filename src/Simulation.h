@@ -23,6 +23,7 @@ public:
     void readInitialInfectionsFile(std::string);
     void readSimControlFile(std::string);
     void readLocationFile(std::string);
+    void readDiseaseRatesFile();
     void readVaccineProfileFile();
     void setLocNeighborhood(double);
     void simEngine();
@@ -42,22 +43,24 @@ private:
     std::map<unsigned,double> VE_pos;
     std::map<unsigned,double> VE_neg;
     std::map<unsigned,double> halflife;
+    std::map<unsigned,double> disRates;
+    std::map<unsigned,double> hospRates;
     double propInf;
     unsigned currentDay;
     unsigned numDays;
-    unsigned long mozID=0;
     std::string trajectoryFile;
     std::string configLine;
     std::string locationFile;
     std::string vaccineProfileFile;
     std::string vaccinationStrategy;
     std::string reportsFile;
+    std::string diseaseRatesFile;
     bool vaccinationFlag;
     bool catchupFlag;
     unsigned vaccineDay;
     unsigned vaccineAge;
     double vaccineCoverage;
-    Report OutputReport;
+    Report outputReport;
     std::string outputFile;
     std::string outputPopFile;
     std::string outputPrevacFile;
@@ -77,7 +80,6 @@ private:
     double ForceOfImportation;
     unsigned year;
     int seroposAtVax[101], seronegAtVax[101], disAtVax[101], hospAtVax[101];
-
 
     std::ofstream out;
     std::ofstream outpop;

@@ -172,6 +172,8 @@ void Human::infect(
     int currentDay,
     unsigned infectionType,
     RandomNumGenerator * rGen,
+    std::map<unsigned,double> * disRates,
+    std::map<unsigned,double> * hospRates,
     double normdev)
 {
     infected = true;
@@ -196,25 +198,28 @@ void Human::infect(
     }
 
     if(getPreviousInfections() == 0){
-        if(rGen->getEventProbability() < 0.908 * RRDis){
+        if(rGen->getEventProbability() < (*disRates)[0] * RRDis){
             recent_dis = infectionType;
             symptomatic = true;
-            if(rGen->getEventProbability() < 0.008){
+            if(rGen->getEventProbability() < (*hospRates)[0]){
                 recent_hosp = infectionType;
             }
         }
     } else if(getPreviousInfections() == 1) {
-        if(rGen->getEventProbability() < 0.908 * RRDis){
+        if(rGen->getEventProbability() < (*disRates)[1] * RRDis){
             recent_dis = infectionType;
             symptomatic = true;
-            if(rGen->getEventProbability() < 0.03){
+            if(rGen->getEventProbability() < (*hospRates)[1]){
                 recent_hosp = infectionType;
             }
         }
     } else {
-        if(rGen->getEventProbability() < 0.785 * 0.908 * RRDis){
+        if(rGen->getEventProbability() < (*disRates)[2] * RRDis){
             recent_dis = infectionType;
             symptomatic = true;
+            if(rGen->getEventProbability() < (*hospRates)[2]){
+                recent_hosp = infectionType;
+            }
         }
     }
 

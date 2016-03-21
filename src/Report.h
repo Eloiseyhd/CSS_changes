@@ -12,6 +12,8 @@
 #include <cmath>
 #include "Human.h"
 
+
+
 struct rangeStruct{
     int min;
     int max;
@@ -26,6 +28,8 @@ struct reportStats{
     eventStats status[4];
     eventStats total;
 };
+
+
 
 class Report {
 

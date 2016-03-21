@@ -22,24 +22,17 @@ void Simulation::simulate() {
 
 string Simulation::readInputs() {
     readSimControlFile(configLine);
+
     outputPath.erase(remove(outputPath.begin(), outputPath.end(), '\"'), outputPath.end());
+    outputReport.setupReport(reportsFile,outputPath,simName);
 
-    OutputReport.setupReport(reportsFile,outputPath,simName);
-    /*
-    outputPopFile = outputPath + "/" + simName + "_pop.csv";
-    outpop.open(outputPopFile);
-    if (!outpop.good()) {
-        exit(1);
-    }
-
-    outpop << "year,avg_age_first,seropos_09,seroneg_09,noinf,inf,nodis,dis,nohosp,hosp\n" << endl; 
-    */
     RandomNumGenerator rgen(rSeed, huImm, emergeFactor, mlife, mbite, halflife);
     rGen = rgen;
 
     RandomNumGenerator rgen2(rSeedInf, huImm, emergeFactor, mlife, mbite, halflife);
     rGenInf = rgen2;
 
+    readDiseaseRatesFile();
     readVaccineProfileFile();
     readLocationFile(locationFile);
     readHumanFile(trajectoryFile);
@@ -50,14 +43,11 @@ string Simulation::readInputs() {
 
 void Simulation::simEngine() {
     while(currentDay < numDays){
-        cout << currentDay << endl;
-
         for(auto itLoc = locations.begin(); itLoc != locations.end(); itLoc++){
             itLoc->second->updateInfectedVisitor();
         }
 
         humanDynamics();
-	OutputReport.printReport(currentDay);
         mosquitoDynamics();
 
         if(ceil(double(currentDay + 1) / 365.0) != ceil(double(currentDay) / 365.0)){
@@ -66,59 +56,16 @@ void Simulation::simEngine() {
         }
         currentDay++;
     }
-    OutputReport.finalizeReport();
+
+    outputReport.finalizeReport();
 }
 
 
 
 void Simulation::updatePop(){
-    //    int age;
-    //    double avg_age_first = 0.0;
-    //    int num_first = 0;
-    //    int age_09 = 9 * 365, age_10 = 10 * 365;
-    //    int seropos_09 = 0, seroneg_09 = 0, noinf = 0, inf = 0, nodis = 0, dis = 0, nohosp = 0, hosp = 0;
-
     for(auto itHum = humans.begin(); itHum != humans.end(); itHum++){
         itHum->second->updateAttractiveness(currentDay);
-	/*       
-	age = itHum->second->getAgeDays(currentDay);
-        if(itHum->second->getRecentInf() && itHum->second->getPreviousInfections() == 1){
-            avg_age_first += itHum->second->getAgeDays(currentDay);
-            num_first++;
-        }
-
-        if(age >= age_09 && age < age_10){
-            if(itHum->second->getPreviousInfections() > 0){
-                seropos_09++;
-            } else {
-                seroneg_09++;
-            }
-    	}
-
-        if(itHum->second->getRecentInf() == 0){
-            noinf++;
-        } else {
-            inf++;
-        }
-        if(itHum->second->getRecentDis() == 0){
-            nodis++;
-        } else {
-            dis++;
-        }
-        if(itHum->second->getRecentHosp() == 0){
-            nohosp++;
-        } else {
-            hosp++;
-        }
-
-        itHum->second->resetRecent();
-	*/
     }
-
-    //    avg_age_first = avg_age_first / double(num_first) / 365.0;
-
-    //    outpop << year << "," << avg_age_first << "," << seropos_09 << "," << seroneg_09 << ","
-    //	   << noinf << "," << inf << "," << nodis << "," << dis << "," << nohosp << "," << hosp << "\n";
 }
 
 
@@ -166,51 +113,13 @@ void Simulation::humanDynamics() {
         if(rGen.getEventProbability() < ForceOfImportation){
             for(int serotype = 1; serotype <= 4; serotype++){
                 if(!it->second->isImmune(serotype)){
-                    it->second->infect(currentDay, serotype, &rGenInf, normdev);                
+                    it->second->infect(currentDay, serotype, &rGenInf, &disRates, &hospRates, normdev);                
                 }
             }
         }
-	age = it->second->getAgeDays(currentDay);
-  //       // in the year before vaccination, record disease episodes
-		// if(currentDay >= dayVax0 && currentDay < vaccineDay){
-  //           if(it->second->infection != nullptr){
-  //               age = it->second->getAgeDays(currentDay);
-  //               int ageTemp = floor(double(age) / 365.0);
-  //               if(ageTemp > 100){
-  //                   ageTemp = 100;
-  //               }
-  //               if(currentDay == it->second->infection->getStartDay()){
-  //                   if(it->second->isSymptomatic() == true){
-  //                       disAtVax[ageTemp]++;
-  //                   }
-  //                   if(it->second->isHospitalized() == true){
-  //                       hospAtVax[ageTemp]++;
-  //                   }	
-  //               }
-  //           }
-  //       }
-
-        // // record seroprevalence on the day vaccination begins
-        // if(currentDay >= vaccineDay){
-        //     age = it->second->getAgeDays(currentDay);
-        //     int ageTemp = floor(double(age) / 365.0);
-        //     if(ageTemp > 100){
-        //         ageTemp = 100;
-        //     }
-        //     if(currentDay == vaccineDay){
-        //         it->second->setSeroStatusAtVaccination();
-        //         if(it->second->getSeroStatusAtVaccination() == true){
-        //             seroposAtVax[ageTemp]++;
-        //         }else{
-        //             seronegAtVax[ageTemp]++;
-        //         }
-        //         for(int i = 0; i < 101; i++){
-        //             outprevac << i << "," << seroposAtVax[i] + seronegAtVax[i] << "," << seroposAtVax[i] << "," << seronegAtVax[i] << "," <<  disAtVax[i] << "," << hospAtVax[i] <<"\n";
-        //         }
-        //     }
-        // }
 
     	// vaccination
+        age = it->second->getAgeDays(currentDay);
         if(vaccinationFlag == true){
             // routine vaccination by age
             if(age == vaccineAge * 365){
@@ -228,13 +137,13 @@ void Simulation::humanDynamics() {
                 }
             }
         }
-	OutputReport.updateReport(currentDay,(it->second).get());
-	
-	// assign a cohort the day of vaccination 
-	if(vaccineDay == currentDay){
-	    it->second->setCohort(cohort);
-	    it->second->setAgeTrialEnrollment(age);
-	}
+    	outputReport.updateReport(currentDay,(it->second).get());
+    	
+    	// assign a cohort the day of vaccination 
+    	if(vaccineDay == currentDay){
+    	    it->second->setCohort(cohort);
+    	    it->second->setAgeTrialEnrollment(age);
+    	}
     }
 }
 
@@ -275,7 +184,7 @@ void Simulation::mosquitoDynamics(){
 
         // if the mosquito bites first, then let it bite and then see about dying
         while(biteTime < dieTime && biteTime <= 1.0){
-            biteTaken = it->second->takeBite(biteTime,locations[it->second->getLocationID()].get(),&rGen,&rGenInf,currentDay,numDays,&out,normdev);
+            biteTaken = it->second->takeBite(biteTime,locations[it->second->getLocationID()].get(),&rGen,&rGenInf,&disRates,&hospRates,currentDay,numDays,&out,normdev);
             it->second->setBiteStartDay(currentDay + rGen.getMozRestDays());
             biteTime = it->second->getBiteStartDay() - double(currentDay);
 
@@ -378,6 +287,8 @@ void Simulation::readSimControlFile(string line) {
     getline(infile, line, ',');
     reportsFile = line;
     getline(infile, line, ',');
+    diseaseRatesFile = line;
+    getline(infile, line, ',');
     locationFile = line;
     getline(infile, line, ',');
     trajectoryFile = line;
@@ -443,6 +354,34 @@ void Simulation::readLocationFile(string locFile) {
         unique_ptr<Location> location(new Location(locID, locType, x, y, 1.0));
         locations.insert(make_pair(locID, move(location)));
 
+    }
+    infile.close();
+}
+
+
+
+void Simulation::readDiseaseRatesFile(){
+    if(diseaseRatesFile.length() == 0){
+        exit(1);
+    }
+    string line;
+    unsigned par = 0;
+    double parDis;
+    double parHosp;
+
+    ifstream infile(diseaseRatesFile);
+    if(!infile.good()){
+        exit(1);
+    }
+    while(getline(infile, line, ',')){
+        parDis = strtod(line.c_str(), NULL);
+        getline(infile, line, '\n');
+        parHosp = strtod(line.c_str(), NULL);
+        if(par <= 2){
+            disRates.insert(make_pair(par, parDis));
+            hospRates.insert(make_pair(par, parHosp));
+        }
+        par++;
     }
     infile.close();
 }

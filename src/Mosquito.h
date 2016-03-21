@@ -17,10 +17,10 @@ public:
     double getDDay() const;
     void setBiteStartDay(double);
     double getBiteStartDay();
-    bool takeBite(double,Location *,RandomNumGenerator *, RandomNumGenerator *,int,int,std::ofstream *,double);
+    bool takeBite(double,Location *,RandomNumGenerator *, RandomNumGenerator *,std::map<unsigned,double> *,std::map<unsigned,double> *,int,int,std::ofstream *,double);
     Human * whoBite(double,Location *,RandomNumGenerator *);
     bool infectingBite(double,Location *,RandomNumGenerator *,RandomNumGenerator *,int,int);
-    bool infectiousBite(double,Location *,RandomNumGenerator *,RandomNumGenerator *,int,int,std::ofstream *,double);
+    bool infectiousBite(double,Location *,RandomNumGenerator *,RandomNumGenerator *,std::map<unsigned,double> *,std::map<unsigned,double> *,int,int,std::ofstream *,double);
     Mosquito(double, double, std::string);
     Mosquito();
     Mosquito(const Mosquito& orig);

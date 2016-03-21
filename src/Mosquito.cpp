@@ -28,6 +28,8 @@ bool Mosquito::takeBite(
     Location * locNow,
     RandomNumGenerator * rGen,
     RandomNumGenerator * rGenInf,
+    std::map<unsigned,double> * disRates,
+    std::map<unsigned,double> * hospRates,
     int currentDay,
     int numDays,
     std::ofstream * out,
@@ -42,7 +44,7 @@ bool Mosquito::takeBite(
         }
     }
     else if(infection->getInfectiousness() >= 0.0){
-        return infectiousBite(time, locNow, rGen, rGenInf, currentDay, numDays, out, normdev);
+        return infectiousBite(time, locNow, rGen, rGenInf, disRates, hospRates, currentDay, numDays, out, normdev);
     }
     return false;
 }
@@ -117,6 +119,8 @@ bool Mosquito::infectiousBite(
     Location * locNow,
     RandomNumGenerator * rGen,
     RandomNumGenerator * rGenInf,
+    std::map<unsigned,double> * disRates,
+    std::map<unsigned,double> * hospRates,
     int currentDay,
     int numDays,
     std::ofstream * out,
@@ -127,7 +131,7 @@ bool Mosquito::infectiousBite(
     if(humBite != NULL){
         if(infection != nullptr && humBite->infection == nullptr && !humBite->isImmune(infection->getInfectionType())){
             if(rGenInf->getEventProbability() < infection->getInfectiousness()){
-                humBite->infect(currentDay, infection->getInfectionType(), rGenInf, normdev);
+                humBite->infect(currentDay, infection->getInfectionType(), rGenInf, disRates, hospRates, normdev);
             }
         }
         setBiteStartDay(currentDay + rGen->getMozRestDays());

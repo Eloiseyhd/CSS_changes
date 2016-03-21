@@ -34,30 +34,30 @@ Report::Report(){
     cohortStats.clear();
 
     for(int i = 0;i < 5;i++){
-	cohortEvents[i] = 0;
-	groupsEvents[i] = 0;
-	ageEvents[i] = 0;
+		cohortEvents[i] = 0;
+		groupsEvents[i] = 0;
+		ageEvents[i] = 0;
     }
 
     for(int i = 0; i < 2; i++){
-	cohortStatus[i] = 0;
-	groupsStatus[i] = 0;
-	ageStatus[i] = 0;
+		cohortStatus[i] = 0;
+		groupsStatus[i] = 0;
+		ageStatus[i] = 0;
     }
     
     for(int i = 0; i < 3; i++){
-	groupsReportPeriod[i] = 0;
-	cohortReportPeriod[i] = 0;
+		groupsReportPeriod[i] = 0;
+		cohortReportPeriod[i] = 0;
     }
 
     for(int i = 0; i < 5; i++){
-	// There are four status VacSero+ VacSero- PlacSero+ PlacSero-
-	for(int j = 0; j < 4; j++){
-	    groupsTotalAgeStats.status[j].events[i] = 0;
-	    groupsTotalAgeStats.status[j].nonevents[i] = 0;
-	}
-	groupsTotalAgeStats.total.events[i] = 0;
-	groupsTotalAgeStats.total.nonevents[i] = 0;
+		// There are four status VacSero+ VacSero- PlacSero+ PlacSero-
+		for(int j = 0; j < 4; j++){
+		    groupsTotalAgeStats.status[j].events[i] = 0;
+		    groupsTotalAgeStats.status[j].nonevents[i] = 0;
+		}
+		groupsTotalAgeStats.total.events[i] = 0;
+		groupsTotalAgeStats.total.nonevents[i] = 0;
     }
 
     outCohort.close();
@@ -66,15 +66,14 @@ Report::Report(){
 
     events = {"inf", "dis", "hosp", "serop", "vac"};
     status = {"vac", "plac", "serop", "seron"};
-
 }
 
 
 
 void Report::setupReport(string file, string outputPath_, string simName_) {
     if (file.length() == 0) {
-	printf("File name %s is empty\n",file.c_str());
-	exit(1);
+		printf("File name %s is empty\n",file.c_str());
+		exit(1);
     }
 
     string line;
@@ -82,102 +81,116 @@ void Report::setupReport(string file, string outputPath_, string simName_) {
 
     int count;
     if(!infile.good()){
-	printf("File %s is corrupted\n",file.c_str());
-	exit(1);
+		printf("File %s is corrupted\n",file.c_str());
+		exit(1);
     }
+
     while(getline(infile,line,'\n')){
-	stringstream linetemp;
-	string line2;
-	string line3;
-	//	printf("line: %s\n", line.c_str());
-	linetemp.clear();
-	linetemp << line;
-	getline(linetemp,line2,'=');
-	getline(linetemp,line3,'=');
-	linetemp.clear();
-	linetemp << line2;
-	getline(linetemp,line2,' ');
-	if(line2 == "groups_events"){
-	    parseEvents(line3,groupsEvents);
-	}
-	if(line2 == "groups_status"){
-	    parseStatus(line3,groupsStatus);
-	}
-	if(line2 == "groups_ages"){
-	    parseGroupsAges(line3,&groupsAges);
-	}
-	if(line2 == "groups_report_period"){
-	    parsePeriod(line3,groupsReportPeriod);
-	}
-	if(line2 == "groups_complement"){
-	    printGroupsPop = parseComplement(line3);
-	}
-	if(line2 == "groups_avg_first"){
-	    printGroupsAgeFirst = parseGroupsAgeFirst(line3);
-	}	
-	if(line2 == "groups_print"){
-	    reportGroups = parsePrintFlag(line3);
-	}
-	if(line2 == "groups_print_total_ages"){
-	    printGroupsTotalAges = parsePrintFlag(line3);
-	}
-	// Cohort variables
-	if(line2 == "cohort_events"){
-	    parseEvents(line3,cohortEvents);
-	}
-	if(line2 == "cohort_status"){
-	    parseStatus(line3,cohortStatus);
-	}	
-	if(line2 == "cohort_ages"){
-	    parseGroupsAges(line3,&cohortAges);
-	}
-	if(line2 == "cohort_report_period"){
-	    parsePeriod(line3,cohortReportPeriod);
-	}
-	if(line2 == "cohort_complement"){
-	    printCohortPop = parseComplement(line3);
-	}
-	if(line2 == "cohort_print"){
-	    reportCohort = parsePrintFlag(line3);
-	}
+		stringstream linetemp;
+		string line2;
+		string line3;
+
+		linetemp.clear();
+		linetemp << line;
+		getline(linetemp,line2,'=');
+		getline(linetemp,line3,'=');
+		linetemp.clear();
+		linetemp << line2;
+		getline(linetemp,line2,' ');
+
+		// group variables		
+		if(line2 == "groups_events"){
+		    parseEvents(line3,groupsEvents);
+		}
+		if(line2 == "groups_status"){
+		    parseStatus(line3,groupsStatus);
+		}
+		if(line2 == "groups_ages"){
+		    parseGroupsAges(line3,&groupsAges);
+		}
+		if(line2 == "groups_report_period"){
+		    parsePeriod(line3,groupsReportPeriod);
+		}
+		if(line2 == "groups_complement"){
+		    printGroupsPop = parseComplement(line3);
+		}
+		if(line2 == "groups_avg_first"){
+		    printGroupsAgeFirst = parseGroupsAgeFirst(line3);
+		}	
+		if(line2 == "groups_print"){
+		    reportGroups = parsePrintFlag(line3);
+		}
+		if(line2 == "groups_print_total_ages"){
+		    printGroupsTotalAges = parsePrintFlag(line3);
+		}
+
+		// cohort variables
+		if(line2 == "cohort_events"){
+		    parseEvents(line3,cohortEvents);
+		}
+		if(line2 == "cohort_status"){
+		    parseStatus(line3,cohortStatus);
+		}	
+		if(line2 == "cohort_ages"){
+		    parseGroupsAges(line3,&cohortAges);
+		}
+		if(line2 == "cohort_report_period"){
+		    parsePeriod(line3,cohortReportPeriod);
+		}
+		if(line2 == "cohort_complement"){
+		    printCohortPop = parseComplement(line3);
+		}
+		if(line2 == "cohort_print"){
+		    reportCohort = parsePrintFlag(line3);
+		}
     }
     infile.close();
+
     if(reportGroups == true){
-	outputGroupsFile = outputPath_ + "/" + simName_ + "_pop.csv";
-	outGroups.open(outputGroupsFile);
-	if (!outGroups.good()) {
-	    printf("file %s is broken\n", outputGroupsFile.c_str());
-	    exit(1);
-	}
+		outputGroupsFile = outputPath_ + "/" + simName_ + "_pop.csv";
+		outGroups.open(outputGroupsFile);
+		if (!outGroups.good()) {
+		    printf("file %s is broken\n", outputGroupsFile.c_str());
+		    exit(1);
+		}
     }
 
     if(reportCohort == true){
-	outputCohortFile = outputPath_ + "/" + simName_ + "_cohort.csv";
-	outCohort.open(outputCohortFile);
-	if (!outCohort.good()) {
-	    printf("file %s is broken\n", outputCohortFile.c_str());
-	    exit(1);
-	}
+		outputCohortFile = outputPath_ + "/" + simName_ + "_cohort.csv";
+		outCohort.open(outputCohortFile);
+		if (!outCohort.good()) {
+		    printf("file %s is broken\n", outputCohortFile.c_str());
+		    exit(1);
+		}
     }
 
     resetReports();
-
     printHeaders();
-
 }
+
+
 
 bool Report::parsePrintFlag(std::string line){
    bool print_temp = (stoi(line.c_str(), NULL, 10) == 0 ? false : true);
    return print_temp;
 }
+
+
+
 bool Report::parseGroupsAgeFirst(std::string line){
     bool age_temp = (stoi(line.c_str(), NULL, 10) == 0 ? false : true);
     return age_temp;
 }
+
+
+
 bool Report::parseComplement(std::string line){
     bool complement_temp = (stoi(line.c_str(), NULL, 10) == 0 ? false : true);
     return complement_temp;
 }
+
+
+
 void Report::parsePeriod(std::string line, int * period_temp){
     stringstream linetemp;
     string line2;
@@ -185,22 +198,22 @@ void Report::parsePeriod(std::string line, int * period_temp){
     int count =0;
     linetemp << line;
     while(getline(linetemp,line2,',')){
-	if(count > 2){
-	    //	    printf("Reporting File - Line 4 has more than 3 variables to specify the reporting period, ignoring extra arguments\n");
-	    break;
-	}
-	period_temp[count] = strtol(line2.c_str(), NULL, 10);
-	if(period_temp[count] < 0){
-	    period_temp[count] = 0;
-	}
-	count++;
+		if(count > 2){
+		    break;
+		}
+		period_temp[count] = strtol(line2.c_str(), NULL, 10);
+		if(period_temp[count] < 0){
+		    period_temp[count] = 0;
+		}
+		count++;
     }
     if(count < 3 || !(period_temp[0] < period_temp[1] + period_temp[2] && period_temp[1] < period_temp[2])){
-	//	printf("Reporting File - Line 4 does not contain valid values for the group reporting period\n");
-	exit(1);
+		exit(1);
     }
-
 }
+
+
+
 void Report::parseGroupsAges(std::string line, std::vector<rangeStruct> * ages_temp){
     stringstream linetemp;
     string line2;
@@ -209,23 +222,26 @@ void Report::parseGroupsAges(std::string line, std::vector<rangeStruct> * ages_t
     linetemp << line;
     ages_temp->clear();
     while(getline(linetemp,line2,';')){
-	stringstream lTemp; lTemp << line2;
-	string line3;
-	rangeStruct rangeTemp;
-	getline(lTemp,line3,',');
-	rangeTemp.min = strtol(line3.c_str(), NULL, 10);
-	getline(lTemp,line3,',');
-	rangeTemp.max = strtol(line3.c_str(), NULL, 10);
-	if(rangeTemp.min + rangeTemp.max > 0){
-	    ages_temp->push_back(rangeTemp);
-	}
+		stringstream lTemp; lTemp << line2;
+		string line3;
+		rangeStruct rangeTemp;
+		getline(lTemp,line3,',');
+		rangeTemp.min = strtol(line3.c_str(), NULL, 10);
+		getline(lTemp,line3,',');
+		rangeTemp.max = strtol(line3.c_str(), NULL, 10);
+		if(rangeTemp.min + rangeTemp.max > 0){
+		    ages_temp->push_back(rangeTemp);
+		}
     }
 
     if(ages_temp->empty()){
-	printf("File does not contain valid values for the group age ranges\n");
-	exit(1);
+		printf("File does not contain valid values for the group age ranges\n");
+		exit(1);
     }
 }
+
+
+
 void Report::parseStatus(std::string line, int * Status_){
     stringstream linetemp;
     string line2;
@@ -234,20 +250,22 @@ void Report::parseStatus(std::string line, int * Status_){
     linetemp << line;
     count = 0;
     while(getline(linetemp,line2,',')){
-	if(count > 1){
-	    //	    printf("Line 2 has more than two arguments, ignoring extra arguments\n");
-	    break;
-	}
-	Status_[count] = strtol(line2.c_str(), NULL, 10);
-	if(Status_[count] > 1){
-	    Status_[count] = 1;
-	}
-	if(Status_[count] < 0){
-	    Status_[count] = 0;
-	}
-	count++;
+		if(count > 1){
+		    break;
+		}
+		Status_[count] = strtol(line2.c_str(), NULL, 10);
+		if(Status_[count] > 1){
+		    Status_[count] = 1;
+		}
+		if(Status_[count] < 0){
+		    Status_[count] = 0;
+		}
+		count++;
     }
 }
+
+
+
 void Report::parseEvents(std::string line, int * Events_){
     stringstream linetemp;
     string line2;
@@ -255,49 +273,54 @@ void Report::parseEvents(std::string line, int * Events_){
     int count =0;
     linetemp << line;
     while(getline(linetemp,line2,',')){
-	if(count > 4){
-	    //	    printf("Line 1 has more than 5 arguments, irgnoring extra characteres\n");
-	    break;
-	}
-	Events_[count] = strtol(line2.c_str(), NULL, 10);
-	if(Events_[count] > 1){
-	    Events_[count] = 1;
-	}
-	if(Events_[count] < 0){
-	    Events_[count] = 0;
-	}
-	count++;
+		if(count > 4){
+		    break;
+		}
+		Events_[count] = strtol(line2.c_str(), NULL, 10);
+		if(Events_[count] > 1){
+		    Events_[count] = 1;
+		}
+		if(Events_[count] < 0){
+		    Events_[count] = 0;
+		}
+		count++;
     }
 }
+
+
+
 void Report::updateReport(int currDay, Human * h){
     if(reportGroups == true){
-	if(currDay >= groupsReportPeriod[0] && currDay <= groupsReportPeriod[2] && (currDay - groupsReportPeriod[0]) % groupsReportPeriod[1] == 0){
-	    updateGroupsReport(currDay, h);
-	}
+		if(currDay >= groupsReportPeriod[0] && currDay <= groupsReportPeriod[2] && (currDay - groupsReportPeriod[0]) % groupsReportPeriod[1] == 0){
+		    updateGroupsReport(currDay, h);
+		}
     }
     if(reportCohort == true){
-	if(currDay >= cohortReportPeriod[0] && currDay <= cohortReportPeriod[2] && (currDay - cohortReportPeriod[0]) % cohortReportPeriod[1] == 0){
-	    updateCohortReport(currDay, h);
-	}
+		if(currDay >= cohortReportPeriod[0] && currDay <= cohortReportPeriod[2] && (currDay - cohortReportPeriod[0]) % cohortReportPeriod[1] == 0){
+		    updateCohortReport(currDay, h);
+		}
     }
     h->resetRecent();
 }
 
+
+
 void Report::printReport(int currDay){
-    //    printf ("printing report day %d\n", currDay);
     if(reportGroups == true){
-	if(currDay >= groupsReportPeriod[0] && currDay <= groupsReportPeriod[2] && (currDay - groupsReportPeriod[0]) % groupsReportPeriod[1] == 0){
-	    printGroupsReport(currDay);
-	    resetGroupStats();
-	}
+		if(currDay >= groupsReportPeriod[0] && currDay <= groupsReportPeriod[2] && (currDay - groupsReportPeriod[0]) % groupsReportPeriod[1] == 0){
+		    printGroupsReport(currDay);
+		    resetGroupStats();
+		}
     }
     if(reportCohort == true){
-	if(currDay >= cohortReportPeriod[0] && currDay <= cohortReportPeriod[2] && (currDay - cohortReportPeriod[0]) % cohortReportPeriod[1] == 0){
-	    printCohortReport(currDay);
-	    resetCohortStats();
-	}
+		if(currDay >= cohortReportPeriod[0] && currDay <= cohortReportPeriod[2] && (currDay - cohortReportPeriod[0]) % cohortReportPeriod[1] == 0){
+		    printCohortReport(currDay);
+		    resetCohortStats();
+		}
     }
 }
+
+
 
 void Report::updateGroupsReport(int currDay, Human * h){
 
@@ -307,126 +330,126 @@ void Report::updateGroupsReport(int currDay, Human * h){
     int group = getGroup(h->getAgeDays(currDay), groupsAges);
 
     if(h->getRecentInf() > 0){
-	groupsTotalAgeStats.total.events[0]++;
-	if(group >= 0){
-	    groupsStats[group].total.events[0]++;
-	}
-	if(h->isVaccinated() == true){
-	    if(h->getSeroStatusAtVaccination() == true){
-		groupsTotalAgeStats.status[0].events[0]++;
+		groupsTotalAgeStats.total.events[0]++;
 		if(group >= 0){
-		    groupsStats[group].status[0].events[0]++;
+		    groupsStats[group].total.events[0]++;
 		}
-	    }else{
-		groupsTotalAgeStats.status[1].events[0]++;
-		if(group >= 0){
-		    groupsStats[group].status[1].events[0]++;
+		if(h->isVaccinated() == true){
+		    if(h->getSeroStatusAtVaccination() == true){
+				groupsTotalAgeStats.status[0].events[0]++;
+				if(group >= 0){
+				    groupsStats[group].status[0].events[0]++;
+				}
+		    }else{
+				groupsTotalAgeStats.status[1].events[0]++;
+				if(group >= 0){
+				    groupsStats[group].status[1].events[0]++;
+				}
+		    }
+		}else{
+		    if(h->getSeroStatusAtVaccination() == true){
+				groupsTotalAgeStats.status[2].events[0]++;
+				if(group >= 0){
+				    groupsStats[group].status[2].events[0]++;
+				}
+		    }else{
+				groupsTotalAgeStats.status[3].events[0]++;
+				if(group >= 0){
+				    groupsStats[group].status[3].events[0]++;
+				}
+		    }
 		}
-	    }
-	}else{
-	    if(h->getSeroStatusAtVaccination() == true){
-		groupsTotalAgeStats.status[2].events[0]++;
-		if(group >= 0){
-		    groupsStats[group].status[2].events[0]++;
-		}
-	    }else{
-		groupsTotalAgeStats.status[3].events[0]++;
-		if(group >= 0){
-		    groupsStats[group].status[3].events[0]++;
-		}
-	    }
-	}
     } else {
-	groupsTotalAgeStats.total.nonevents[0]++;
-	if(group >= 0){
-	    groupsStats[group].total.nonevents[0]++;
-	}
-	if(h->isVaccinated() == true){
-	    if(h->getSeroStatusAtVaccination() == true){
-		groupsTotalAgeStats.status[0].nonevents[0]++;
+		groupsTotalAgeStats.total.nonevents[0]++;
 		if(group >= 0){
-		    groupsStats[group].status[0].nonevents[0]++;
+		    groupsStats[group].total.nonevents[0]++;
 		}
-	    }else{
-		groupsTotalAgeStats.status[1].nonevents[0]++;
-		if(group >= 0){
-		    groupsStats[group].status[1].nonevents[0]++;
+		if(h->isVaccinated() == true){
+		    if(h->getSeroStatusAtVaccination() == true){
+				groupsTotalAgeStats.status[0].nonevents[0]++;
+				if(group >= 0){
+				    groupsStats[group].status[0].nonevents[0]++;
+				}
+		    }else{
+				groupsTotalAgeStats.status[1].nonevents[0]++;
+				if(group >= 0){
+				    groupsStats[group].status[1].nonevents[0]++;
+				}
+		    }
+		}else{
+		    if(h->getSeroStatusAtVaccination() == true){
+				groupsTotalAgeStats.status[2].nonevents[0]++;
+				if(group >= 0){
+		    		groupsStats[group].status[2].nonevents[0]++;
+				}
+	    	}else{
+				groupsTotalAgeStats.status[3].nonevents[0]++;
+				if(group >= 0){
+				    groupsStats[group].status[3].nonevents[0]++;
+				}
+	    	}
 		}
-	    }
-	}else{
-	    if(h->getSeroStatusAtVaccination() == true){
-		groupsTotalAgeStats.status[2].nonevents[0]++;
-		if(group >= 0){
-		    groupsStats[group].status[2].nonevents[0]++;
-		}
-	    }else{
-		groupsTotalAgeStats.status[3].nonevents[0]++;
-		if(group >= 0){
-		    groupsStats[group].status[3].nonevents[0]++;
-		}
-	    }
-	}
     }
     if(h->getRecentDis() > 0){
-	groupsTotalAgeStats.total.events[1]++;
-	if(group >= 0){
-	    groupsStats[group].total.events[1]++;
-	}
-	if(h->isVaccinated() == true){
-	    if(h->getSeroStatusAtVaccination() == true){
-		groupsTotalAgeStats.status[0].events[1]++;
+		groupsTotalAgeStats.total.events[1]++;
 		if(group >= 0){
-		    groupsStats[group].status[0].events[1]++;
+		    groupsStats[group].total.events[1]++;
 		}
-	    }else{
-		groupsTotalAgeStats.status[1].events[1]++;
-		if(group >= 0){
-		    groupsStats[group].status[1].events[1]++;
+		if(h->isVaccinated() == true){
+		    if(h->getSeroStatusAtVaccination() == true){
+				groupsTotalAgeStats.status[0].events[1]++;
+				if(group >= 0){
+				    groupsStats[group].status[0].events[1]++;
+				}
+		    }else{
+				groupsTotalAgeStats.status[1].events[1]++;
+				if(group >= 0){
+				    groupsStats[group].status[1].events[1]++;
+				}
+		    }
+		}else{
+		    if(h->getSeroStatusAtVaccination() == true){
+				groupsTotalAgeStats.status[2].events[1]++;
+				if(group >= 0){
+				    groupsStats[group].status[2].events[1]++;
+				}
+		    }else{
+				groupsTotalAgeStats.status[3].events[1]++;
+				if(group >= 0){
+				    groupsStats[group].status[3].events[1]++;
+				}
+		    }
 		}
-	    }
-	}else{
-	    if(h->getSeroStatusAtVaccination() == true){
-		groupsTotalAgeStats.status[2].events[1]++;
-		if(group >= 0){
-		    groupsStats[group].status[2].events[1]++;
-		}
-	    }else{
-		groupsTotalAgeStats.status[3].events[1]++;
-		if(group >= 0){
-		    groupsStats[group].status[3].events[1]++;
-		}
-	    }
-	}
     } else {
-	groupsTotalAgeStats.total.nonevents[1]++;
-	if(group >= 0){
-	    groupsStats[group].total.nonevents[1]++;
-	}
-	if(h->isVaccinated() == true){
-	    if(h->getSeroStatusAtVaccination() == true){
-		groupsTotalAgeStats.status[0].nonevents[1]++;
+		groupsTotalAgeStats.total.nonevents[1]++;
 		if(group >= 0){
-		    groupsStats[group].status[0].nonevents[1]++;
+		    groupsStats[group].total.nonevents[1]++;
 		}
-	    }else{
-		groupsTotalAgeStats.status[1].nonevents[1]++;
-		if(group >= 0){
-		    groupsStats[group].status[1].nonevents[1]++;
+		if(h->isVaccinated() == true){
+		    if(h->getSeroStatusAtVaccination() == true){
+				groupsTotalAgeStats.status[0].nonevents[1]++;
+				if(group >= 0){
+				    groupsStats[group].status[0].nonevents[1]++;
+				}
+		    }else{
+				groupsTotalAgeStats.status[1].nonevents[1]++;
+				if(group >= 0){
+				    groupsStats[group].status[1].nonevents[1]++;
+				}
+		    }
+		}else{
+		    if(h->getSeroStatusAtVaccination() == true){
+				groupsTotalAgeStats.status[2].nonevents[1]++;
+				if(group >= 0){
+				    groupsStats[group].status[2].nonevents[1]++;
+				}
+		    }else{
+				groupsTotalAgeStats.status[3].nonevents[1]++;
+				if(group >= 0){
+				    groupsStats[group].status[3].nonevents[1]++;
+				}
+		    }
 		}
-	    }
-	}else{
-	    if(h->getSeroStatusAtVaccination() == true){
-		groupsTotalAgeStats.status[2].nonevents[1]++;
-		if(group >= 0){
-		    groupsStats[group].status[2].nonevents[1]++;
-		}
-	    }else{
-		groupsTotalAgeStats.status[3].nonevents[1]++;
-		if(group >= 0){
-		    groupsStats[group].status[3].nonevents[1]++;
-		}
-	    }
-	}
     }
     if(h->getRecentHosp() > 0){
 	groupsTotalAgeStats.total.events[2]++;
@@ -614,6 +637,7 @@ void Report::updateGroupsReport(int currDay, Human * h){
 }
 
 
+
 void Report::updateCohortReport(int currDay, Human * h){
     int cohortNum = h->getCohort();
     if(cohortNum != 1){
@@ -782,6 +806,8 @@ void Report::updateCohortReport(int currDay, Human * h){
     }
 }
 
+
+
 int Report::getGroup(int age_, std::vector<rangeStruct> groups_temp){
     std::vector<rangeStruct>::iterator itAge = groups_temp.begin();
     int count = 0;
@@ -794,6 +820,7 @@ int Report::getGroup(int age_, std::vector<rangeStruct> groups_temp){
     }
     return -1;
 }
+
 
 
 void Report::printGroupsReport(int currDay){
@@ -879,6 +906,8 @@ void Report::printGroupsReport(int currDay){
     }
 }
 
+
+
 void Report::printCohortReport(int currDay){
     outCohort << currDay << ",";
 
@@ -941,6 +970,8 @@ void Report::printCohortReport(int currDay){
     }
 }
 
+
+
 void Report::printHeaders(){
     if(reportGroups == true){
 	printGroupsHeader();
@@ -949,6 +980,8 @@ void Report::printHeaders(){
 	printCohortHeader();
     }
 }
+
+
 
 void Report::printGroupsHeader(){
     outGroups << "day,";
@@ -1043,6 +1076,8 @@ void Report::printGroupsHeader(){
     }
 }
 
+
+
 void Report::printCohortHeader(){
     outCohort << "day,";
     for(int i = 0; i < 5 ; i++){
@@ -1109,6 +1144,8 @@ void Report::printCohortHeader(){
     }
 }
 
+
+
 void Report::resetReports(){
     if(reportGroups == true){
 	resetGroupStats();
@@ -1117,6 +1154,9 @@ void Report::resetReports(){
 	resetCohortStats();
     }
 }
+
+
+
 void Report::resetCohortStats(){
     cohortStats.clear();
     if(cohortAges.empty()){
@@ -1144,6 +1184,9 @@ void Report::resetCohortStats(){
 	}
     }
 }
+
+
+
 void Report::resetGroupStats(){
     groupsAvgAgeFirst = 0;
     groupsTotalFirstInf = 0;
@@ -1184,11 +1227,15 @@ void Report::resetGroupStats(){
     }
 }
 
+
+
 void Report::finalizeReport(){
     outCohort.close();
     outAges.close();
     outGroups.close();
 }
+
+
 
 Report::~Report() {
 
