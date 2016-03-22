@@ -36,6 +36,9 @@ private:
     int recent_inf;
     bool seroStatusAtVaccination;
     bool symptomatic;
+    bool vaccineAdvanceMode;
+    bool vaccineImmunity;
+    double vaccineProtection;
     int trajDay;
     std::unique_ptr<std::vector<std::vector<std::pair<std::string,double>>>> trajectories;
     bool vaccinated;
@@ -96,6 +99,7 @@ public:
     void updateImmunityPerm(unsigned,bool);
     void updateRecent(int,int,int);
     void vaccinate(std::map<unsigned,double> *,std::map<unsigned,double> *,double,int);
+    void vaccinateAdvanceMode(int currDay, RandomNumGenerator&, double, unsigned);
     void waneVaccination(){vaccinated = false;}
 
     struct sortid{

@@ -25,6 +25,7 @@ public:
     void readLocationFile(std::string);
     void readDiseaseRatesFile();
     void readVaccineProfileFile();
+    void readVaccinationGroupsFile();
     void setLocNeighborhood(double);
     void simEngine();
     void humanDynamics();
@@ -34,6 +35,7 @@ public:
     unsigned setInitialInfection(double, unsigned);
     void simulate();
     void updatePop();
+    bool checkAgeToVaccinate(int age_);
     virtual ~Simulation();
 private:
     double normdev;
@@ -45,6 +47,9 @@ private:
     std::map<unsigned,double> halflife;
     std::map<unsigned,double> disRates;
     std::map<unsigned,double> hospRates;
+    std::map<int,int> ageGroups;
+    double vaccineProtection;
+    unsigned vaccineWaning;
     double propInf;
     unsigned currentDay;
     unsigned numDays;
@@ -55,8 +60,11 @@ private:
     std::string vaccinationStrategy;
     std::string reportsFile;
     std::string diseaseRatesFile;
-    bool vaccinationFlag;
+    std::string vaccinationGroupsFile;
+    bool routineVaccination;
     bool catchupFlag;
+    bool trialVaccination;
+    bool vaccineAdvanceMode;
     unsigned vaccineDay;
     unsigned vaccineAge;
     double vaccineCoverage;
@@ -79,7 +87,7 @@ private:
     double mozMoveProbability;
     double ForceOfImportation;
     unsigned year;
-    int seroposAtVax[101], seronegAtVax[101], disAtVax[101], hospAtVax[101];
+    //    int seroposAtVax[101], seronegAtVax[101], disAtVax[101], hospAtVax[101];
 
     std::ofstream out;
     std::ofstream outpop;

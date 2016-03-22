@@ -5,8 +5,8 @@
 
 using namespace std;
 
-double RandomNumGenerator::getWaningTime(unsigned sero) {
-    exponential_distribution<> d(1./(log(2) * halflife.at(sero)));
+double RandomNumGenerator::getWaningTime(unsigned wan) {
+    exponential_distribution<> d(1./wan);
     return d(gen);
 }
 
