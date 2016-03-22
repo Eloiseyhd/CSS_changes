@@ -558,8 +558,10 @@ void Report::updateAgesReport(int currDay, Human * h){
 
 void Report::updateGroupsReport(int currDay, Human * h){
 
-    groupsAvgAgeFirst += h->getAgeDays(currDay);
-    groupsTotalFirstInf++;
+    if(h->getRecentInf() && h->getPreviousInfections() == 1){
+	groupsAvgAgeFirst += h->getAgeDays(currDay);
+	groupsTotalFirstInf++;
+    }
 
     int group = getGroup(h->getAgeDays(currDay), groupsAges);
 
