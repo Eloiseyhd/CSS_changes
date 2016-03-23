@@ -178,7 +178,6 @@ void Human::infect(
     std::map<unsigned,double> * hospRates,
     double normdev)
 {
-    
     double RR = 1.0;
     double RRInf = 1.0;
     double RRDis = 1.0;
@@ -187,61 +186,61 @@ void Human::infect(
     int vaxAdvancement = 0;
 
     if(vaccinated){
-	if(vaccineAdvanceMode == true){
-	    vaxAdvancement = 1;
-	}else{
-	    if(getPreviousInfections() > 0){
-		totalVE = 1.0 - vepos->at(0) / (1.0 + exp(vepos->at(1) * (double(getAgeDays(currentDay)) / 365.0 - vepos->at(2))));
-	    }else{
-		totalVE = 1.0 - veneg->at(0) / (1.0 + exp(veneg->at(1) * (double(getAgeDays(currentDay)) / 365.0 - veneg->at(2))));
-	    }
-	    RR = exp(log(1.0 - totalVE) + normdev * pow(1.0 / 100.5 + 1.0 / (100.0 * (1.0 - totalVE) + 0.5), 0.5));
-	    RRInf = pow(RR, propInf);
-	    RRDis = pow(RR, 1.0 - propInf);
-	}
+    	if(vaccineAdvanceMode == true){
+    	    vaxAdvancement = 1;
+    	}else{
+    	    if(getPreviousInfections() > 0){
+        		totalVE = 1.0 - vepos->at(0) / (1.0 + exp(vepos->at(1) * (double(getAgeDays(currentDay)) / 365.0 - vepos->at(2))));
+    	    }else{
+                totalVE = 1.0 - veneg->at(0) / (1.0 + exp(veneg->at(1) * (double(getAgeDays(currentDay)) / 365.0 - veneg->at(2))));
+    	    }
+    	    RR = exp(log(1.0 - totalVE) + normdev * pow(1.0 / 100.5 + 1.0 / (100.0 * (1.0 - totalVE) + 0.5), 0.5));
+    	    RRInf = pow(RR, propInf);
+    	    RRDis = pow(RR, 1.0 - propInf);
+    	}
     }
 
-    double vax_protection = 1;
+    double vax_protection = 1.0;
     if(isImmune(infectionType) == true && vaccineImmunity == true){
-	vax_protection = 1 - vaccineProtection;
+    	vax_protection = 1.0 - vaccineProtection;
     }
     if(rGen->getEventProbability() < RRInf * vax_protection){
-	infected = true;
-	recent_inf = 1;
-	recent_dis = 0;
-	recent_hosp = 0;
-	if(getPreviousInfections() + vaxAdvancement == 0){
-	    if(rGen->getEventProbability() < (*disRates)[0] * RRDis){
-		recent_dis = infectionType;
-		symptomatic = true;
-		if(rGen->getEventProbability() < (*hospRates)[0]){
-		    recent_hosp = infectionType;
-		}
-	    }
-	} else if(getPreviousInfections() + vaxAdvancement == 1) {
-	    if(rGen->getEventProbability() < (*disRates)[1] * RRDis){
-		recent_dis = infectionType;
-		symptomatic = true;
-		if(rGen->getEventProbability() < (*hospRates)[1]){
-		    recent_hosp = infectionType;
-		}
-	    }
-	} else {
-	    if(rGen->getEventProbability() < (*disRates)[2] * RRDis){
-		recent_dis = infectionType;
-		symptomatic = true;
-		if(rGen->getEventProbability() < (*hospRates)[2]){
-		    recent_hosp = infectionType;
-		}
-	    }
-	}
-	infection.reset(new Infection(
-	      currentDay + 1, currentDay + 15, 0.0, infectionType, getPreviousInfections() == 0, recent_dis > 0, exp(rGen->getRandomNormal() * 0.2701716 + 1.750673)));
-	updateImmunityPerm(infectionType, true);
-	setImmunityTemp(true);
-	setImmStartDay(currentDay);
-	setImmEndDay(currentDay + 15 + rGen->getHumanImmunity());
-	vaccineImmunity = false;
+    	infected = true;
+    	recent_inf = 1;
+    	recent_dis = 0;
+    	recent_hosp = 0;
+    	if(getPreviousInfections() + vaxAdvancement == 0){
+    	    if(rGen->getEventProbability() < (*disRates)[0] * RRDis){
+        		recent_dis = infectionType;
+        		symptomatic = true;
+        		if(rGen->getEventProbability() < (*hospRates)[0]){
+        		    recent_hosp = infectionType;
+        		}
+    	    }
+    	} else if(getPreviousInfections() + vaxAdvancement == 1) {
+    	    if(rGen->getEventProbability() < (*disRates)[1] * RRDis){
+        		recent_dis = infectionType;
+        		symptomatic = true;
+        		if(rGen->getEventProbability() < (*hospRates)[1]){
+        		    recent_hosp = infectionType;
+        		}
+    	    }
+    	} else {
+    	    if(rGen->getEventProbability() < (*disRates)[2] * RRDis){
+        		recent_dis = infectionType;
+        		symptomatic = true;
+        		if(rGen->getEventProbability() < (*hospRates)[2]){
+        		    recent_hosp = infectionType;
+        		}
+    	    }
+    	}
+    	infection.reset(new Infection(
+    	      currentDay + 1, currentDay + 15, 0.0, infectionType, getPreviousInfections() == 0, recent_dis > 0, exp(rGen->getRandomNormal() * 0.2701716 + 1.750673)));
+    	updateImmunityPerm(infectionType, true);
+    	setImmunityTemp(true);
+    	setImmStartDay(currentDay);
+    	setImmEndDay(currentDay + 15 + rGen->getHumanImmunity());
+    	vaccineImmunity = false;
     }
 }
 
