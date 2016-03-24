@@ -201,7 +201,7 @@ void Human::infect(
     }
 
     double vax_protection = 1.0;
-    if(isImmune(infectionType) == true && vaccineImmunity == true){
+    if(isImmune(infectionType) == true && vaccineImmunity == true && vaccineAdvanceMode == true){
     	vax_protection = 1.0 - vaccineProtection;
     }
     if(rGen->getEventProbability() < RRInf * vax_protection){
