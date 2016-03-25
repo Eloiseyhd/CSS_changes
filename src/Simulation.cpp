@@ -118,7 +118,11 @@ void Simulation::humanDynamics() {
         (it->second)->setTrajDay(rGen.getRandomNum(5));
 
         // simulate possible imported infection
+<<<<<<< HEAD
         if(rGen.getEventProbability() < ForceOfImportationTrial / 365.0){
+=======
+        if(rGen.getEventProbability() < ForceOfImportationTrial){
+>>>>>>> origin/paper
             for(int serotype = 1; serotype <= 4; serotype++){
                 if(!it->second->isImmune(serotype)){
                     it->second->infect(currentDay, serotype, &rGenInf, &disRates, &hospRates, normdev);                
@@ -322,7 +326,7 @@ void Simulation::readSimControlFile(string line) {
     getline(infile, line, ',');
     vaccineProtection = strtod(line.c_str(), NULL);
     getline(infile, line, ',');
-    vaccineWaning = strtol(line.c_str(), NULL, 10);
+    vaccineWaning = strtod(line.c_str(), NULL);
     getline(infile, line, ',');
     outputPath = line;
     getline(infile, line, ',');
@@ -348,7 +352,7 @@ void Simulation::readSimControlFile(string line) {
     getline(infile, line, ',');
     huImm = strtol(line.c_str(), NULL, 10);
     getline(infile, line, ',');
-    emergeFactor = strtod(line.c_str(), NULL);    
+    emergeFactor = strtod(line.c_str(), NULL);
     getline(infile, line, ',');
     mlife = strtod(line.c_str(), NULL);
     getline(infile, line, ',');

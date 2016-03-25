@@ -49,7 +49,7 @@ private:
     std::map<unsigned,double> hospRates;
     std::map<int,int> ageGroups;
     double vaccineProtection;
-    unsigned vaccineWaning;
+    double vaccineWaning;
     double propInf;
     unsigned currentDay;
     unsigned numDays;

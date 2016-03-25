@@ -5,7 +5,7 @@
 
 using namespace std;
 
-double RandomNumGenerator::getWaningTime(unsigned wan) {
+double RandomNumGenerator::getWaningTime(double wan) {
     exponential_distribution<> d(1./wan);
     return d(gen);
 }
