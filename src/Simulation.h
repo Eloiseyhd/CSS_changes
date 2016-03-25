@@ -49,7 +49,7 @@ private:
     std::map<unsigned,double> hospRates;
     std::map<int,int> ageGroups;
     double vaccineProtection;
-    unsigned vaccineWaning;
+    double vaccineWaning;
     double propInf;
     unsigned currentDay;
     unsigned numDays;
@@ -86,6 +86,7 @@ private:
     double mozInfectiousness;   
     double mozMoveProbability;
     double ForceOfImportation;
+    double ForceOfImportationTrial;
     unsigned year;
     //    int seroposAtVax[101], seronegAtVax[101], disAtVax[101], hospAtVax[101];
 

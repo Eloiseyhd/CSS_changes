@@ -6,7 +6,7 @@
 
 class RandomNumGenerator {
 public:
-    double getWaningTime(unsigned);
+    double getWaningTime(double);
     unsigned getMozEmerge(double);
     double getMozLifeSpan();
     unsigned getHumanTrajectory();

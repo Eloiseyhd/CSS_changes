@@ -99,7 +99,7 @@ public:
     void updateImmunityPerm(unsigned,bool);
     void updateRecent(int,int,int);
     void vaccinate(std::map<unsigned,double> *,std::map<unsigned,double> *,double,int);
-    void vaccinateAdvanceMode(int currDay, RandomNumGenerator&, double, unsigned);
+    void vaccinateAdvanceMode(int currDay, RandomNumGenerator&, double, double);
     void waneVaccination(){vaccinated = false;}
 
     struct sortid{

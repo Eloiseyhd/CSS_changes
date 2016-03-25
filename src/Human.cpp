@@ -411,7 +411,9 @@ void Human::vaccinate(
     vday = currDay;
 }
 
-void Human::vaccinateAdvanceMode(int currDay, RandomNumGenerator& rGen, double protec_, unsigned wan)
+
+
+void Human::vaccinateAdvanceMode(int currDay, RandomNumGenerator& rGen, double protec_, double wan)
 {
     vaccinated = true;
     vday = currDay;
