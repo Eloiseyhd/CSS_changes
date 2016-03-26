@@ -53,7 +53,6 @@ int main(int argc, char** argv) {
       end = chrono::high_resolution_clock::now();
       min = chrono::duration_cast<std::chrono::nanoseconds> (end-begin).count()/ 60000000000.;
       sec = (min - (int)min)*60.0;
-      cout << min << endl;
       
     } else if (argc == 3) {
       chrono::time_point<chrono::high_resolution_clock> begin, end, newSimBegin;
