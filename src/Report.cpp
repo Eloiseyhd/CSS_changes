@@ -78,7 +78,6 @@ Report::Report(){
 
 void Report::setupReport(string file, string outputPath_, string simName_) {
     if (file.length() == 0) {
-		printf("File name %s is empty\n",file.c_str());
 		exit(1);
     }
 
@@ -87,7 +86,6 @@ void Report::setupReport(string file, string outputPath_, string simName_) {
 
     int count;
     if(!infile.good()){
-		printf("File %s is corrupted\n",file.c_str());
 		exit(1);
     }
 
@@ -174,7 +172,6 @@ void Report::setupReport(string file, string outputPath_, string simName_) {
 	outputGroupsFile = outputPath_ + "/" + simName_ + "_pop.csv";
 	outGroups.open(outputGroupsFile);
 	if (!outGroups.good()) {
-	    printf("file %s is broken\n", outputGroupsFile.c_str());
 	    exit(1);
 	}
     }
@@ -183,7 +180,6 @@ void Report::setupReport(string file, string outputPath_, string simName_) {
 	outputCohortFile = outputPath_ + "/" + simName_ + "_cohort.csv";
 	outCohort.open(outputCohortFile);
 	if (!outCohort.good()) {
-	    printf("file %s is broken\n", outputCohortFile.c_str());
 	    exit(1);
 	}
     }
@@ -192,7 +188,6 @@ void Report::setupReport(string file, string outputPath_, string simName_) {
 	outputAgesFile = outputPath_ + "/" + simName_ + "_ages.csv";
 	outAges.open(outputAgesFile);
 	if (!outAges.good()) {
-	    printf("file %s is broken\n", outputAgesFile.c_str());
 	    exit(1);
 	}
     }
@@ -268,7 +263,6 @@ void Report::parseGroupsAges(std::string line, std::vector<rangeStruct> * ages_t
     }
 
     if(ages_temp->empty()){
-		printf("File does not contain valid values for the group age ranges\n");
 		exit(1);
     }
 }
@@ -287,7 +281,6 @@ rangeStruct Report::parseDiscreteAges(std::string line){
     if(rangeTemp.min + rangeTemp.max > 0 && rangeTemp.min < rangeTemp.max && rangeTemp.min >= 0){
 	return rangeTemp;
     }else{
-	printf("File does not contain valid values for the group age ranges\n");
 	exit(1);
     }
 }
@@ -881,7 +874,6 @@ void Report::updateCohortReport(int currDay, Human * h){
     }
     // get group based on age at trial enrollment
     int cohortAgeGroup = getGroup(h->getAgeTrialEnrollment(),cohortAges); 
-    //    printf("Human Cohort %d group[%d] and age at enrollment %f\n",cohortNum, cohortAgeGroup, (double) h->getAgeTrialEnrollment()/365.0);
     if(cohortAgeGroup < 0){
 	return;
     }
@@ -1049,7 +1041,6 @@ int Report::getGroup(int age_, std::vector<rangeStruct> groups_temp){
     int count = 0;
     for(; itAge != groups_temp.end(); itAge++){
 	if((double )age_ / 365.0 >= (*itAge).min && (double) age_ / 365.0 < (*itAge).max){
-	    //	    printf("get group::This person of age: %f goes in ageGroup %d to %d\n",(double) age_ / 365.0,(*itAge).min,(*itAge).max);
 	    return count;
 	}
 	count++;
@@ -1067,7 +1058,6 @@ void Report::printAgesReport(int currDay){
 		if(ageStatus[0] > 0 && ageStatus[1] > 0){
 		    for(int j = 0; j < 4; j++){
 			for(int k = 0; k <= discreteAges.max - discreteAges.min; k++){
-			    //			    printf("Stats for group %d j %d, event %s = %d, non%s = %d\n",k, j,events[i].c_str(),  groupsStats[k].status[j].events[i], events[i].c_str(),groupsStats[k].status[j].nonevents[i]);
 			    if(printAgesPop == true){
 				outAges << ageStats[k].status[j].nonevents[i]<<",";
 			    }
@@ -1134,7 +1124,6 @@ void Report::printGroupsReport(int currDay){
 		if(groupsStatus[0] > 0 && groupsStatus[1] > 0){
 		    for(int j = 0;j < 4 ;j++){
 			for(int k = 0; k < groupsAges.size(); k++){
-			    //			    printf("Stats for group %d j %d, event %s = %d, non%s = %d\n",k, j,events[i].c_str(),  groupsStats[k].status[j].events[i], events[i].c_str(),groupsStats[k].status[j].nonevents[i]);
 			    if(printGroupsPop == true){
 				outGroups << groupsStats[k].status[j].nonevents[i]<<",";
 			    }
@@ -1531,7 +1520,6 @@ void Report::resetReports(){
 void Report::resetAgeStats(){
     ageStats.clear();
     if(discreteAges.min + discreteAges.max <= 0 || discreteAges.min >= discreteAges.max || discreteAges.min < 0){
-	printf("no discrete ages specified\n");
 	exit(1);
     }
 
@@ -1559,7 +1547,6 @@ void Report::resetAgeStats(){
 void Report::resetCohortStats(){
     cohortStats.clear();
     if(cohortAges.empty()){
-	printf("no cohort ages specified\n");
 	exit(1);
     }
 
@@ -1591,7 +1578,6 @@ void Report::resetGroupStats(){
     groupsStats.clear();
 
     if(groupsAges.empty()){
-	printf("no group ages specified\n");
 	exit(1);
     }
     for(int k = 0; k < groupsAges.size(); k++){

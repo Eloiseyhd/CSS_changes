@@ -48,7 +48,6 @@ string Simulation::readInputs() {
 
 void Simulation::simEngine() {
     while(currentDay < numDays){
-	printf("day %d\n",currentDay);
         for(auto itLoc = locations.begin(); itLoc != locations.end(); itLoc++){
             itLoc->second->updateInfectedVisitor();
         }
@@ -127,55 +126,55 @@ void Simulation::humanDynamics() {
         }
 
     	// vaccination
-	age = it->second->getAgeDays(currentDay);
-	if(currentDay == vaccineDay){
-	    it->second->setAgeTrialEnrollment(age);
-	    it->second->setSeroStatusAtVaccination();
-	    it->second->setCohort(cohort);
-	    //one-time vaccination by age groups in the trial
-	    if(trialVaccination == true){
-		if(checkAgeToVaccinate(age)){
-		    if(rGenInf.getEventProbability() < vaccineCoverage){
-			if(vaccineAdvanceMode == true){
-			    it->second->vaccinateAdvanceMode(currentDay,rGenInf,vaccineProtection,vaccineWaning);
-			}else{
-			    it->second->vaccinate(&VE_pos, &VE_neg, propInf, currentDay);
-			}
-		    }
-		}
-	    }
-	}
-	if(routineVaccination == true){
-	    if(currentDay >= vaccineDay){
-		// routine vaccination by age
-		if(age == vaccineAge * 365){
-		    if(rGenInf.getEventProbability() < vaccineCoverage){
-			if(vaccineAdvanceMode == true){
-			    it->second->vaccinateAdvanceMode(currentDay,rGenInf,vaccineProtection,vaccineWaning);
-			}else{
-			    it->second->vaccinate(&VE_pos, &VE_neg, propInf, currentDay);
-			}
-		    }
-		}
-	    }    
-	}
-	// catchup vaccination
-	if(catchupFlag == true && vaccineDay == currentDay){
-	    if(age > vaccineAge * 365 && age < 18 * 365){
-		if(rGenInf.getEventProbability() < vaccineCoverage){
-		    if(vaccineAdvanceMode == true){
-			it->second->vaccinateAdvanceMode(currentDay,rGenInf,vaccineProtection,vaccineWaning);
-		    }else{
-			it->second->vaccinate(&VE_pos, &VE_neg, propInf, currentDay);
-		    }
-		}
-	    }
-	}
-        
-    	outputReport.updateReport(currentDay,(it->second).get());
-       
+    	age = it->second->getAgeDays(currentDay);
+    	if(currentDay == vaccineDay){
+    	    it->second->setAgeTrialEnrollment(age);
+    	    it->second->setSeroStatusAtVaccination();
+    	    it->second->setCohort(cohort);
+    	    //one-time vaccination by age groups in the trial
+    	    if(trialVaccination == true){
+    		if(checkAgeToVaccinate(age)){
+    		    if(rGenInf.getEventProbability() < vaccineCoverage){
+    			if(vaccineAdvanceMode == true){
+    			    it->second->vaccinateAdvanceMode(currentDay,rGenInf,vaccineProtection,vaccineWaning);
+    			}else{
+    			    it->second->vaccinate(&VE_pos, &VE_neg, propInf, currentDay);
+    			}
+    		    }
+    		}
+    	    }
+    	}
+    	if(routineVaccination == true){
+    	    if(currentDay >= vaccineDay){
+    		// routine vaccination by age
+    		if(age == vaccineAge * 365){
+    		    if(rGenInf.getEventProbability() < vaccineCoverage){
+    			if(vaccineAdvanceMode == true){
+    			    it->second->vaccinateAdvanceMode(currentDay,rGenInf,vaccineProtection,vaccineWaning);
+    			}else{
+    			    it->second->vaccinate(&VE_pos, &VE_neg, propInf, currentDay);
+    			}
+    		    }
+    		}
+    	    }    
+    	}
+    	// catchup vaccination
+    	if(catchupFlag == true && vaccineDay == currentDay){
+    	    if(age > vaccineAge * 365 && age < 18 * 365){
+    		if(rGenInf.getEventProbability() < vaccineCoverage){
+    		    if(vaccineAdvanceMode == true){
+    			it->second->vaccinateAdvanceMode(currentDay,rGenInf,vaccineProtection,vaccineWaning);
+    		    }else{
+    			it->second->vaccinate(&VE_pos, &VE_neg, propInf, currentDay);
+    		    }
+    		}
+    	    }
+    	}
+            
+        	outputReport.updateReport(currentDay,(it->second).get());
+           
 
-    }
+        }
 }
 
 
@@ -520,7 +519,6 @@ void Simulation::readHumanFile(string humanFile) {
 
 void Simulation::readVaccinationGroupsFile(){
     if (vaccinationGroupsFile.length() == 0) {
-	printf("couldn't read vaccinationGroupsFile, please specify a valid file name\n");
 	exit(1);
     }
     string line;
@@ -528,7 +526,6 @@ void Simulation::readVaccinationGroupsFile(){
     int minAge;
     ifstream infile(vaccinationGroupsFile);
     if(!infile.good()){
-	printf("couldn't read vaccinationGroupsFile: %s, please specify a valid file name\n",vaccinationGroupsFile.c_str());
 	exit(1);
     }
     while(getline(infile, line, ',')){
@@ -546,7 +543,6 @@ bool Simulation::checkAgeToVaccinate(int age_){
     for(; itAge != ageGroups.end(); itAge++){
 	//      for(int k = (*itAge).first; k <= (*itAge).second; k++){
 	if(age_ >= (*itAge).first * 365 && age_ <= (*itAge).second * 365){
-	    //    printf("This person of age: %d goes in ageGroup %d to %d\n",age_/365,(*itAge).first,(*itAge).second);
 	    return true;
 	}
     }

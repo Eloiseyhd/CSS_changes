@@ -98,7 +98,6 @@ bool Mosquito::infectingBite(
         if(humBite->infection != nullptr){
             humBite->infection->setInfectiousnessHuman(currentDay);
             if(rGenInf->getEventProbability() < humBite->infection->getInfectiousness()){
-		//		printf("Mosquito::InfectingBite infected in location %s by biting infectious human %s-%d\n",locationID.c_str(),humBite->getHouseID().c_str(),humBite->getHouseMemNum());
                 double sday = double(currentDay) + rGenInf->getMozLatencyDays();
                 int eday = numDays + 1;
                 infection.reset(new Infection(
@@ -130,7 +129,6 @@ bool Mosquito::infectiousBite(
     if(humBite != NULL){
         if(infection != nullptr && humBite->infection == nullptr && !humBite->isImmune(infection->getInfectionType())){
             if(rGenInf->getEventProbability() < infection->getInfectiousness()){
-		//		printf("Mosquito::InfectiousBite Human human %s-%d infected in location %s by infectious mosquito\n",humBite->getHouseID().c_str(),humBite->getHouseMemNum(),locationID.c_str());
                 humBite->infect(currentDay, infection->getInfectionType(), rGenInf, disRates, hospRates, normdev);
             }
         }
