@@ -37,10 +37,10 @@ Human::Human(
     vaccineProtection = 0;
     if(bday < currDay - 180){
         immunity_temp = false;
-        setImmunityPerm(1, rGen.getHumanSeropositivity(FOI, double(currDay - bday)));
-        setImmunityPerm(2, rGen.getHumanSeropositivity(FOI, double(currDay - bday)));
-        setImmunityPerm(3, rGen.getHumanSeropositivity(FOI, double(currDay - bday)));
-        setImmunityPerm(4, rGen.getHumanSeropositivity(FOI, double(currDay - bday)));
+        setImmunityPerm(1, rGen.getHumanSeropositivity(FOI, double(currDay - bday) / 365.0));
+        setImmunityPerm(2, rGen.getHumanSeropositivity(FOI, double(currDay - bday) / 365.0));
+        setImmunityPerm(3, rGen.getHumanSeropositivity(FOI, double(currDay - bday) / 365.0));
+        setImmunityPerm(4, rGen.getHumanSeropositivity(FOI, double(currDay - bday) / 365.0));
     } else {
         immunity_temp = true;
         immStartDay = bday;
