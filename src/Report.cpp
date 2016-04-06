@@ -1128,15 +1128,16 @@ void Report::printGroupsReport(int currDay){
 				outGroups << groupsStats[k].status[j].nonevents[i]<<",";
 			    }
 			    outGroups << groupsStats[k].status[j].events[i];
+
+			    if(printGroupsTotalAges){
+				if(printGroupsPop == true){
+				    outGroups << "," << groupsTotalAgeStats.status[j].nonevents[i];
+				}
+				outGroups << "," << groupsTotalAgeStats.status[j].events[i];
+			    }
 			    if(i == groupsMaxIndex && k == groupsAges.size() - 1 && j == 3){
 				outGroups << "\n";
 			    }else{
-				if(printGroupsTotalAges){
-				    if(printGroupsPop == true){
-					outGroups << "," << groupsTotalAgeStats.status[j].nonevents[i];
-				    }
-				    outGroups << "," << groupsTotalAgeStats.status[j].events[i];
-				}
 				outGroups << ",";
 			    }
 			}
@@ -1157,36 +1158,37 @@ void Report::printGroupsReport(int currDay){
 				outGroups << groupsStats[k].status[j].nonevents[i] + groupsStats[k].status[j + sum_].nonevents[i]<<",";
 			    }
 			    outGroups << groupsStats[k].status[j].events[i] + groupsStats[k].status[j + sum_].events[i];
+
+			    if(printGroupsTotalAges){
+				if(printGroupsPop == true){
+				    outGroups << "," << groupsTotalAgeStats.status[j].nonevents[i] + groupsTotalAgeStats.status[j + sum_].nonevents[i];
+				}
+				outGroups << "," << groupsTotalAgeStats.status[j].events[i] + groupsTotalAgeStats.status[j + sum_].events[i];
+			    }
 			    if(i == groupsMaxIndex && k == groupsAges.size() - 1 && j == inc_){
 				outGroups << "\n";
 			    }else{
-				if(printGroupsTotalAges){
-				    if(printGroupsPop == true){
-					outGroups << "," << groupsTotalAgeStats.status[j].nonevents[i] + groupsTotalAgeStats.status[j + sum_].nonevents[i];
-				    }
-				    outGroups << "," << groupsTotalAgeStats.status[j].events[i] + groupsTotalAgeStats.status[j + sum_].events[i];
-				}
 				outGroups << ",";
 			    }
 			}
 		    }
 		}
-
 	    }else{
 		for(int k = 0; k < groupsStats.size(); k++){
 		    if(printGroupsPop == true){
 			outGroups << groupsStats[k].total.nonevents[i]<<",";
 		    }
 		    outGroups << groupsStats[k].total.events[i];
+
+		    if(printGroupsTotalAges){
+			if(printGroupsPop == true){
+			    outGroups << "," <<  groupsTotalAgeStats.total.nonevents[i];
+			}
+			outGroups << "," << groupsTotalAgeStats.total.events[i];
+		    }
 		    if(i == groupsMaxIndex && k == groupsStats.size() - 1){
 			outGroups << "\n";
 		    }else{
-			if(printGroupsTotalAges){
-			    if(printGroupsPop == true){
-				outGroups << "," <<  groupsTotalAgeStats.total.nonevents[i];
-			    }
-			    outGroups << "," << groupsTotalAgeStats.total.events[i];
-			}
 			outGroups << ",";
 		    }
 		}
@@ -1358,17 +1360,18 @@ void Report::printGroupsHeader(){
 				}
 				outGroups << status[j].c_str() << "_" << status[jj].c_str() << "_age_" << groupsAges[k].min << "_" << groupsAges[k].max << "_";
 				outGroups << events[i].c_str();
+
+				if(printGroupsTotalAges == true){
+				    if(printGroupsPop == true){
+					outGroups << "," << status[j].c_str() <<"_"<< status[jj].c_str() << "_all_";
+					outGroups << "no"<<events[i].c_str();
+				    }
+				    outGroups << "," << status[j].c_str() << "_" << status[jj].c_str() << "_all_";
+				    outGroups << events[i].c_str();
+				}
 				if(i == groupsMaxIndex && k == groupsAges.size() - 1 && j == 1 && jj == 3){
 				    outGroups << "\n";
-				}else{
-				    if(printGroupsTotalAges == true){
-					if(printGroupsPop == true){
-					    outGroups << "," << status[j].c_str() <<"_"<< status[jj].c_str() << "_all_";
-					    outGroups << "no"<<events[i].c_str();
-					}
-					outGroups << "," << status[j].c_str() << "_" << status[jj].c_str() << "_all_";
-					outGroups << events[i].c_str();
-				    }
+				}else{			       
 				    outGroups << ",";
 				}
 			    }
@@ -1389,17 +1392,18 @@ void Report::printGroupsHeader(){
 			    }
 			    outGroups << status[j].c_str() << "_age_" << groupsAges[k].min << "_" << groupsAges[k].max << "_";
 			    outGroups << events[i].c_str();
+
+			    if(printGroupsTotalAges == true){
+				if(printGroupsPop == true){
+				    outGroups << "," << status[j].c_str() << "_all_";
+				    outGroups << "no"<<events[i].c_str();
+				}
+				outGroups << "," << status[j].c_str() << "_all_";
+				outGroups << events[i].c_str();
+			    }
 			    if(i == groupsMaxIndex && k == groupsAges.size() - 1 && j == ind_ + 1){
 				outGroups << "\n";
 			    }else{
-				if(printGroupsTotalAges == true){
-				    if(printGroupsPop == true){
-					outGroups << "," << status[j].c_str() << "_all_";
-					outGroups << "no"<<events[i].c_str();
-				    }
-				    outGroups << "," << status[j].c_str() << "_all_";
-				    outGroups << events[i].c_str();
-				}
 				outGroups << ",";
 			    }
 			}
@@ -1414,17 +1418,18 @@ void Report::printGroupsHeader(){
 		    }
 		    outGroups << "age_" << groupsAges[k].min << "_" << groupsAges[k].max << "_";
 		    outGroups << events[i].c_str();
+
+		    if(printGroupsTotalAges == true){
+			if(printGroupsPop == true){
+			    outGroups << "," <<  "all_" ;
+			    outGroups << "no"<<events[i].c_str();
+			}
+			outGroups << "," << "all_";
+			outGroups << events[i].c_str();
+		    }
 		    if(i == groupsMaxIndex && k == groupsAges.size() - 1){
 			outGroups << "\n";
 		    }else{
-			if(printGroupsTotalAges == true){
-			    if(printGroupsPop == true){
-				outGroups << "," <<  "all_" ;
-				outGroups << "no"<<events[i].c_str();
-			    }
-			    outGroups << "," << "all_";
-			    outGroups << events[i].c_str();
-			}
 			outGroups << ",";
 		    }
 		}
