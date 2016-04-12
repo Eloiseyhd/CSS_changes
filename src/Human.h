@@ -26,9 +26,11 @@ private:
     std::string houseID;
     int houseMemNum;
     unsigned immEndDay;
+    unsigned vaxImmEndDay;
     std::map<unsigned,bool> immunity_perm;
     bool immunity_temp;
     unsigned immStartDay;
+    unsigned vaxImmStartDay;
     bool infected;
     double propInf;
     int recent_dis;
@@ -66,6 +68,8 @@ public:
     int getHouseMemNum() const;
     unsigned getImmEndDay() const;
     unsigned getImmStartDay() const;
+    unsigned getVaxImmEndDay() const;
+    unsigned getVaxImmStartDay() const;
     std::set<std::string> getLocsVisited();
     int getPreviousInfections();
     int getRecentDis(){return recent_dis;}
@@ -82,6 +86,7 @@ public:
     bool isHospitalized(){return hospitalized;}
     bool isImmune(unsigned) const;
     bool isImmuneTemp(){return immunity_temp;}
+    bool isImmuneVax(){return vaccineImmunity;}
     bool isInfected(){return infected;}
     bool isSymptomatic(){return symptomatic;}
     bool isVaccinated(){return vaccinated;}
@@ -90,6 +95,9 @@ public:
     void setCohort(int c_){cohort = c_;}
     void setImmStartDay(unsigned);
     void setImmEndDay(unsigned);
+    void setVaxImmStartDay(unsigned);
+    void setVaxImmEndDay(unsigned);
+    void setVaxImmunity(bool);
     void setImmunityTemp(bool);
     void setImmunityPerm(unsigned,bool);
     void setSeroStatusAtVaccination();

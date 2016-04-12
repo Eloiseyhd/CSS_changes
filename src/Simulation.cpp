@@ -51,7 +51,6 @@ void Simulation::simEngine() {
         for(auto itLoc = locations.begin(); itLoc != locations.end(); itLoc++){
             itLoc->second->updateInfectedVisitor();
         }
-
         humanDynamics();
 	outputReport.printReport(currentDay);
         mosquitoDynamics();
@@ -125,6 +124,12 @@ void Simulation::humanDynamics() {
             }
         }
 
+	//update vaccine immunity if necessary
+	if(it->second->isVaccinated()){
+	    if(currentDay == it->second->getVaxImmEndDay()){
+		it->second->setVaxImmunity(false);
+	    }
+	}
     	// vaccination
     	age = it->second->getAgeDays(currentDay);
     	if(currentDay == vaccineDay){

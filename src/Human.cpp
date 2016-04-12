@@ -110,13 +110,17 @@ unsigned Human::getImmStartDay() const {
     return immStartDay;
 }
 
-
+unsigned Human::getVaxImmStartDay() const {
+    return vaxImmStartDay;
+}
 
 unsigned Human::getImmEndDay() const {
     return immEndDay;
 }
 
-
+unsigned Human::getVaxImmEndDay() const {
+    return vaxImmEndDay;
+}
 
 string Human::getHouseID() const {
     return houseID;
@@ -201,7 +205,7 @@ void Human::infect(
     }
 
     double vax_protection = 1.0;
-    if(isImmune(infectionType) == true && vaccineImmunity == true && vaccineAdvanceMode == true){
+    if(isImmuneVax() == true && vaccineAdvanceMode == true){
     	vax_protection = 1.0 - vaccineProtection;
     }
     if(rGen->getEventProbability() < RRInf * vax_protection){
@@ -240,7 +244,6 @@ void Human::infect(
     	setImmunityTemp(true);
     	setImmStartDay(currentDay);
     	setImmEndDay(currentDay + 15 + rGen->getHumanImmunity());
-    	vaccineImmunity = false;
     }
 }
 
@@ -269,15 +272,10 @@ bool Human::isImmune(unsigned serotype) const {
     bool immunity = false;
 
     if(immunity_temp){
-	if(vaccineImmunity == true){
-	    immunity = false;
-	}else{
-	    immunity = true;
-	}
+	immunity = true;
     } else if(immunity_perm.at(serotype)) {
         immunity = true;
     }
-
     return immunity;
 }
 
@@ -303,6 +301,7 @@ void Human::reincarnate(unsigned currDay){
     recent_dis = 0;
     recent_hosp = 0;
     vaccineImmunity = false;
+    vaccineAdvanceMode = false;
     vaccineProtection = 0;
 }
 
@@ -320,13 +319,18 @@ void Human::setImmEndDay(unsigned d) {
     immEndDay = d;
 }
 
+void Human::setVaxImmEndDay(unsigned d){
+    vaxImmEndDay = d;
+}
 
 
 void Human::setImmStartDay(unsigned d) {
     immStartDay = d;
 }
 
-
+void Human::setVaxImmStartDay(unsigned d){
+    vaxImmStartDay = d;
+}
 
 void Human::setImmunityPerm(unsigned serotype, bool status) {
     immunity_perm.erase(serotype);
@@ -337,12 +341,11 @@ void Human::setImmunityPerm(unsigned serotype, bool status) {
 
 void Human::setImmunityTemp(bool status) {
     immunity_temp = status;
-    if(status == false){
-	vaccineImmunity = false;
-    }
 }
 
-
+void Human::setVaxImmunity(bool status) {
+    vaccineImmunity = status;
+}
 
 void Human::setSeroStatusAtVaccination(){
   if(getPreviousInfections() > 0){
@@ -416,12 +419,11 @@ void Human::vaccinate(
 void Human::vaccinateAdvanceMode(int currDay, RandomNumGenerator& rGen, double protec_, double wan)
 {
     vaccinated = true;
-    vday = currDay;
-    setImmunityTemp(true);
-    setImmStartDay(currDay);
     vaccineAdvanceMode = true;
-    setImmEndDay(currDay + rGen.getVaxHumanImmunity(rGen.getWaningTime(wan)));
-    vaccineImmunity = true;
+    vday = currDay;
+    setVaxImmunity(true);
+    setVaxImmStartDay(currDay);
+    setVaxImmEndDay(currDay + 365.0 + rGen.getVaxHumanImmunity(rGen.getWaningTime(wan)));
     vaccineProtection = protec_;
 }
 
