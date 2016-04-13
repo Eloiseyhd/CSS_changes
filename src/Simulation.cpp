@@ -125,7 +125,7 @@ void Simulation::humanDynamics() {
         }
 
 	//update vaccine immunity if necessary
-	if(it->second->isVaccinated()){
+	if(it->second->isVaccinated() && vaccineAdvanceMode == true){
 	    if(currentDay == it->second->getVaxImmEndDay()){
 		it->second->setVaxImmunity(false);
 	    }
@@ -152,7 +152,7 @@ void Simulation::humanDynamics() {
     	if(routineVaccination == true){
     	    if(currentDay >= vaccineDay){
     		// routine vaccination by age
-    		if(age == vaccineAge * 365){
+		if(age == vaccineAge * 365){
     		    if(rGenInf.getEventProbability() < vaccineCoverage){
     			if(vaccineAdvanceMode == true){
     			    it->second->vaccinateAdvanceMode(currentDay,rGenInf,vaccineProtection,vaccineWaning);
