@@ -153,6 +153,8 @@ void Simulation::humanDynamics() {
     	    if(currentDay >= vaccineDay){
     		// routine vaccination by age
 		if(age == vaccineAge * 365){
+		    it->second->setCohort(cohort);
+		    it->second->setAgeTrialEnrollment(age);
     		    if(rGenInf.getEventProbability() < vaccineCoverage){
     			if(vaccineAdvanceMode == true){
     			    it->second->vaccinateAdvanceMode(currentDay,rGenInf,vaccineProtection,vaccineWaning);
