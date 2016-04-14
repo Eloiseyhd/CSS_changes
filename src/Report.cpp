@@ -1129,7 +1129,7 @@ void Report::printGroupsReport(int currDay){
 			    }
 			    outGroups << groupsStats[k].status[j].events[i];
 
-			    if(printGroupsTotalAges){
+			    if(printGroupsTotalAges == true && k == groupsAges.size() - 1){
 				if(printGroupsPop == true){
 				    outGroups << "," << groupsTotalAgeStats.status[j].nonevents[i];
 				}
@@ -1159,7 +1159,7 @@ void Report::printGroupsReport(int currDay){
 			    }
 			    outGroups << groupsStats[k].status[j].events[i] + groupsStats[k].status[j + sum_].events[i];
 
-			    if(printGroupsTotalAges){
+			    if(printGroupsTotalAges == true && k == groupsAges.size() - 1){
 				if(printGroupsPop == true){
 				    outGroups << "," << groupsTotalAgeStats.status[j].nonevents[i] + groupsTotalAgeStats.status[j + sum_].nonevents[i];
 				}
@@ -1180,7 +1180,7 @@ void Report::printGroupsReport(int currDay){
 		    }
 		    outGroups << groupsStats[k].total.events[i];
 
-		    if(printGroupsTotalAges){
+		    if(printGroupsTotalAges == true && k == groupsAges.size() - 1){
 			if(printGroupsPop == true){
 			    outGroups << "," <<  groupsTotalAgeStats.total.nonevents[i];
 			}
@@ -1361,7 +1361,7 @@ void Report::printGroupsHeader(){
 				outGroups << status[j].c_str() << "_" << status[jj].c_str() << "_age_" << groupsAges[k].min << "_" << groupsAges[k].max << "_";
 				outGroups << events[i].c_str();
 
-				if(printGroupsTotalAges == true){
+				if(printGroupsTotalAges == true && k == groupsAges.size() - 1){
 				    if(printGroupsPop == true){
 					outGroups << "," << status[j].c_str() <<"_"<< status[jj].c_str() << "_all_";
 					outGroups << "no"<<events[i].c_str();
@@ -1393,7 +1393,7 @@ void Report::printGroupsHeader(){
 			    outGroups << status[j].c_str() << "_age_" << groupsAges[k].min << "_" << groupsAges[k].max << "_";
 			    outGroups << events[i].c_str();
 
-			    if(printGroupsTotalAges == true){
+			    if(printGroupsTotalAges == true && k == groupsAges.size() - 1){
 				if(printGroupsPop == true){
 				    outGroups << "," << status[j].c_str() << "_all_";
 				    outGroups << "no"<<events[i].c_str();
@@ -1419,7 +1419,7 @@ void Report::printGroupsHeader(){
 		    outGroups << "age_" << groupsAges[k].min << "_" << groupsAges[k].max << "_";
 		    outGroups << events[i].c_str();
 
-		    if(printGroupsTotalAges == true){
+		    if(printGroupsTotalAges == true && k == groupsAges.size() - 1){
 			if(printGroupsPop == true){
 			    outGroups << "," <<  "all_" ;
 			    outGroups << "no"<<events[i].c_str();
