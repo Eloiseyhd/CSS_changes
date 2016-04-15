@@ -406,6 +406,68 @@ void Report::updateAgesReport(int currDay, Human * h){
 		ageStats[group].status[3].events[0]++;
 	    }
 	}
+	if(h->getRecentDis() > 0){
+	    ageStats[group].total.events[1]++;
+	    if(h->isVaccinated() == true){
+		if(h->getSeroStatusAtVaccination() == true){
+		    ageStats[group].status[0].events[1]++;
+		}else{
+		    ageStats[group].status[1].events[1]++;
+		}
+	    }else{
+		if(h->getSeroStatusAtVaccination() == true){
+		    ageStats[group].status[2].events[1]++;
+		}else{
+		    ageStats[group].status[3].events[1]++;
+		}
+	    }
+	    if(h->getRecentHosp() > 0){
+		ageStats[group].total.events[2]++;
+		if(h->isVaccinated() == true){
+		    if(h->getSeroStatusAtVaccination() == true){
+			ageStats[group].status[0].events[2]++;
+		    }else{
+			ageStats[group].status[1].events[2]++;
+		    }
+		}else{
+		    if(h->getSeroStatusAtVaccination() == true){
+			ageStats[group].status[2].events[2]++;
+		    }else{
+			ageStats[group].status[3].events[2]++;
+		    }
+		}
+	    } else {
+		ageStats[group].total.nonevents[2]++;
+		if(h->isVaccinated() == true){
+	    if(h->getSeroStatusAtVaccination() == true){
+		ageStats[group].status[0].nonevents[2]++;
+	    }else{
+		ageStats[group].status[1].nonevents[2]++;
+	    }
+		}else{
+		    if(h->getSeroStatusAtVaccination() == true){
+			ageStats[group].status[2].nonevents[2]++;
+		    }else{
+			ageStats[group].status[3].nonevents[2]++;
+		    }
+		}
+	    }
+	} else {
+	    ageStats[group].total.nonevents[1]++;
+	    if(h->isVaccinated() == true){
+		if(h->getSeroStatusAtVaccination() == true){
+		    ageStats[group].status[0].nonevents[1]++;
+		}else{
+		    ageStats[group].status[1].nonevents[1]++;
+		}
+	    }else{
+		if(h->getSeroStatusAtVaccination() == true){
+		    ageStats[group].status[2].nonevents[1]++;
+		}else{
+		    ageStats[group].status[3].nonevents[1]++;
+		}
+	    }
+	}
     } else {
 	ageStats[group].total.nonevents[0]++;
 	if(h->isVaccinated() == true){
@@ -422,68 +484,7 @@ void Report::updateAgesReport(int currDay, Human * h){
 	    }
 	}
     }
-    if(h->getRecentDis() > 0){
-	ageStats[group].total.events[1]++;
-	if(h->isVaccinated() == true){
-	    if(h->getSeroStatusAtVaccination() == true){
-		ageStats[group].status[0].events[1]++;
-	    }else{
-		ageStats[group].status[1].events[1]++;
-	    }
-	}else{
-	    if(h->getSeroStatusAtVaccination() == true){
-		ageStats[group].status[2].events[1]++;
-	    }else{
-		ageStats[group].status[3].events[1]++;
-	    }
-	}
-    } else {
-	ageStats[group].total.nonevents[1]++;
-	if(h->isVaccinated() == true){
-	    if(h->getSeroStatusAtVaccination() == true){
-		ageStats[group].status[0].nonevents[1]++;
-	    }else{
-		ageStats[group].status[1].nonevents[1]++;
-	    }
-	}else{
-	    if(h->getSeroStatusAtVaccination() == true){
-		ageStats[group].status[2].nonevents[1]++;
-	    }else{
-		ageStats[group].status[3].nonevents[1]++;
-	    }
-	}
-    }
-    if(h->getRecentHosp() > 0){
-	ageStats[group].total.events[2]++;
-	if(h->isVaccinated() == true){
-	    if(h->getSeroStatusAtVaccination() == true){
-		ageStats[group].status[0].events[2]++;
-	    }else{
-		ageStats[group].status[1].events[2]++;
-	    }
-	}else{
-	    if(h->getSeroStatusAtVaccination() == true){
-		ageStats[group].status[2].events[2]++;
-	    }else{
-		ageStats[group].status[3].events[2]++;
-	    }
-	}
-    } else {
-	ageStats[group].total.nonevents[2]++;
-	if(h->isVaccinated() == true){
-	    if(h->getSeroStatusAtVaccination() == true){
-		ageStats[group].status[0].nonevents[2]++;
-	    }else{
-		ageStats[group].status[1].nonevents[2]++;
-	    }
-	}else{
-	    if(h->getSeroStatusAtVaccination() == true){
-		ageStats[group].status[2].nonevents[2]++;
-	    }else{
-		ageStats[group].status[3].nonevents[2]++;
-	    }
-	}
-    }
+
     if(h->getPreviousInfections() > 0){
 	ageStats[group].total.events[3]++;
 	if(h->isVaccinated() == true){
@@ -588,6 +589,128 @@ void Report::updateGroupsReport(int currDay, Human * h){
 		}
 	    }
 	}
+	if(h->getRecentDis() > 0){
+	    groupsTotalAgeStats.total.events[1]++;
+	    if(group >= 0){
+		groupsStats[group].total.events[1]++;
+	    }
+	    if(h->isVaccinated() == true){
+		if(h->getSeroStatusAtVaccination() == true){
+		    groupsTotalAgeStats.status[0].events[1]++;
+		    if(group >= 0){
+			groupsStats[group].status[0].events[1]++;
+		    }
+		}else{
+		    groupsTotalAgeStats.status[1].events[1]++;
+		    if(group >= 0){
+			groupsStats[group].status[1].events[1]++;
+		    }
+		}
+	    }else{
+		if(h->getSeroStatusAtVaccination() == true){
+		    groupsTotalAgeStats.status[2].events[1]++;
+		    if(group >= 0){
+			groupsStats[group].status[2].events[1]++;
+		    }
+		}else{
+		    groupsTotalAgeStats.status[3].events[1]++;
+		    if(group >= 0){
+			groupsStats[group].status[3].events[1]++;
+		    }
+		}
+	    }
+	    if(h->getRecentHosp() > 0){
+		groupsTotalAgeStats.total.events[2]++;
+		if(group >= 0){
+		    groupsStats[group].total.events[2]++;
+		}
+		if(h->isVaccinated() == true){
+		    if(h->getSeroStatusAtVaccination() == true){
+			groupsTotalAgeStats.status[0].events[2]++;
+			if(group >= 0){
+			    groupsStats[group].status[0].events[2]++;
+			}
+		    }else{
+			groupsTotalAgeStats.status[1].events[2]++;
+			if(group >= 0){
+			    groupsStats[group].status[1].events[2]++;
+			}
+		    }
+		}else{
+		    if(h->getSeroStatusAtVaccination() == true){
+			groupsTotalAgeStats.status[2].events[2]++;
+			if(group >= 0){
+			    groupsStats[group].status[2].events[2]++;
+			}
+		    }else{
+			groupsTotalAgeStats.status[3].events[2]++;
+			if(group >= 0){
+			    groupsStats[group].status[3].events[2]++;
+			}
+		    }
+		}
+	    } else {
+		groupsTotalAgeStats.total.nonevents[2]++;
+		if(group >= 0){
+		    groupsStats[group].total.nonevents[2]++;
+		}
+		if(h->isVaccinated() == true){
+		    if(h->getSeroStatusAtVaccination() == true){
+			groupsTotalAgeStats.status[0].nonevents[2]++;
+			if(group >= 0){
+			    groupsStats[group].status[0].nonevents[2]++;
+			}
+		    }else{
+			groupsTotalAgeStats.status[1].nonevents[2]++;
+			if(group >= 0){
+			    groupsStats[group].status[1].nonevents[2]++;
+			}
+		    }
+		}else{
+		    if(h->getSeroStatusAtVaccination() == true){
+			groupsTotalAgeStats.status[2].nonevents[2]++;
+			if(group >= 0){
+			    groupsStats[group].status[2].nonevents[2]++;
+			}
+		    }else{
+			groupsTotalAgeStats.status[3].nonevents[2]++;
+			if(group >= 0){
+			    groupsStats[group].status[3].nonevents[2]++;
+			}
+		    }
+		}
+	    }
+	} else {
+	    groupsTotalAgeStats.total.nonevents[1]++;
+	    if(group >= 0){
+		groupsStats[group].total.nonevents[1]++;
+	    }
+	    if(h->isVaccinated() == true){
+		if(h->getSeroStatusAtVaccination() == true){
+		    groupsTotalAgeStats.status[0].nonevents[1]++;
+		    if(group >= 0){
+			groupsStats[group].status[0].nonevents[1]++;
+		    }
+		}else{
+		    groupsTotalAgeStats.status[1].nonevents[1]++;
+		    if(group >= 0){
+			groupsStats[group].status[1].nonevents[1]++;
+		    }
+		}
+	    }else{
+		if(h->getSeroStatusAtVaccination() == true){
+		    groupsTotalAgeStats.status[2].nonevents[1]++;
+		    if(group >= 0){
+			groupsStats[group].status[2].nonevents[1]++;
+		    }
+		}else{
+		    groupsTotalAgeStats.status[3].nonevents[1]++;
+		    if(group >= 0){
+			groupsStats[group].status[3].nonevents[1]++;
+		    }
+		}
+	    }
+	}
     } else {
 	groupsTotalAgeStats.total.nonevents[0]++;
 	if(group >= 0){
@@ -619,128 +742,8 @@ void Report::updateGroupsReport(int currDay, Human * h){
 	    }
 	}
     }
-    if(h->getRecentDis() > 0){
-	groupsTotalAgeStats.total.events[1]++;
-	if(group >= 0){
-	    groupsStats[group].total.events[1]++;
-	}
-	if(h->isVaccinated() == true){
-	    if(h->getSeroStatusAtVaccination() == true){
-		groupsTotalAgeStats.status[0].events[1]++;
-		if(group >= 0){
-		    groupsStats[group].status[0].events[1]++;
-		}
-	    }else{
-		groupsTotalAgeStats.status[1].events[1]++;
-		if(group >= 0){
-		    groupsStats[group].status[1].events[1]++;
-		}
-	    }
-	}else{
-	    if(h->getSeroStatusAtVaccination() == true){
-		groupsTotalAgeStats.status[2].events[1]++;
-		if(group >= 0){
-		    groupsStats[group].status[2].events[1]++;
-		}
-	    }else{
-		groupsTotalAgeStats.status[3].events[1]++;
-		if(group >= 0){
-		    groupsStats[group].status[3].events[1]++;
-		}
-	    }
-	}
-    } else {
-	groupsTotalAgeStats.total.nonevents[1]++;
-	if(group >= 0){
-	    groupsStats[group].total.nonevents[1]++;
-	}
-	if(h->isVaccinated() == true){
-	    if(h->getSeroStatusAtVaccination() == true){
-		groupsTotalAgeStats.status[0].nonevents[1]++;
-		if(group >= 0){
-		    groupsStats[group].status[0].nonevents[1]++;
-		}
-	    }else{
-		groupsTotalAgeStats.status[1].nonevents[1]++;
-		if(group >= 0){
-		    groupsStats[group].status[1].nonevents[1]++;
-		}
-	    }
-	}else{
-	    if(h->getSeroStatusAtVaccination() == true){
-		groupsTotalAgeStats.status[2].nonevents[1]++;
-		if(group >= 0){
-		    groupsStats[group].status[2].nonevents[1]++;
-		}
-	    }else{
-		groupsTotalAgeStats.status[3].nonevents[1]++;
-		if(group >= 0){
-		    groupsStats[group].status[3].nonevents[1]++;
-		}
-	    }
-	}
-    }
-    if(h->getRecentHosp() > 0){
-	groupsTotalAgeStats.total.events[2]++;
-	if(group >= 0){
-	    groupsStats[group].total.events[2]++;
-	}
-	if(h->isVaccinated() == true){
-	    if(h->getSeroStatusAtVaccination() == true){
-		groupsTotalAgeStats.status[0].events[2]++;
-		if(group >= 0){
-		    groupsStats[group].status[0].events[2]++;
-		}
-	    }else{
-		groupsTotalAgeStats.status[1].events[2]++;
-		if(group >= 0){
-		    groupsStats[group].status[1].events[2]++;
-		}
-	    }
-	}else{
-	    if(h->getSeroStatusAtVaccination() == true){
-		groupsTotalAgeStats.status[2].events[2]++;
-		if(group >= 0){
-		    groupsStats[group].status[2].events[2]++;
-		}
-	    }else{
-		groupsTotalAgeStats.status[3].events[2]++;
-		if(group >= 0){
-		    groupsStats[group].status[3].events[2]++;
-		}
-	    }
-	}
-    } else {
-	groupsTotalAgeStats.total.nonevents[2]++;
-	if(group >= 0){
-	    groupsStats[group].total.nonevents[2]++;
-	}
-	if(h->isVaccinated() == true){
-	    if(h->getSeroStatusAtVaccination() == true){
-		groupsTotalAgeStats.status[0].nonevents[2]++;
-		if(group >= 0){
-		    groupsStats[group].status[0].nonevents[2]++;
-		}
-	    }else{
-		groupsTotalAgeStats.status[1].nonevents[2]++;
-		if(group >= 0){
-		    groupsStats[group].status[1].nonevents[2]++;
-		}
-	    }
-	}else{
-	    if(h->getSeroStatusAtVaccination() == true){
-		groupsTotalAgeStats.status[2].nonevents[2]++;
-		if(group >= 0){
-		    groupsStats[group].status[2].nonevents[2]++;
-		}
-	    }else{
-		groupsTotalAgeStats.status[3].nonevents[2]++;
-		if(group >= 0){
-		    groupsStats[group].status[3].nonevents[2]++;
-		}
-	    }
-	}
-    }
+
+
     if(h->getPreviousInfections() > 0){
 	groupsTotalAgeStats.total.events[3]++;
 	if(group >= 0){
@@ -892,6 +895,68 @@ void Report::updateCohortReport(int currDay, Human * h){
 		cohortStats[cohortAgeGroup].status[3].events[0]++;
 	    }
 	}
+	if(h->getRecentDis() > 0){
+	    cohortStats[cohortAgeGroup].total.events[1]++;
+	    if(h->isVaccinated() == true){
+		if(h->getSeroStatusAtVaccination() == true){
+		    cohortStats[cohortAgeGroup].status[0].events[1]++;
+		}else{
+		    cohortStats[cohortAgeGroup].status[1].events[1]++;
+		}
+	    }else{
+		if(h->getSeroStatusAtVaccination() == true){
+		    cohortStats[cohortAgeGroup].status[2].events[1]++;
+		}else{
+		    cohortStats[cohortAgeGroup].status[3].events[1]++;
+		}
+	    }
+	    if(h->getRecentHosp() > 0){
+		cohortStats[cohortAgeGroup].total.events[2]++;
+		if(h->isVaccinated() == true){
+		    if(h->getSeroStatusAtVaccination() == true){
+			cohortStats[cohortAgeGroup].status[0].events[2]++;
+		    }else{
+			cohortStats[cohortAgeGroup].status[1].events[2]++;
+		    }
+		}else{
+		    if(h->getSeroStatusAtVaccination() == true){
+			cohortStats[cohortAgeGroup].status[2].events[2]++;
+		    }else{
+			cohortStats[cohortAgeGroup].status[3].events[2]++;
+		    }
+		}
+	    } else {
+		cohortStats[cohortAgeGroup].total.nonevents[2]++;
+		if(h->isVaccinated() == true){
+		    if(h->getSeroStatusAtVaccination() == true){
+			cohortStats[cohortAgeGroup].status[0].nonevents[2]++;
+		    }else{
+			cohortStats[cohortAgeGroup].status[1].nonevents[2]++;
+		    }
+		}else{
+		    if(h->getSeroStatusAtVaccination() == true){
+			cohortStats[cohortAgeGroup].status[2].nonevents[2]++;
+		    }else{
+			cohortStats[cohortAgeGroup].status[3].nonevents[2]++;
+		    }
+		}
+	    }
+	} else {
+	    cohortStats[cohortAgeGroup].total.nonevents[1]++;
+	    if(h->isVaccinated() == true){
+		if(h->getSeroStatusAtVaccination() == true){
+		    cohortStats[cohortAgeGroup].status[0].nonevents[1]++;
+		}else{
+		    cohortStats[cohortAgeGroup].status[1].nonevents[1]++;
+		}
+	    }else{
+		if(h->getSeroStatusAtVaccination() == true){
+		    cohortStats[cohortAgeGroup].status[2].nonevents[1]++;
+		}else{
+		    cohortStats[cohortAgeGroup].status[3].nonevents[1]++;
+		}
+	    }
+	}
     } else {
 	cohortStats[cohortAgeGroup].total.nonevents[0]++;
 	if(h->isVaccinated() == true){
@@ -908,68 +973,8 @@ void Report::updateCohortReport(int currDay, Human * h){
 	    }
 	}
     }
-    if(h->getRecentDis() > 0){
-	cohortStats[cohortAgeGroup].total.events[1]++;
-	if(h->isVaccinated() == true){
-	    if(h->getSeroStatusAtVaccination() == true){
-		cohortStats[cohortAgeGroup].status[0].events[1]++;
-	    }else{
-		cohortStats[cohortAgeGroup].status[1].events[1]++;
-	    }
-	}else{
-	    if(h->getSeroStatusAtVaccination() == true){
-		cohortStats[cohortAgeGroup].status[2].events[1]++;
-	    }else{
-		cohortStats[cohortAgeGroup].status[3].events[1]++;
-	    }
-	}
-    } else {
-	cohortStats[cohortAgeGroup].total.nonevents[1]++;
-	if(h->isVaccinated() == true){
-	    if(h->getSeroStatusAtVaccination() == true){
-		cohortStats[cohortAgeGroup].status[0].nonevents[1]++;
-	    }else{
-		cohortStats[cohortAgeGroup].status[1].nonevents[1]++;
-	    }
-	}else{
-	    if(h->getSeroStatusAtVaccination() == true){
-		cohortStats[cohortAgeGroup].status[2].nonevents[1]++;
-	    }else{
-		cohortStats[cohortAgeGroup].status[3].nonevents[1]++;
-	    }
-	}
-    }
-    if(h->getRecentHosp() > 0){
-	cohortStats[cohortAgeGroup].total.events[2]++;
-	if(h->isVaccinated() == true){
-	    if(h->getSeroStatusAtVaccination() == true){
-		cohortStats[cohortAgeGroup].status[0].events[2]++;
-	    }else{
-		cohortStats[cohortAgeGroup].status[1].events[2]++;
-	    }
-	}else{
-	    if(h->getSeroStatusAtVaccination() == true){
-		cohortStats[cohortAgeGroup].status[2].events[2]++;
-	    }else{
-		cohortStats[cohortAgeGroup].status[3].events[2]++;
-	    }
-	}
-    } else {
-	cohortStats[cohortAgeGroup].total.nonevents[2]++;
-	if(h->isVaccinated() == true){
-	    if(h->getSeroStatusAtVaccination() == true){
-		cohortStats[cohortAgeGroup].status[0].nonevents[2]++;
-	    }else{
-		cohortStats[cohortAgeGroup].status[1].nonevents[2]++;
-	    }
-	}else{
-	    if(h->getSeroStatusAtVaccination() == true){
-		cohortStats[cohortAgeGroup].status[2].nonevents[2]++;
-	    }else{
-		cohortStats[cohortAgeGroup].status[3].nonevents[2]++;
-	    }
-	}
-    }
+
+
     if(h->getPreviousInfections() > 0){
 	cohortStats[cohortAgeGroup].total.events[3]++;
 	if(h->isVaccinated() == true){
