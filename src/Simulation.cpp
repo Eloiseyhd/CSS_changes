@@ -116,7 +116,7 @@ void Simulation::humanDynamics() {
         (it->second)->setTrajDay(rGen.getRandomNum(5));
 
         // simulate possible imported infection
-        if(rGen.getEventProbability() < ForceOfImportationTrial / 365.0){
+        if(rGen.getEventProbability() < ForceOfImportationTrial){
             for(int serotype = 1; serotype <= 4; serotype++){
                 if(!it->second->isImmune(serotype)){
                     it->second->infect(currentDay, serotype, &rGenInf, &disRates, &hospRates, normdev);                
