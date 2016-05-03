@@ -130,14 +130,16 @@ void Simulation::humanDynamics() {
 		it->second->setVaxImmunity(false);
 	    }
 	}
-    	// vaccination
+    	// vaccination, first record the cohorts depending on the vaccination strategy, then vaccinate. 
+
+
     	age = it->second->getAgeDays(currentDay);
-    	if(currentDay == vaccineDay){
-    	    it->second->setAgeTrialEnrollment(age);
-    	    it->second->setSeroStatusAtVaccination();
-    	    it->second->setCohort(cohort);
-    	    //one-time vaccination by age groups in the trial
-    	    if(trialVaccination == true){
+	if(trialVaccination == true){
+	    if(currentDay == vaccineDay){
+		it->second->setAgeTrialEnrollment(age);
+		it->second->setSeroStatusAtVaccination();
+		it->second->setCohort(cohort);
+		//one-time vaccination by age groups in the trial
     		if(checkAgeToVaccinate(age)){
     		    if(rGenInf.getEventProbability() < vaccineCoverage){
     			if(vaccineAdvanceMode == true){
@@ -148,13 +150,13 @@ void Simulation::humanDynamics() {
     		    }
     		}
     	    }
-    	}
-    	if(routineVaccination == true){
+    	}else if(routineVaccination == true){
     	    if(currentDay >= vaccineDay){
     		// routine vaccination by age
 		if(age == vaccineAge * 365){
-		    it->second->setCohort(cohort);
 		    it->second->setAgeTrialEnrollment(age);
+		    it->second->setSeroStatusAtVaccination();
+		    it->second->setCohort(cohort);
     		    if(rGenInf.getEventProbability() < vaccineCoverage){
     			if(vaccineAdvanceMode == true){
     			    it->second->vaccinateAdvanceMode(currentDay,rGenInf,vaccineProtection,vaccineWaning);
@@ -165,6 +167,7 @@ void Simulation::humanDynamics() {
     		}
     	    }    
     	}
+
     	// catchup vaccination
     	if(catchupFlag == true && vaccineDay == currentDay){
     	    if(age > vaccineAge * 365 && age < 18 * 365){
