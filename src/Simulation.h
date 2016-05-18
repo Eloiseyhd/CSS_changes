@@ -9,6 +9,8 @@
 #include "Mosquito.h"
 #include "RandomNumGenerator.h"
 #include "Report.h"
+#include "Recruitment.h"
+
 
 class Simulation {
 public:
@@ -24,7 +26,7 @@ public:
     void readSimControlFile(std::string);
     void readLocationFile(std::string);
     void readDiseaseRatesFile();
-    void readVaccineProfileFile();
+    void readVaccineProfilesFile();
     void readVaccinationGroupsFile();
     void setLocNeighborhood(double);
     void simEngine();
@@ -35,9 +37,15 @@ public:
     unsigned setInitialInfection(double, unsigned);
     void simulate();
     void updatePop();
+    void selectEligibleTrialParticipants();
     bool checkAgeToVaccinate(int age_);
     virtual ~Simulation();
 private:
+    std::vector<std::string>getParamsLine(std::string);
+    int parseInteger(std::string);
+    std::string parseString(std::string);
+    double parseDouble(std::string);
+    void parseVector(std::string line, std::vector<int> *);
     double normdev;
     std::map <std::string,std::unique_ptr<Location>> locations;
     std::multimap<std::string,std::unique_ptr<Mosquito>> mosquitoes;
@@ -48,6 +56,7 @@ private:
     std::map<unsigned,double> disRates;
     std::map<unsigned,double> hospRates;
     std::map<int,int> ageGroups;
+    std::map<unsigned, vProfile> vaccines;
     double vaccineProtection;
     double vaccineWaning;
     double propInf;
@@ -56,7 +65,7 @@ private:
     std::string trajectoryFile;
     std::string configLine;
     std::string locationFile;
-    std::string vaccineProfileFile;
+    std::string vaccineProfilesFile;
     std::string vaccinationStrategy;
     std::string reportsFile;
     std::string diseaseRatesFile;
@@ -64,11 +73,12 @@ private:
     bool routineVaccination;
     bool catchupFlag;
     bool trialVaccination;
-    bool vaccineAdvanceMode;
+    int vaccineID;
     unsigned vaccineDay;
     unsigned vaccineAge;
     double vaccineCoverage;
     Report outputReport;
+    Recruitment recruitmentTrial;
     std::string outputFile;
     std::string outputPopFile;
     std::string outputPrevacFile;

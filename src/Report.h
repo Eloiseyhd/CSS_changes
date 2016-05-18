@@ -14,26 +14,24 @@
 
 
 
-struct rangeStruct{
-    int min;
-    int max;
-};
 
-struct eventStats{
-    int events[5];
-    int nonevents[5];
-};
-
-struct reportStats{
-    eventStats status[4];
-    eventStats total;
-};
-
-
-
-class Report {
-
-private:
+class Report {    
+ public:
+    struct rangeStruct{
+	int min;
+	int max;
+    };
+    
+    struct eventStats{
+	int events[5];
+	int nonevents[5];
+    };
+    
+    struct reportStats{
+	eventStats status[4];
+	eventStats total;
+    };
+ private:
 
     std::string outputCohortFile;
     std::string outputAgesFile;
@@ -93,6 +91,7 @@ private:
     int getGroup(int, std::vector<rangeStruct>);
 
 public:
+
 
     Report(std::string);
     Report();

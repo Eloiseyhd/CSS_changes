@@ -84,7 +84,6 @@ void Report::setupReport(string file, string outputPath_, string simName_) {
     string line;
     ifstream infile(file);
 
-    int count;
     if(!infile.good()){
 		exit(1);
     }
@@ -267,7 +266,7 @@ void Report::parseGroupsAges(std::string line, std::vector<rangeStruct> * ages_t
     }
 }
 
-rangeStruct Report::parseDiscreteAges(std::string line){
+Report::rangeStruct Report::parseDiscreteAges(std::string line){
     stringstream linetemp;
     string line2;
     linetemp.clear();

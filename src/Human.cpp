@@ -28,6 +28,9 @@ Human::Human(
     resetRecent();
     cohort = 0;
     tAge = 0;
+    trialDay = 0;
+    vaccineComplete = false;
+    enrolledInTrial = false;
     seroStatusAtVaccination = false;
     infected = false;
     symptomatic = false;
@@ -35,6 +38,7 @@ Human::Human(
     vaccineAdvanceMode = false;
     vaccineImmunity = false;
     vaccineProtection = 0;
+    vaccineDosesReceived = 0;
     if(bday < currDay - 180){
         immunity_temp = false;
         setImmunityPerm(1, rGen.getHumanSeropositivity(FOI, double(currDay - bday)));
@@ -203,7 +207,7 @@ void Human::infect(
     	    RRDis = pow(RR, 1.0 - propInf);
     	}
     }
-
+    
     double vax_protection = 1.0;
     if(isImmuneVax() == true && vaccineAdvanceMode == true){
     	vax_protection = 1.0 - vaccineProtection;
@@ -425,6 +429,44 @@ void Human::vaccinateAdvanceMode(int currDay, RandomNumGenerator& rGen, double p
     setVaxImmStartDay(currDay);
     setVaxImmEndDay(currDay + 365.0 + rGen.getVaxHumanImmunity(rGen.getWaningTime(wan)));
     vaccineProtection = protec_;
+}
+
+void Human::vaccinateWithProfile(int currDay, RandomNumGenerator * rGen, vProfile * vax){
+    vaccineProfile = vax;
+    vaccineDosesReceived = 1;
+    vday = currDay;
+    if(vax->mode == "advance"){
+	this->vaccinateAdvanceMode(currDay, (*rGen), vax->protection, vax->waning);
+    }else if(vax->mode == "age"){
+	this->vaccinate(&vax->VE_pos, &vax->VE_neg, vax->propInf, currDay);
+    }
+    if(vax->doses == vaccineDosesReceived){
+	vaccineComplete = true;
+    }
+}
+
+void Human::enrollInTrial(int currDay){
+    tAge = getAgeDays(currDay);
+    trialDay = currDay;
+    enrolledInTrial = true;
+}
+
+int Human::getNextDoseDay(){
+    if(vaccineComplete == true){
+	return -1;
+    }else{
+	if(vaccineDosesReceived < vaccineProfile->doses){
+	    return (vaccineProfile->relative_schedule[vaccineDosesReceived] + vday);
+	}else{
+	    return (vaccineProfile->relative_schedule.back() + vday);
+	}
+    }
+}
+void Human::boostVaccine(int currDay){
+    vaccineDosesReceived++;
+    if(vaccineProfile->doses == vaccineDosesReceived){
+	vaccineComplete = true;
+    }
 }
 
 Human::Human() {

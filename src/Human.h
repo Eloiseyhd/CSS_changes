@@ -12,43 +12,68 @@
 #include "Infection.h"
 #include "RandomNumGenerator.h"
 
+struct vProfile{
+    unsigned id;
+    int doses;
+    double waning;
+    double protection;
+    double total_VE;
+    double propInf;
+    std::string mode;
+    std::string name;
+    std::map<unsigned,double> VE_pos;
+    std::map<unsigned,double> VE_neg;
+    std::vector<int> relative_schedule;
+};
+
 class Human {
 private:
+
+    unsigned immEndDay;
+    unsigned vaxImmEndDay;
+    unsigned immStartDay;
+    unsigned vaxImmStartDay;
+
+    char gender;
+
+    int bday;
+    int houseMemNum;
+    int trajDay;
+    int recent_dis;
+    int recent_hosp;
+    int recent_inf;
+    int vday;
+    int tAge;
+    int cohort;
+    int trialDay;
+    int vaccineDosesReceived;
+
     double attractiveness;
     double bodySize;
     double bodySizeAdult;
     double bodySizeBirth;
     double bodySizeSlope;
-    int bday;
-    int cohort;
-    char gender;
-    bool hospitalized;
-    std::string houseID;
-    int houseMemNum;
-    unsigned immEndDay;
-    unsigned vaxImmEndDay;
-    std::map<unsigned,bool> immunity_perm;
-    bool immunity_temp;
-    unsigned immStartDay;
-    unsigned vaxImmStartDay;
-    bool infected;
     double propInf;
-    int recent_dis;
-    int recent_hosp;
-    int recent_inf;
+    double vaccineProtection;
+
+    bool hospitalized;
+    bool immunity_temp;
+    bool infected;
     bool seroStatusAtVaccination;
     bool symptomatic;
     bool vaccineAdvanceMode;
     bool vaccineImmunity;
-    double vaccineProtection;
-    int trajDay;
-    std::unique_ptr<std::vector<std::vector<std::pair<std::string,double>>>> trajectories;
     bool vaccinated;
-    int vday;
-    int tAge;
+    bool vaccineComplete;
+    bool enrolledInTrial;    
+
+    vProfile * vaccineProfile;
+    std::string houseID;
+    std::map<unsigned,bool> immunity_perm;
+    std::unique_ptr<std::vector<std::vector<std::pair<std::string,double>>>> trajectories;
     std::map<unsigned,double> * veneg;
     std::map<unsigned,double> * vepos;
-    
+
 public:
     std::unique_ptr<Infection> infection;
 
@@ -58,38 +83,10 @@ public:
     virtual ~Human();
 
     void checkRecovered(unsigned);
-    int getAgeDays(unsigned) const;
-    double getAttractiveness() const;
-    double getBodySize() const;
-    int getCohort(){return cohort;}
-    std::string getCurrentLoc(double);
-    char getGender() const;
-    std::string getHouseID() const;
-    int getHouseMemNum() const;
-    unsigned getImmEndDay() const;
-    unsigned getImmStartDay() const;
-    unsigned getVaxImmEndDay() const;
-    unsigned getVaxImmStartDay() const;
-    std::set<std::string> getLocsVisited();
-    int getPreviousInfections();
-    int getRecentDis(){return recent_dis;}
-    int getRecentHosp(){return recent_hosp;}
-    int getRecentInf(){return recent_inf;}
-    bool getSeroStatusAtVaccination(){return seroStatusAtVaccination;}
-    int getTrajDay(){return trajDay;}
-    std::vector<std::pair<std::string,double>> const& getTrajectory(unsigned) const;
-    int getVaccinationDay(){return vday;}
     void setAgeTrialEnrollment(int age_){tAge = age_;}
-    int getAgeTrialEnrollment(){return tAge;}
+    void enrollInTrial(int);
     void infect(int, unsigned, RandomNumGenerator *, std::map<unsigned,double> *, std::map<unsigned,double> *, double);
     void initiateBodySize(unsigned,RandomNumGenerator&);
-    bool isHospitalized(){return hospitalized;}
-    bool isImmune(unsigned) const;
-    bool isImmuneTemp(){return immunity_temp;}
-    bool isImmuneVax(){return vaccineImmunity;}
-    bool isInfected(){return infected;}
-    bool isSymptomatic(){return symptomatic;}
-    bool isVaccinated(){return vaccinated;}
     void reincarnate(unsigned);
     void resetRecent();
     void setCohort(int c_){cohort = c_;}
@@ -107,8 +104,48 @@ public:
     void updateImmunityPerm(unsigned,bool);
     void updateRecent(int,int,int);
     void vaccinate(std::map<unsigned,double> *,std::map<unsigned,double> *,double,int);
-    void vaccinateAdvanceMode(int currDay, RandomNumGenerator&, double, double);
+    void vaccinateAdvanceMode(int, RandomNumGenerator&, double, double);
+    void vaccinateWithProfile(int, RandomNumGenerator *, vProfile * );
     void waneVaccination(){vaccinated = false;}
+    void boostVaccine(int);
+
+    double getAttractiveness() const;
+    double getBodySize() const;
+
+    char getGender() const;
+
+    unsigned getImmEndDay() const;
+    unsigned getImmStartDay() const;
+    unsigned getVaxImmEndDay() const;
+    unsigned getVaxImmStartDay() const;
+
+    int getAgeDays(unsigned) const;
+    int getHouseMemNum() const;
+    int getPreviousInfections();
+    int getRecentDis(){return recent_dis;}
+    int getRecentHosp(){return recent_hosp;}
+    int getRecentInf(){return recent_inf;}
+    int getTrajDay(){return trajDay;}
+    int getCohort(){return cohort;}
+    int getVaccinationDay(){return vday;}
+    int getAgeTrialEnrollment(){return tAge;}
+    int getNextDoseDay();
+
+    bool isHospitalized(){return hospitalized;}
+    bool isImmune(unsigned) const;
+    bool isImmuneTemp(){return immunity_temp;}
+    bool isImmuneVax(){return vaccineImmunity;}
+    bool isInfected(){return infected;}
+    bool isSymptomatic(){return symptomatic;}
+    bool isVaccinated(){return vaccinated;}
+    bool getSeroStatusAtVaccination(){return seroStatusAtVaccination;}
+    bool isEnrolledInTrial(){return enrolledInTrial;}
+    bool isFullyVaccinated(){return vaccineComplete;}
+
+    std::string getCurrentLoc(double);
+    std::string getHouseID() const;
+    std::set<std::string> getLocsVisited();
+    std::vector<std::pair<std::string,double>> const& getTrajectory(unsigned) const;
 
     struct sortid{
         bool operator() (const Human *a, const Human *b)const{
