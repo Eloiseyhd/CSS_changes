@@ -9,8 +9,10 @@ class Infection {
 public:
     int getStartDay() const;
     int getEndDay() const;
+    double getSymptomOnset() const;
     double getInfectiousness() const;
     unsigned getInfectionType() const;
+    bool isPrimary() const;
     void setInfectiousnessHuman(int);
     void setInfectiousnessMosquito(double);
     std::string toString() const;

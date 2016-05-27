@@ -25,6 +25,7 @@ Human::Human(
     infection.reset(nullptr);
     updateAttractiveness(currDay);
     vaccinated = false;
+    vaccineProfile = NULL;
     resetRecent();
     cohort = 0;
     tAge = 0;
@@ -35,10 +36,12 @@ Human::Human(
     infected = false;
     symptomatic = false;
     hospitalized = false;
-    vaccineAdvanceMode = false;
     vaccineImmunity = false;
     vaccineProtection = 0;
     vaccineDosesReceived = 0;
+    lastDayContactedByTrial = 0;
+    selfReportDay = -1;
+    selfReportProb = 0.0;
     if(bday < currDay - 180){
         immunity_temp = false;
         setImmunityPerm(1, rGen.getHumanSeropositivity(FOI, double(currDay - bday)));
@@ -64,6 +67,7 @@ void Human::checkRecovered(unsigned currDay){
        infected = false;
        hospitalized = false;
        symptomatic = false;
+       selfReportDay = -1;
     }
 }
 
@@ -183,8 +187,7 @@ void Human::infect(
     unsigned infectionType,
     RandomNumGenerator * rGen,
     std::map<unsigned,double> * disRates,
-    std::map<unsigned,double> * hospRates,
-    double normdev)
+    std::map<unsigned,double> * hospRates)
 {
     double RR = 1.0;
     double RRInf = 1.0;
@@ -194,9 +197,9 @@ void Human::infect(
     int vaxAdvancement = 0;
 
     if(vaccinated){
-    	if(vaccineAdvanceMode == true){
+	if(vaccineProfile->mode == "advance"){
     	    vaxAdvancement = 1;
-    	}else{
+    	}else if(vaccineProfile->mode == "age"){
     	    if(getPreviousInfections() > 0){
 		totalVE = 1.0 - vepos->at(0) / (1.0 + exp(vepos->at(1) * (double(getAgeDays(currentDay)) / 365.0 - vepos->at(2))));
     	    }else{
@@ -209,7 +212,7 @@ void Human::infect(
     }
     
     double vax_protection = 1.0;
-    if(isImmuneVax() == true && vaccineAdvanceMode == true){
+    if(isImmuneVax() == true && vaccineProfile->mode == "advance"){
     	vax_protection = 1.0 - vaccineProtection;
     }
     if(rGen->getEventProbability() < RRInf * vax_protection){
@@ -244,6 +247,13 @@ void Human::infect(
     	}
     	infection.reset(new Infection(
     	      currentDay + 1, currentDay + 15, 0.0, infectionType, getPreviousInfections() == 0, recent_dis > 0, exp(rGen->getRandomNormal() * 0.2701716 + 1.750673)));
+
+	if(symptomatic == true && enrolledInTrial == true){
+	    if(rGen->getEventProbability() < selfReportProb){
+		selfReportDay = rGen->getSelfReportDay(infection->getSymptomOnset());
+	    }
+	}
+
     	updateImmunityPerm(infectionType, true);
     	setImmunityTemp(true);
     	setImmStartDay(currentDay);
@@ -295,6 +305,12 @@ void Human::reincarnate(unsigned currDay){
     seroStatusAtVaccination = false;
     immunity_temp = true;
     vaccinated = false;
+    vaccineProfile = NULL;
+    enrolledInTrial = false;
+    trialArm.clear();
+    vaccineComplete = false;
+    lastDayContactedByTrial = 0;
+    selfReportDay = -1;
     immStartDay = bday;
     immEndDay = bday + 180;
     updateImmunityPerm(1,false);
@@ -305,7 +321,6 @@ void Human::reincarnate(unsigned currDay){
     recent_dis = 0;
     recent_hosp = 0;
     vaccineImmunity = false;
-    vaccineAdvanceMode = false;
     vaccineProtection = 0;
 }
 
@@ -313,7 +328,7 @@ void Human::reincarnate(unsigned currDay){
 
 void Human::resetRecent(){
     recent_inf = 0;
-    recent_dis = 0;
+    recent_dis = 0; 
     recent_hosp = 0;
 }
 
@@ -409,21 +424,20 @@ void Human::vaccinate(
     std::map<unsigned,double> * veposIn,
     std::map<unsigned,double> * venegIn,
     double propInfIn,
-    int currDay)
+    int currDay,
+    double normdevIn)
 {
     vaccinated = true;
     vepos = veposIn;
     veneg = venegIn;
     propInf = propInfIn;
     vday = currDay;
+    normdev = normdevIn;
 }
-
-
 
 void Human::vaccinateAdvanceMode(int currDay, RandomNumGenerator& rGen, double protec_, double wan)
 {
     vaccinated = true;
-    vaccineAdvanceMode = true;
     vday = currDay;
     setVaxImmunity(true);
     setVaxImmStartDay(currDay);
@@ -435,20 +449,21 @@ void Human::vaccinateWithProfile(int currDay, RandomNumGenerator * rGen, vProfil
     vaccineProfile = vax;
     vaccineDosesReceived = 1;
     vday = currDay;
-    if(vax->mode == "advance"){
-	this->vaccinateAdvanceMode(currDay, (*rGen), vax->protection, vax->waning);
-    }else if(vax->mode == "age"){
-	this->vaccinate(&vax->VE_pos, &vax->VE_neg, vax->propInf, currDay);
+    if(vaccineProfile->mode == "advance"){
+	this->vaccinateAdvanceMode(currDay, (*rGen), vaccineProfile->protection, vaccineProfile->waning);
+    }else if(vaccineProfile->mode == "age"){
+	this->vaccinate(&vaccineProfile->VE_pos, &vaccineProfile->VE_neg, vaccineProfile->propInf, currDay, vaccineProfile->normdev);
     }
     if(vax->doses == vaccineDosesReceived){
 	vaccineComplete = true;
     }
 }
 
-void Human::enrollInTrial(int currDay){
+void Human::enrollInTrial(int currDay, std::string arm_){
     tAge = getAgeDays(currDay);
     trialDay = currDay;
     enrolledInTrial = true;
+    trialArm = arm_;
 }
 
 int Human::getNextDoseDay(){
@@ -462,8 +477,13 @@ int Human::getNextDoseDay(){
 	}
     }
 }
-void Human::boostVaccine(int currDay){
+void Human::boostVaccine(int currDay, RandomNumGenerator * rGen){
     vaccineDosesReceived++;
+    if(vaccineProfile->mode == "advance"){
+	this->vaccinateAdvanceMode(currDay, (*rGen), vaccineProfile->protection, vaccineProfile->waning);
+    }else if(vaccineProfile->mode == "age"){
+	this->vaccinate(&vaccineProfile->VE_pos, &vaccineProfile->VE_neg, vaccineProfile->propInf, currDay, vaccineProfile->normdev);
+    }
     if(vaccineProfile->doses == vaccineDosesReceived){
 	vaccineComplete = true;
     }

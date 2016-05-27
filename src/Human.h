@@ -19,6 +19,7 @@ struct vProfile{
     double protection;
     double total_VE;
     double propInf;
+    double normdev;
     std::string mode;
     std::string name;
     std::map<unsigned,double> VE_pos;
@@ -47,6 +48,8 @@ private:
     int cohort;
     int trialDay;
     int vaccineDosesReceived;
+    int lastDayContactedByTrial;
+    int selfReportDay;
 
     double attractiveness;
     double bodySize;
@@ -54,14 +57,15 @@ private:
     double bodySizeBirth;
     double bodySizeSlope;
     double propInf;
+    double normdev;
     double vaccineProtection;
+    double selfReportProb;
 
     bool hospitalized;
     bool immunity_temp;
     bool infected;
     bool seroStatusAtVaccination;
     bool symptomatic;
-    bool vaccineAdvanceMode;
     bool vaccineImmunity;
     bool vaccinated;
     bool vaccineComplete;
@@ -69,6 +73,7 @@ private:
 
     vProfile * vaccineProfile;
     std::string houseID;
+    std::string trialArm;
     std::map<unsigned,bool> immunity_perm;
     std::unique_ptr<std::vector<std::vector<std::pair<std::string,double>>>> trajectories;
     std::map<unsigned,double> * veneg;
@@ -84,8 +89,9 @@ public:
 
     void checkRecovered(unsigned);
     void setAgeTrialEnrollment(int age_){tAge = age_;}
-    void enrollInTrial(int);
-    void infect(int, unsigned, RandomNumGenerator *, std::map<unsigned,double> *, std::map<unsigned,double> *, double);
+    void enrollInTrial(int, std::string);
+    void setSelfReportProb(double prob_){selfReportProb = prob_;}
+    void infect(int, unsigned, RandomNumGenerator *, std::map<unsigned,double> *, std::map<unsigned,double> *);
     void initiateBodySize(unsigned,RandomNumGenerator&);
     void reincarnate(unsigned);
     void resetRecent();
@@ -99,15 +105,16 @@ public:
     void setImmunityPerm(unsigned,bool);
     void setSeroStatusAtVaccination();
     void setTrajDay(int dayIn){trajDay = dayIn;}
+    void setContactByTrial(int dayIn){lastDayContactedByTrial = dayIn;}
     void updateAttractiveness(unsigned);
     void updateBodySize(unsigned);
     void updateImmunityPerm(unsigned,bool);
     void updateRecent(int,int,int);
-    void vaccinate(std::map<unsigned,double> *,std::map<unsigned,double> *,double,int);
+    void vaccinate(std::map<unsigned,double> *,std::map<unsigned,double> *,double,int,double);
     void vaccinateAdvanceMode(int, RandomNumGenerator&, double, double);
     void vaccinateWithProfile(int, RandomNumGenerator *, vProfile * );
     void waneVaccination(){vaccinated = false;}
-    void boostVaccine(int);
+    void boostVaccine(int, RandomNumGenerator *);
 
     double getAttractiveness() const;
     double getBodySize() const;
@@ -130,6 +137,8 @@ public:
     int getVaccinationDay(){return vday;}
     int getAgeTrialEnrollment(){return tAge;}
     int getNextDoseDay();
+    int getLastContactByTrial(){return lastDayContactedByTrial;}
+    int getSelfReportDay(){return selfReportDay;}
 
     bool isHospitalized(){return hospitalized;}
     bool isImmune(unsigned) const;
@@ -144,6 +153,7 @@ public:
 
     std::string getCurrentLoc(double);
     std::string getHouseID() const;
+    std::string getTrialArm(){return trialArm;}
     std::set<std::string> getLocsVisited();
     std::vector<std::pair<std::string,double>> const& getTrajectory(unsigned) const;
 

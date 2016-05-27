@@ -64,6 +64,10 @@ unsigned RandomNumGenerator::getRandomNum(unsigned num) {
     return dis(gen);
 }
 
+int RandomNumGenerator::getSelfReportDay(double IIP){
+    return floor(IIP);
+}
+
 double RandomNumGenerator::getRandomNormal(){
     normal_distribution<> d(0.0, 1.0);
     return d(gen);
@@ -87,6 +91,8 @@ string RandomNumGenerator::toString() const {
     ss <<" mozRest:" << mozRest;
     return ss.str();
 }
+
+
 
 RandomNumGenerator::RandomNumGenerator(
     unsigned s, unsigned huImm, double efactor, double mlife,

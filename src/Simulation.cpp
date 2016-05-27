@@ -36,10 +36,12 @@ string Simulation::readInputs() {
 
     readVaccineProfilesFile();
 
-    recruitmentTrial.setupRecruitment("trialSettings.txt", &vaccines);
-    printf("Vax Sample: %d, Plac Sample: %d\n", recruitmentTrial.getVaccineSampleSize(), recruitmentTrial.getPlaceboSampleSize());
-    printf("Recruitment day: %d\n",recruitmentTrial.getRecruitmentStartDay());
-
+    randomTrial = true;
+    if(randomTrial){
+	recruitmentTrial.setupRecruitment("trialSettings.txt", &vaccines);
+	printf("Vax Sample: %d, Plac Sample: %d\n", recruitmentTrial.getVaccineSampleSize(), recruitmentTrial.getPlaceboSampleSize());
+	printf("Recruitment day: %d\n",recruitmentTrial.getRecruitmentStartDay());
+    }
     if(trialVaccination){
 	readVaccinationGroupsFile();
     }
@@ -72,6 +74,7 @@ void Simulation::simEngine() {
         currentDay++;
     }
     outputReport.finalizeReport();
+    recruitmentTrial.finalizeTrial();
 }
 
 
@@ -93,8 +96,13 @@ void Simulation::humanDynamics() {
 
     for(auto it = humans.begin(); it != humans.end(); ++it){
         // daily mortality for humans by age
-        if(rGen.getEventProbability() < (deathRate * it->second->getAgeDays(currentDay)))
+        if(rGen.getEventProbability() < (deathRate * it->second->getAgeDays(currentDay))){
             it->second->reincarnate(currentDay);
+	    if(randomTrial == true){
+		// remove from trial
+
+	    }
+	}
 
         // update temporary cross-immunity status if necessary
         if(currentDay == it->second->getImmEndDay())
@@ -111,7 +119,7 @@ void Simulation::humanDynamics() {
         if(rGen.getEventProbability() < ForceOfImportationTrial){
             for(int serotype = 1; serotype <= 4; serotype++){
                 if(!it->second->isImmune(serotype)){
-                    it->second->infect(currentDay, serotype, &rGenInf, &disRates, &hospRates, normdev);                
+                    it->second->infect(currentDay, serotype, &rGenInf, &disRates, &hospRates);                
                 }
             }
         }
@@ -206,7 +214,7 @@ void Simulation::mosquitoDynamics(){
 
         // if the mosquito bites first, then let it bite and then see about dying
         while(biteTime < dieTime && biteTime <= 1.0){
-            biteTaken = it->second->takeBite(biteTime,locations[it->second->getLocationID()].get(),&rGen,&rGenInf,&disRates,&hospRates,currentDay,numDays,&out,normdev);
+            biteTaken = it->second->takeBite(biteTime,locations[it->second->getLocationID()].get(),&rGen,&rGenInf,&disRates,&hospRates,currentDay,numDays,&out);
             it->second->setBiteStartDay(currentDay + rGen.getMozRestDays());
             biteTime = it->second->getBiteStartDay() - double(currentDay);
 
@@ -317,10 +325,6 @@ void Simulation::readSimControlFile(string line) {
     getline(infile, line, ',');
     vaccineID = (stoi(line.c_str(), NULL, 10) == 0 ? false : true);
     getline(infile, line, ',');
-    vaccineProtection = strtod(line.c_str(), NULL);
-    getline(infile, line, ',');
-    vaccineWaning = strtod(line.c_str(), NULL);
-    getline(infile, line, ',');
     outputPath = line;
     getline(infile, line, ',');
     reportsFile = line;
@@ -332,10 +336,6 @@ void Simulation::readSimControlFile(string line) {
     trajectoryFile = line;
     getline(infile, line, ',');
     vaccineProfilesFile = line;
-    getline(infile, line, ',');
-    normdev = strtod(line.c_str(), NULL);    
-    getline(infile, line, ',');
-    propInf = strtod(line.c_str(), NULL);    
     getline(infile, line, ',');
     deathRate = strtod(line.c_str(), NULL);    
     getline(infile, line, ',');
@@ -464,6 +464,7 @@ void Simulation::readVaccineProfilesFile(){
 	    vaxTemp.waning = 0.0;
 	    vaxTemp.protection = 0.0;
 	    vaxTemp.propInf = 0.0;
+	    vaxTemp.normdev = 0.0;
 	    for(unsigned k = 0; k < 3; k++){
 		vaxTemp.VE_pos.insert(make_pair(k,0.0));
 		vaxTemp.VE_neg.insert(make_pair(k,0.0));
@@ -514,6 +515,9 @@ void Simulation::readVaccineProfilesFile(){
 		if(line2 == "vaccine_prop_inf_" + s_id){
 		    vaxTemp.propInf = this->parseDouble(line3);
 		}
+		if(line2 == "vaccine_normdev_" + s_id){
+		    vaxTemp.normdev = this->parseDouble(line3);
+		}
 		if(line2 == "vaccine_schedule_" + s_id){
 		    this->parseVector(line3, &(vaxTemp.relative_schedule));
 		}
@@ -530,8 +534,8 @@ void Simulation::readVaccineProfilesFile(){
 	exit(1);
     }
     for (int i = 0;i < vaccines.size(); i++){
-	printf("Vaccine ID: %u Name: %s Mode: %s Waning %.2f Protection %.2f Efficacy %.2f PropInf %.2f Doses %d\n",vaccines.at(i).id, vaccines.at(i).name.c_str(), vaccines.at(i).mode.c_str(), vaccines.at(i).waning,vaccines.at(i).protection,vaccines.at(i).total_VE,
-	       vaccines.at(i).propInf, vaccines.at(i).doses);
+	printf("Vaccine ID: %u Name: %s Mode: %s Waning %.2f Protection %.2f Efficacy %.2f PropInf %.2f NormDev %.2f Doses %d\n",vaccines.at(i).id, vaccines.at(i).name.c_str(), vaccines.at(i).mode.c_str(), vaccines.at(i).waning,vaccines.at(i).protection,vaccines.at(i).total_VE,
+	       vaccines.at(i).propInf, vaccines.at(i).normdev, vaccines.at(i).doses);
 	for(int j = 0; j < 3; j++){
 	    printf("PAR %d VE pos %.2f VE neg %.2f\n",j,vaccines.at(i).VE_pos.at(j), vaccines.at(i).VE_neg.at(j));
 	}

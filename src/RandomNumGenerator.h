@@ -6,19 +6,24 @@
 
 class RandomNumGenerator {
 public:
-    double getWaningTime(double);
     unsigned getMozEmerge(double);
-    double getMozLifeSpan();
     unsigned getHumanTrajectory();
     unsigned getHumanImmunity();
     unsigned getVaxHumanImmunity(unsigned);
-    bool getHumanSeropositivity(double, double);
     unsigned getRandomNum(unsigned);
+    unsigned getMozNextLoc(unsigned);
+
+    bool getHumanSeropositivity(double, double);
+
+    double getWaningTime(double);
+    double getMozLifeSpan();
     double getRandomNormal();
     double getEventProbability();
     double getMozLatencyDays();
     double getMozRestDays();
-    unsigned getMozNextLoc(unsigned);
+
+    int getSelfReportDay(double);
+
     void setSeed(unsigned);
     std::string toString() const;
     RandomNumGenerator(unsigned, unsigned, double, double, double, std::map<unsigned,double>);

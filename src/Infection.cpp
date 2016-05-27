@@ -11,6 +11,14 @@ int Infection::getEndDay() const {
     return endDay;
 }
 
+double Infection::getSymptomOnset() const{
+    return IIP + startDay;
+}
+
+bool Infection::isPrimary() const{
+    return primary;
+}
+
 double Infection::getInfectiousness() const {
     return infectiousness;
 }
