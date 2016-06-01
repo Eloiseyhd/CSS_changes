@@ -67,7 +67,7 @@ class Recruitment {
     void addPossibleParticipant(Human *, int);
     void shuffleEligibleParticipants();
     void updateParticipants(int, RandomNumGenerator *);
-    void finalizeTrial();
+    void finalizeTrial(int);
 
     int getVaccineSampleSize(){return vaccineSampleSize;}
     int getPlaceboSampleSize(){return placeboSampleSize;}

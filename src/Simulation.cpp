@@ -74,7 +74,7 @@ void Simulation::simEngine() {
         currentDay++;
     }
     outputReport.finalizeReport();
-    recruitmentTrial.finalizeTrial();
+    recruitmentTrial.finalizeTrial(currentDay);
 }
 
 

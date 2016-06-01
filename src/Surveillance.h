@@ -22,11 +22,16 @@ class Surveillance {
 	int symptoms[4];
 	int hosp[4];
 	int lastType;
+	int dropoutDay;
+	int enrollmentDay;
+	int houseMemNum;
 	double onset[4];
 	bool seroStatusAtVaccination;
+	bool previousExposure[4];
 	std::string trialArm;
 	std::vector<std::string> primary;
 	std::vector<std::string> pcr;
+	std::string houseID;
     };
  public:
     Surveillance();
@@ -35,9 +40,10 @@ class Surveillance {
 
     void update_human_surveillance(Human *, int, RandomNumGenerator *);
     void initialize_human_surveillance(Human *, int);
-    void finalizeRecord(Human *, int);
+    void finalize_human_surveillance(Human *, int);
     void setup(std::string);
-    void printRecords(std::string);
+    void printRecords(std::string, int);
+
  private:
     int contactPerson(Human *, int, RandomNumGenerator *);
     int contactFrequency;

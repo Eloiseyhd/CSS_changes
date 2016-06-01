@@ -33,6 +33,9 @@ Human::Human(
     vaccineComplete = false;
     enrolledInTrial = false;
     seroStatusAtVaccination = false;
+    for(int i = 0;i < 4; i++){
+	preExposureAtVaccination[i] = false;
+    }
     infected = false;
     symptomatic = false;
     hospitalized = false;
@@ -250,7 +253,7 @@ void Human::infect(
 
 	if(symptomatic == true && enrolledInTrial == true){
 	    if(rGen->getEventProbability() < selfReportProb){
-		selfReportDay = rGen->getSelfReportDay(infection->getSymptomOnset());
+		selfReportDay = rGen->getSelfReportDay(infection->getSymptomOnset() + rGen->getRandomNum(5));
 	    }
 	}
 
@@ -370,9 +373,16 @@ void Human::setSeroStatusAtVaccination(){
   if(getPreviousInfections() > 0){
     seroStatusAtVaccination = true;
   }
+  for(int i = 0; i < 4;i++){
+      if(immunity_perm[i]){
+	  preExposureAtVaccination[i] = true;
+      }
+  }
 }
 
-
+bool Human::getPreExposureAtVaccination(unsigned sero){
+    return preExposureAtVaccination[sero];.
+}
 
 void Human::updateAttractiveness(unsigned currDay){
     updateBodySize(currDay);

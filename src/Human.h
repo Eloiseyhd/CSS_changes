@@ -65,6 +65,7 @@ private:
     bool immunity_temp;
     bool infected;
     bool seroStatusAtVaccination;
+    bool preExposureAtVaccination[4];
     bool symptomatic;
     bool vaccineImmunity;
     bool vaccinated;
@@ -148,6 +149,7 @@ public:
     bool isSymptomatic(){return symptomatic;}
     bool isVaccinated(){return vaccinated;}
     bool getSeroStatusAtVaccination(){return seroStatusAtVaccination;}
+    bool getPreExposureAtVaccination(unsigned);
     bool isEnrolledInTrial(){return enrolledInTrial;}
     bool isFullyVaccinated(){return vaccineComplete;}
 

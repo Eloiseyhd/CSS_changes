@@ -50,8 +50,8 @@ void Recruitment::update(int currDay, RandomNumGenerator * rGen){
 	}
     }
 }
-void Recruitment::finalizeTrial(){
-    trialSurveillance.printRecords("trialRecords.csv");
+void Recruitment::finalizeTrial(int currDay){
+    trialSurveillance.printRecords("trialRecords.csv", currDay);
 }
 void Recruitment::updateParticipants(int currDay, RandomNumGenerator * rGen){
     // Those who drop-out
@@ -62,11 +62,11 @@ void Recruitment::updateParticipants(int currDay, RandomNumGenerator * rGen){
 	    if(rGen->getEventProbability() < ageGroups[i].dropoutRate){
 		if(rGen->getEventProbability() < 0.5){
 		    int pos_ = rGen->getRandomNum(ageGroups[i].vaccine.size());
-		    trialSurveillance.finalizeRecord(ageGroups[i].vaccine[pos_], currDay);
+		    trialSurveillance.finalize_human_surveillance(ageGroups[i].vaccine[pos_], currDay);
 		    ageGroups[i].vaccine.erase(ageGroups[i].vaccine.begin() + pos_);
 		}else{
 		    int pos_ = rGen->getRandomNum(ageGroups[i].placebo.size());
-		    trialSurveillance.finalizeRecord(ageGroups[i].vaccine[pos_], currDay);
+		    trialSurveillance.finalize_human_surveillance(ageGroups[i].vaccine[pos_], currDay);
 		    ageGroups[i].placebo.erase(ageGroups[i].placebo.begin() + pos_);		
 		}
 	    }

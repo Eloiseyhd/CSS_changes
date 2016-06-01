@@ -53,6 +53,10 @@ void Surveillance::initialize_human_surveillance(Human * h, int currDay){
     tempRecord.ageDaysAtVaccination = h->getAgeTrialEnrollment();
     tempRecord.seroStatusAtVaccination = h->getSeroStatusAtVaccination();
     tempRecord.trialArm = h->getTrialArm();
+    tempRecord.houseID = h->getHouseID();
+    tempRecord.houseMemNum = h->getHouseMemNum();
+    tempRecord.dropoutDay = -1;
+    tempRecord.enrollmentDay = currDay;
     tempRecord.pcr.clear();
     tempRecord.primary.clear();
     for(int i = 0;i < 4; i++){
@@ -61,6 +65,7 @@ void Surveillance::initialize_human_surveillance(Human * h, int currDay){
 	tempRecord.onset[i] = -1.0;
 	tempRecord.symptoms[i] = -1;
 	tempRecord.hosp[i] = -1;
+	tempRecord.previousExposure[i] = h->getPreExposureAtVaccination(i);
 	tempRecord.pcr.push_back("NA");
 	tempRecord.primary.push_back("NA");
     }
@@ -115,7 +120,10 @@ void Surveillance::update_human_surveillance(Human * h, int currDay, RandomNumGe
     }
 }
 
-
+void Surveillance::finalize_human_surveillance(Human *h, int currDay){
+    std::string id = h->getHouseID() + std::to_string(h->getHouseMemNum());
+    recordsDatabase.find(id)->second.dropoutDay = currDay;
+}
 int Surveillance::contactPerson(Human * h, int currDay, RandomNumGenerator * rGen){
     // Check level of symptoms in the last week (if is asymptomatic then there's no screening)
     std::string id = h->getHouseID() + std::to_string(h->getHouseMemNum());
@@ -124,7 +132,7 @@ int Surveillance::contactPerson(Human * h, int currDay, RandomNumGenerator * rGe
 	// If the symptoms happened between last contact and today
 	if(recordsDatabase.find(id)->second.symptoms[serotype] > 0 && recordsDatabase.find(id)->second.onset[serotype] <= currDay && recordsDatabase.find(id)->second.onset[serotype] > h->getLastContactByTrial()){
 	    int pcr_result =  this->PCR_test(h, currDay, rGen);
-	    recordsDatabase.find(id)->second.pcr[serotype] = (pcr_result >= 0) ? "TRUE" : "FALSE";
+	    recordsDatabase.find(id)->second.pcr[serotype] = (pcr_result >= 0) ? "POSITIVE" : "NEGATIVE";
 	    return pcr_result; 
 	}
     }
@@ -132,7 +140,9 @@ int Surveillance::contactPerson(Human * h, int currDay, RandomNumGenerator * rGe
 }
 
 int Surveillance::PCR_test(Human * h, int currDay, RandomNumGenerator * rGen){
-    int serotype = -1;
+    std::string id = h->getHouseID() + std::to_string(h->getHouseMemNum());
+    int pcr_result = -1;
+    int serotype = (h->infection != NULL) ? h->infection->getInfectionType() -1 : recordsDatabase.find(id)->second.lastType;
     double sensitivity = 0.0;
     if(h->infection != NULL){
 	// Is a primary or secondary infection? 
@@ -147,20 +157,17 @@ int Surveillance::PCR_test(Human * h, int currDay, RandomNumGenerator * rGen){
 	}
 	sensitivity = (1.0 / (1.0 + exp(-1 * (b1 + b2 * (currDay - h->infection->getSymptomOnset())))));
 	if(rGen->getEventProbability() < sensitivity){
-	    serotype = h->infection->getInfectionType() - 1;
+	    pcr_result = h->infection->getInfectionType() - 1;
 	}
     }
-    std::string id = h->getHouseID() + std::to_string(h->getHouseMemNum());
-    std::string pcr_ = serotype >= 0 ? "TRUE" : "FALSE";
+    /*    std::string pcr_ = pcr_result >= 0 ? "TRUE" : "FALSE";
     printf("%s, %s,  %.2f, %.4f, %s\n",id.c_str(), pcr_.c_str(),(double) currDay -  recordsDatabase.find(id)->second.onset[serotype],sensitivity,  recordsDatabase.find(id)->second.primary[serotype].c_str());
-    return serotype;
+    */
+    return pcr_result;
 }
 
-void Surveillance::finalizeRecord(Human * h, int currDay){
-    std::string id = h->getHouseID() + std::to_string(h->getHouseMemNum());
 
-}
-void Surveillance::printRecords(std::string file){
+void Surveillance::printRecords(std::string file, int currDay){
     if (file.length() == 0) {
 	exit(1);
     }
@@ -169,14 +176,26 @@ void Surveillance::printRecords(std::string file){
     if (!outSurveillance.good()) {
 	exit(1);
     }
-    outSurveillance << "ID, Age, Arm, Serostatus, onset_1, isSympt_1, PCR_1, TYPE_1, TTEL_1, TTER_1, onset_2, isSympt_2, PCR_2, TYPE_2, TTEL_2, TTER_2, onset_3, isSympt_3, PCR_3, TYPE_3, TTEL_3, TTER_3, onset_4, isSympt_4, PCR_4, TYPE_4, TTEL_4, TTER_4\n";
+    outSurveillance << "ID, Age, Arm, Serostatus, Enrollment_day, Last_day, ";
+    outSurveillance << "previous_exposure_1, onset_1, isSympt_1, PCR_1, TYPE_1, TTEL_1, TTER_1, previous_exposure_2, onset_2, isSympt_2, PCR_2, TYPE_2, TTEL_2, TTER_2, ";
+    outSurveillance << "previous_exposure_3, onset_3, isSympt_3, PCR_3, TYPE_3, TTEL_3, TTER_3, previous_exposure_4, onset_4, isSympt_4, PCR_4, TYPE_4, TTEL_4, TTER_4\n";
     std::map<std::string, hRecord>::iterator it;
     for(it = recordsDatabase.begin(); it != recordsDatabase.end(); ++it){
-	std::string serostatus = ((*it).second.seroStatusAtVaccination == true) ? "seropos" : "seroneg";
-	outSurveillance << (*it).first.c_str() << ", " << (*it).second.ageDaysAtVaccination / 365 << ", " << (*it).second.trialArm.c_str() << ", " << serostatus.c_str() << ", ";
+	std::string serostatus = ((*it).second.seroStatusAtVaccination == true) ? "POSITIVE" : "NEGATIVE";
+	int lastDay = (*it).second.dropoutDay > -1 ? (*it).second.dropoutDay : currDay;
+	outSurveillance << (*it).second.houseID.c_str() << "_" << (*it).second.houseMemNum << ", " << (*it).second.ageDaysAtVaccination / 365 << ", " << (*it).second.trialArm.c_str() << ", " << serostatus.c_str() << ", ";
+	outSurveillance << (*it).second.enrollmentDay << ", " << lastDay << ", ";
 	for(int i = 0; i < 4; i++){
-	    std::string sympt = ((*it).second.symptoms[i] == 1) ? "symptomatic" : "asymptomatic";
-	    outSurveillance << (*it).second.onset[i] << ", " << sympt << ", " << (*it).second.pcr[i].c_str() << ", " << (*it).second.primary[i] << ", " << (*it).second.leftCensored[i] << ", " << (*it).second.rightCensored[i];
+	    std::string sympt = "NA";
+	    if((*it).second.symptoms[i] == 1){
+		sympt =  "symptomatic";
+	    }else if((*it).second.symptoms[i] == 0){
+		sympt =  "asymptomatic";
+	    }
+	    std::string preExposure = (*it).second.previousExposure[i] == true ? "YES" : "NO";
+	    std::string onset = (*it).second.onset[i] >= 0 ? std::to_string((*it).second.onset[i]) : "NA";
+	    std::string ttr = (*it).second.rightCensored[i] >= 0 ? std::to_string((*it).second.rightCensored[i]) : "NA";
+	    outSurveillance << preExposure << ", " << onset << ", " << sympt << ", " << (*it).second.pcr[i].c_str() << ", " << (*it).second.primary[i] << ", " << (*it).second.leftCensored[i] << ", " << ttr;
 	    if(i == 3){
 		outSurveillance << "\n";
 	    }else{
