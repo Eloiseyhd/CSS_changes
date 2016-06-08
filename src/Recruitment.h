@@ -37,6 +37,7 @@ class Recruitment {
     int dailyPlaceboRecruitmentRate;
 
     std::string recruitmentStrategy;
+    std::string outSurveillance;
     std::vector<groupStruct> ageGroups;
 
     unsigned vaccineProfile;

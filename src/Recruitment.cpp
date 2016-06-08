@@ -54,7 +54,7 @@ void Recruitment::removeParticipant(Human * h, int currDay){
     trialSurveillance.finalize_human_surveillance(h, currDay);
 }
 void Recruitment::finalizeTrial(int currDay){
-    trialSurveillance.printRecords("trialRecords.csv", currDay);
+    trialSurveillance.printRecords(outSurveillance, currDay);
 }
 void Recruitment::updateParticipants(int currDay, RandomNumGenerator * rGen){
     // Those who drop-out
@@ -191,6 +191,7 @@ void Recruitment::setupRecruitment(std::string file, std::map<unsigned,vProfile>
     if (file.length() == 0) {
 		exit(1);
     }
+    outSurveillance = outputPath + "/" + simName_ + "_trial.csv";
 
     string line;
     ifstream infile(file);
