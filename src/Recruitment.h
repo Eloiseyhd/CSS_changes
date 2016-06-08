@@ -63,12 +63,12 @@ class Recruitment {
     virtual ~Recruitment();
 
     void update(int, RandomNumGenerator *);
-    void setupRecruitment(std::string, std::map<unsigned,vProfile> *);
+    void setupRecruitment(std::string, std::map<unsigned,vProfile> *, std::string, std::string);
     void addPossibleParticipant(Human *, int);
     void shuffleEligibleParticipants();
     void updateParticipants(int, RandomNumGenerator *);
     void finalizeTrial(int);
-
+    void removeParticipant(Human *, int);
     int getVaccineSampleSize(){return vaccineSampleSize;}
     int getPlaceboSampleSize(){return placeboSampleSize;}
     int getRecruitmentStartDay(){return recruitmentStartDay;}

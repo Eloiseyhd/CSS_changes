@@ -34,15 +34,16 @@ string Simulation::readInputs() {
 
     readDiseaseRatesFile();
 
+    readVaccineSettingsFile();
+
     readVaccineProfilesFile();
 
-    randomTrial = true;
-    if(randomTrial){
-	recruitmentTrial.setupRecruitment("trialSettings.txt", &vaccines);
+    if(vaccinationStrategy == "random_trial"){
+	recruitmentTrial.setupRecruitment(trialSettingsFile, &vaccines, outputPath, simName);
 	printf("Vax Sample: %d, Plac Sample: %d\n", recruitmentTrial.getVaccineSampleSize(), recruitmentTrial.getPlaceboSampleSize());
 	printf("Recruitment day: %d\n",recruitmentTrial.getRecruitmentStartDay());
     }
-    if(trialVaccination){
+    if(vaccinationStrategy == "sanofi_trial"){
 	readVaccinationGroupsFile();
     }
     readLocationFile(locationFile);
@@ -57,12 +58,13 @@ void Simulation::simEngine() {
         for(auto itLoc = locations.begin(); itLoc != locations.end(); itLoc++){
             itLoc->second->updateInfectedVisitor();
         }
-	if(currentDay == recruitmentTrial.getRecruitmentStartDay()){
-	    printf("Current Day : %d is recruitment Start Day\n",currentDay);
-	    selectEligibleTrialParticipants();
+	if(vaccinationStrategy == "random_trial"){
+	    if(currentDay == recruitmentTrial.getRecruitmentStartDay()){
+		printf("Current Day : %d is recruitment Start Day\n",currentDay);
+		selectEligibleTrialParticipants();
+	    }
+	    recruitmentTrial.update(currentDay, &rGenInf);
 	}
-	recruitmentTrial.update(currentDay, &rGenInf);
-
         humanDynamics();
 	outputReport.printReport(currentDay);
         mosquitoDynamics();
@@ -74,7 +76,9 @@ void Simulation::simEngine() {
         currentDay++;
     }
     outputReport.finalizeReport();
-    recruitmentTrial.finalizeTrial(currentDay);
+    if(vaccinationStrategy == "random_trial"){
+	recruitmentTrial.finalizeTrial(currentDay);
+    }
 }
 
 
@@ -98,12 +102,12 @@ void Simulation::humanDynamics() {
         // daily mortality for humans by age
         if(rGen.getEventProbability() < (deathRate * it->second->getAgeDays(currentDay))){
             it->second->reincarnate(currentDay);
-	    if(randomTrial == true){
+	    if(vaccinationStrategy == "random_trial"){
 		// remove from trial
-
+		recruitmentTrial.removeParticipant((it->second).get(),currentDay);
 	    }
 	}
-
+	
         // update temporary cross-immunity status if necessary
         if(currentDay == it->second->getImmEndDay())
             it->second->setImmunityTemp(false);
@@ -137,7 +141,7 @@ void Simulation::humanDynamics() {
 
 
     	age = it->second->getAgeDays(currentDay);
-	if(trialVaccination == true){
+	if(vaccinationStrategy == "sanofi_trial"){
 	    if(currentDay == vaccineDay){
 		it->second->setAgeTrialEnrollment(age);
 		it->second->setSeroStatusAtVaccination();
@@ -149,7 +153,7 @@ void Simulation::humanDynamics() {
     		    }
     		}
     	    }
-    	}else if(routineVaccination == true){
+    	}else if(vaccinationStrategy == "routine"){
     	    if(currentDay >= vaccineDay){
     		// routine vaccination by age
 		if(age == vaccineAge * 365){
@@ -309,21 +313,7 @@ void Simulation::readSimControlFile(string line) {
     getline(infile, line, ',');
     numDays = strtol(line.c_str(), NULL, 10);
     getline(infile, line, ',');
-    vaccineDay = strtol(line.c_str(), NULL, 10);
-    getline(infile, line, ',');
-    routineVaccination = (stoi(line.c_str(), NULL, 10) == 0 ? false : true);
-    getline(infile, line, ',');
-    vaccineCoverage = strtod(line.c_str(), NULL);
-    getline(infile, line, ',');
-    vaccineAge = strtol(line.c_str(), NULL, 10);
-    getline(infile, line, ',');
-    catchupFlag = (stoi(line.c_str(), NULL, 10) == 0 ? false : true);
-    getline(infile, line, ',');
-    trialVaccination = (stoi(line.c_str(), NULL, 10) == 0 ? false : true);
-    getline(infile, line, ',');
-    vaccinationGroupsFile = line;
-    getline(infile, line, ',');
-    vaccineID = (stoi(line.c_str(), NULL, 10) == 0 ? false : true);
+    vaccineSettingsFile = line;
     getline(infile, line, ',');
     outputPath = line;
     getline(infile, line, ',');
@@ -334,8 +324,6 @@ void Simulation::readSimControlFile(string line) {
     locationFile = line;
     getline(infile, line, ',');
     trajectoryFile = line;
-    getline(infile, line, ',');
-    vaccineProfilesFile = line;
     getline(infile, line, ',');
     deathRate = strtod(line.c_str(), NULL);    
     getline(infile, line, ',');
@@ -356,8 +344,6 @@ void Simulation::readSimControlFile(string line) {
     mbite = strtod(line.c_str(), NULL);
 }
 
-
-
 void Simulation::readLocationFile(string locFile) {
     if (locFile.length() == 0) {
         exit(1);
@@ -366,7 +352,7 @@ void Simulation::readLocationFile(string locFile) {
     double x, y, mozzes;
 
     ifstream infile(locFile);
-    if (!infile.good()) {
+   if (!infile.good()) {
         exit(1);
     }
     getline(infile, line);
@@ -426,6 +412,51 @@ void Simulation::readDiseaseRatesFile(){
     infile.close();
 }
 
+void Simulation::readVaccineSettingsFile(){
+    if(vaccineSettingsFile.length() == 0){
+        exit(1);
+    }
+    string line;
+    ifstream infile(vaccineSettingsFile);
+    if(!infile.good()){
+        exit(1);
+    }
+    while(getline(infile,line,'\n')){
+	string line2,line3;
+	std::vector<std::string>param_line = getParamsLine(line);
+	line2 = param_line[0];
+	line3 = param_line[1];
+	if(line2 == "vaccination_strategy"){
+	    vaccinationStrategy = this->parseString(line3);
+	}
+	if(line2 == "vaccine_day"){
+	    vaccineDay = this->parseInteger(line3);
+	}
+	if(line2 == "vaccine_age"){
+	    vaccineAge = this->parseInteger(line3);
+	}
+	if(line2 == "vaccine_coverage"){
+	    vaccineCoverage = this->parseDouble(line3);
+	}
+	if(line2 == "vaccine_catchup"){
+	    catchupFlag = this->parseInteger(line3) == 0 ? false : true;
+	}
+	if(line2 == "vaccine_groups_file"){
+	    vaccinationGroupsFile = this->parseString(line3);
+	}
+	if(line2 == "vaccine_profiles_file"){
+	    vaccineProfilesFile = this->parseString(line3);
+	}
+	if(line2 == "trial_settings_file"){
+	    trialSettingsFile = this->parseString(line3);
+	}
+	if(line2 == "vaccine_ID"){
+	    vaccineID = this->parseInteger(line3);
+	}
+    }
+    infile.close();
+    printf("vStrategy %s day %d age %d coverage: %.2f: groups_file: %s: profilesFile: %s: ID: %d\n",vaccinationStrategy.c_str(), vaccineDay, vaccineAge,vaccineCoverage, vaccinationGroupsFile.c_str(), vaccineProfilesFile.c_str(), vaccineID);
+}
 
 
 void Simulation::readVaccineProfilesFile(){
@@ -591,8 +622,8 @@ void Simulation::parseVector(std::string line, std::vector<int> * vector_temp){
     }
 }
 std::string Simulation::parseString(std::string line){
-    size_t first_ = line.find_first_not_of(' ');
-    size_t last_ = line.find_last_not_of(' ');
+    size_t first_ = line.find_first_not_of(" \t#");
+    size_t last_ = line.find_last_not_of(" \t#");
     return line.substr(first_,(last_ - first_ + 1));
 }
 void Simulation::readHumanFile(string humanFile) {

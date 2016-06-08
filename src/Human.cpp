@@ -381,7 +381,7 @@ void Human::setSeroStatusAtVaccination(){
 }
 
 bool Human::getPreExposureAtVaccination(unsigned sero){
-    return preExposureAtVaccination[sero];.
+    return preExposureAtVaccination[sero];
 }
 
 void Human::updateAttractiveness(unsigned currDay){

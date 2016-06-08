@@ -28,6 +28,7 @@ public:
     void readDiseaseRatesFile();
     void readVaccineProfilesFile();
     void readVaccinationGroupsFile();
+    void readVaccineSettingsFile();
     void setLocNeighborhood(double);
     void simEngine();
     void humanDynamics();
@@ -64,6 +65,8 @@ private:
     std::string configLine;
     std::string locationFile;
     std::string vaccineProfilesFile;
+    std::string vaccineSettingsFile;
+    std::string trialSettingsFile;
     std::string vaccinationStrategy;
     std::string reportsFile;
     std::string diseaseRatesFile;

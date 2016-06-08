@@ -50,6 +50,9 @@ void Recruitment::update(int currDay, RandomNumGenerator * rGen){
 	}
     }
 }
+void Recruitment::removeParticipant(Human * h, int currDay){
+    trialSurveillance.finalize_human_surveillance(h, currDay);
+}
 void Recruitment::finalizeTrial(int currDay){
     trialSurveillance.printRecords("trialRecords.csv", currDay);
 }
@@ -178,8 +181,7 @@ void Recruitment::enrollTodayParticipants(int currDay, RandomNumGenerator * rGen
     }
 }
 
-
-void Recruitment::setupRecruitment(std::string file, std::map<unsigned,vProfile> * vaccines_){
+void Recruitment::setupRecruitment(std::string file, std::map<unsigned,vProfile> * vaccines_, std::string outputPath, std::string simName_){
     // Initialize vaccines profiles
     vaccinesPtr = vaccines_;
 
