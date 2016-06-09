@@ -12,7 +12,7 @@
 #include <memory>
 #include <cmath>
 #include "RandomNumGenerator.h"
-#include "Human.h"
+#include "Vaccine.h"
 #include "Surveillance.h"
 
 
@@ -35,6 +35,7 @@ class Recruitment {
     int recruitmentStartDay;
     int dailyVaccineRecruitmentRate;
     int dailyPlaceboRecruitmentRate;
+    int trialDurationDay;
 
     std::string recruitmentStrategy;
     std::string outSurveillance;
@@ -55,7 +56,8 @@ class Recruitment {
 
     std::string parseString(std::string);
     std::vector<std::string> getParamsLine(std::string);
-    std::map<unsigned, vProfile> * vaccinesPtr;
+    std::map<unsigned, Vaccine> vaccinesPtr;
+
  public:
     
     Recruitment(std::string);
@@ -64,7 +66,8 @@ class Recruitment {
     virtual ~Recruitment();
 
     void update(int, RandomNumGenerator *);
-    void setupRecruitment(std::string, std::map<unsigned,vProfile> *, std::string, std::string);
+    void updateArm(unsigned, std::vector<Human *> *, int, RandomNumGenerator *);
+    void setupRecruitment(std::string, std::map<unsigned,Vaccine>, std::string, std::string);
     void addPossibleParticipant(Human *, int);
     void shuffleEligibleParticipants();
     void updateParticipants(int, RandomNumGenerator *);

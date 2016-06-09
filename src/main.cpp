@@ -18,7 +18,6 @@ int main(int argc, char** argv) {
     if (argc != 2 && argc != 3 && argc != 5) { // Check for number of input arguments
       exit(1); // Exit if not enough arguments
     } else if (argc == 2) {
-      printf("arguments = 2\n");
       chrono::time_point<chrono::high_resolution_clock> begin, end, newSimBegin;
       begin = chrono::high_resolution_clock::now();
       configFileName = argv [1];

@@ -9,6 +9,7 @@
 #include "Mosquito.h"
 #include "RandomNumGenerator.h"
 #include "Report.h"
+#include "Vaccine.h"
 #include "Recruitment.h"
 
 
@@ -57,7 +58,7 @@ private:
     std::map<unsigned,double> disRates;
     std::map<unsigned,double> hospRates;
     std::map<int,int> ageGroups;
-    std::map<unsigned, vProfile> vaccines;
+    std::map<unsigned, Vaccine> vaccines;
 
     unsigned currentDay;
     unsigned numDays;

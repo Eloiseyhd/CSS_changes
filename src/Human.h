@@ -10,22 +10,8 @@
 #include <memory>
 #include <cmath>
 #include "Infection.h"
+#include "Vaccine.h"
 #include "RandomNumGenerator.h"
-
-struct vProfile{
-    unsigned id;
-    int doses;
-    double waning;
-    double protection;
-    double total_VE;
-    double propInf;
-    double normdev;
-    std::string mode;
-    std::string name;
-    std::map<unsigned,double> VE_pos;
-    std::map<unsigned,double> VE_neg;
-    std::vector<int> relative_schedule;
-};
 
 class Human {
 private:
@@ -72,7 +58,8 @@ private:
     bool vaccineComplete;
     bool enrolledInTrial;    
 
-    vProfile * vaccineProfile;
+    Vaccine * vaccineProfile;
+
     std::string houseID;
     std::string trialArm;
     std::map<unsigned,bool> immunity_perm;
@@ -111,9 +98,9 @@ public:
     void updateBodySize(unsigned);
     void updateImmunityPerm(unsigned,bool);
     void updateRecent(int,int,int);
-    void vaccinate(std::map<unsigned,double> *,std::map<unsigned,double> *,double,int,double);
-    void vaccinateAdvanceMode(int, RandomNumGenerator&, double, double);
-    void vaccinateWithProfile(int, RandomNumGenerator *, vProfile * );
+    void vaccinate(int);
+    void vaccinateAdvanceMode(int, RandomNumGenerator&);
+    void vaccinateWithProfile(int, RandomNumGenerator *, Vaccine *);
     void waneVaccination(){vaccinated = false;}
     void boostVaccine(int, RandomNumGenerator *);
 

@@ -40,7 +40,6 @@ Human::Human(
     symptomatic = false;
     hospitalized = false;
     vaccineImmunity = false;
-    vaccineProtection = 0;
     vaccineDosesReceived = 0;
     lastDayContactedByTrial = 0;
     selfReportDay = -1;
@@ -195,28 +194,26 @@ void Human::infect(
     double RR = 1.0;
     double RRInf = 1.0;
     double RRDis = 1.0;
-    double totalVE = 0.0;
     
     int vaxAdvancement = 0;
 
     if(vaccinated){
-	if(vaccineProfile->mode == "advance"){
+	if(vaccineProfile == NULL){
+	    printf("Human::infect vaccineProfile is NULL and person is vaccinated\n");
+	    exit(1);
+	}
+	if(vaccineProfile->getMode() == "advance"){
     	    vaxAdvancement = 1;
-    	}else if(vaccineProfile->mode == "age"){
-    	    if(getPreviousInfections() > 0){
-		totalVE = 1.0 - vepos->at(0) / (1.0 + exp(vepos->at(1) * (double(getAgeDays(currentDay)) / 365.0 - vepos->at(2))));
-    	    }else{
-                totalVE = 1.0 - veneg->at(0) / (1.0 + exp(veneg->at(1) * (double(getAgeDays(currentDay)) / 365.0 - veneg->at(2))));
-    	    }
-    	    RR = exp(log(1.0 - totalVE) + normdev * pow(1.0 / 100.5 + 1.0 / (100.0 * (1.0 - totalVE) + 0.5), 0.5));
-    	    RRInf = pow(RR, propInf);
-    	    RRDis = pow(RR, 1.0 - propInf);
+    	}else if(vaccineProfile->getMode() == "age"){
+	    RR =  vaccineProfile->getRR(getPreviousInfections(), double(getAgeDays(currentDay)));
+    	    RRInf = pow(RR, vaccineProfile->getPropInf());
+    	    RRDis = pow(RR, 1.0 - vaccineProfile->getPropInf());
     	}
     }
     
     double vax_protection = 1.0;
-    if(isImmuneVax() == true && vaccineProfile->mode == "advance"){
-    	vax_protection = 1.0 - vaccineProtection;
+    if(isImmuneVax() == true && vaccineProfile->getMode() == "advance"){
+    	vax_protection = 1.0 - vaccineProfile->getVaccineProtection();
     }
     if(rGen->getEventProbability() < RRInf * vax_protection){
     	infected = true;
@@ -324,7 +321,6 @@ void Human::reincarnate(unsigned currDay){
     recent_dis = 0;
     recent_hosp = 0;
     vaccineImmunity = false;
-    vaccineProtection = 0;
 }
 
 
@@ -430,42 +426,37 @@ void Human::updateRecent(int infIn, int disIn, int hospIn){
 
 
 
-void Human::vaccinate(
-    std::map<unsigned,double> * veposIn,
-    std::map<unsigned,double> * venegIn,
-    double propInfIn,
-    int currDay,
-    double normdevIn)
+void Human::vaccinate(int currDay)
 {
     vaccinated = true;
-    vepos = veposIn;
-    veneg = venegIn;
-    propInf = propInfIn;
     vday = currDay;
-    normdev = normdevIn;
 }
 
-void Human::vaccinateAdvanceMode(int currDay, RandomNumGenerator& rGen, double protec_, double wan)
+void Human::vaccinateAdvanceMode(int currDay, RandomNumGenerator& rGen)
 {
     vaccinated = true;
     vday = currDay;
     setVaxImmunity(true);
     setVaxImmStartDay(currDay);
-    setVaxImmEndDay(currDay + 365.0 + rGen.getVaxHumanImmunity(rGen.getWaningTime(wan)));
-    vaccineProtection = protec_;
+    setVaxImmEndDay(currDay + 365.0 + rGen.getVaxHumanImmunity(rGen.getWaningTime(vaccineProfile->getWaning())));
 }
 
-void Human::vaccinateWithProfile(int currDay, RandomNumGenerator * rGen, vProfile * vax){
+void Human::vaccinateWithProfile(int currDay, RandomNumGenerator * rGen, Vaccine * vax){
     vaccineProfile = vax;
-    vaccineDosesReceived = 1;
-    vday = currDay;
-    if(vaccineProfile->mode == "advance"){
-	this->vaccinateAdvanceMode(currDay, (*rGen), vaccineProfile->protection, vaccineProfile->waning);
-    }else if(vaccineProfile->mode == "age"){
-	this->vaccinate(&vaccineProfile->VE_pos, &vaccineProfile->VE_neg, vaccineProfile->propInf, currDay, vaccineProfile->normdev);
-    }
-    if(vax->doses == vaccineDosesReceived){
-	vaccineComplete = true;
+    if(vaccineProfile != NULL){
+	vaccineDosesReceived = 1;
+	vday = currDay;
+	if(vaccineProfile->getMode() == "advance"){
+	    this->vaccinateAdvanceMode(currDay, (*rGen));
+	}else if(vaccineProfile->getMode() == "age"){
+	    this->vaccinate(currDay);
+	}
+	if(vaccineProfile->getDoses() == vaccineDosesReceived){
+	    vaccineComplete = true;
+	}
+    }else{
+	printf("VaccineProfile is NULL in Human::vaccinateWithProfile\n");
+	exit(1);
     }
 }
 
@@ -480,22 +471,29 @@ int Human::getNextDoseDay(){
     if(vaccineComplete == true){
 	return -1;
     }else{
-	if(vaccineDosesReceived < vaccineProfile->doses){
-	    return (vaccineProfile->relative_schedule[vaccineDosesReceived] + vday);
+	if(vaccineProfile != NULL){
+	    return vaccineProfile->getNextDoseDay(vday,vaccineDosesReceived);
 	}else{
-	    return (vaccineProfile->relative_schedule.back() + vday);
+	    printf("VaccineProfile is NULL in Human::getNextDoseDay\n");
+	    exit(1);
 	}
     }
 }
+
 void Human::boostVaccine(int currDay, RandomNumGenerator * rGen){
-    vaccineDosesReceived++;
-    if(vaccineProfile->mode == "advance"){
-	this->vaccinateAdvanceMode(currDay, (*rGen), vaccineProfile->protection, vaccineProfile->waning);
-    }else if(vaccineProfile->mode == "age"){
-	this->vaccinate(&vaccineProfile->VE_pos, &vaccineProfile->VE_neg, vaccineProfile->propInf, currDay, vaccineProfile->normdev);
-    }
-    if(vaccineProfile->doses == vaccineDosesReceived){
-	vaccineComplete = true;
+    if(vaccineProfile != NULL){
+	vaccineDosesReceived++;
+	if(vaccineProfile->getMode() == "advance"){
+	    this->vaccinateAdvanceMode(currDay, (*rGen));
+	}else if(vaccineProfile->getMode() == "age"){
+	    this->vaccinate(currDay);
+	}
+	if(vaccineProfile->getDoses() == vaccineDosesReceived){
+	    vaccineComplete = true;
+	}
+    }else{
+	printf("VaccineProfile is NULL in Human::boostVaccine\n");
+	exit(1);
     }
 }
 
