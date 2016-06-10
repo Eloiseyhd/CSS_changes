@@ -87,6 +87,7 @@ void Surveillance::update_human_surveillance(Human * h, int currDay, RandomNumGe
 		recordsDatabase.find(id)->second.primary[serotype] = (h->infection->isPrimary()) ? "primary" : "secondary";
 	    }
 	}
+	//better to save a variable with the next contact day
 	if(h->getLastContactByTrial() + contactFrequency == currDay){
 	    int serotype_ = this->contactPerson(h, currDay, rGen);
 	    if(serotype_ >= 0){
@@ -124,15 +125,15 @@ void Surveillance::finalize_human_surveillance(Human *h, int currDay){
     std::string id = h->getHouseID() + std::to_string(h->getHouseMemNum());
     recordsDatabase.find(id)->second.dropoutDay = currDay;
 }
+
 int Surveillance::contactPerson(Human * h, int currDay, RandomNumGenerator * rGen){
-    // Check level of symptoms in the last week (if is asymptomatic then there's no screening)
     std::string id = h->getHouseID() + std::to_string(h->getHouseMemNum());
     int serotype = (h->infection != NULL) ? h->infection->getInfectionType() -1 : recordsDatabase.find(id)->second.lastType;
     if(recordsDatabase.find(id)->second.rightCensored[serotype] == -1){
 	// If the symptoms happened between last contact and today
 	if(recordsDatabase.find(id)->second.symptoms[serotype] > 0 && recordsDatabase.find(id)->second.onset[serotype] <= currDay && recordsDatabase.find(id)->second.onset[serotype] > h->getLastContactByTrial()){
-	    int pcr_result =  this->PCR_test(h, currDay, rGen);
-	    recordsDatabase.find(id)->second.pcr[serotype] = (pcr_result >= 0) ? "POSITIVE" : "NEGATIVE";
+	    int pcr_result =  this->PCR_test(h, currDay + rGen->getRandomNum(4), rGen);
+	    recordsDatabase.find(id)->second.pcr[serotype] = (pcr_result >= 0) ? "POSITIVE" : "NA";
 	    return pcr_result; 
 	}
     }
@@ -160,9 +161,6 @@ int Surveillance::PCR_test(Human * h, int currDay, RandomNumGenerator * rGen){
 	    pcr_result = h->infection->getInfectionType() - 1;
 	}
     }
-    /*    std::string pcr_ = pcr_result >= 0 ? "TRUE" : "FALSE";
-    printf("%s, %s,  %.2f, %.4f, %s\n",id.c_str(), pcr_.c_str(),(double) currDay -  recordsDatabase.find(id)->second.onset[serotype],sensitivity,  recordsDatabase.find(id)->second.primary[serotype].c_str());
-    */
     return pcr_result;
 }
 
@@ -177,8 +175,8 @@ void Surveillance::printRecords(std::string file, int currDay){
 	exit(1);
     }
     outSurveillance << "ID, Age, Arm, Serostatus, Enrollment_day, Last_day, ";
-    outSurveillance << "previous_exposure_1, onset_1, isSympt_1, PCR_1, TYPE_1, TTEL_1, TTER_1, previous_exposure_2, onset_2, isSympt_2, PCR_2, TYPE_2, TTEL_2, TTER_2, ";
-    outSurveillance << "previous_exposure_3, onset_3, isSympt_3, PCR_3, TYPE_3, TTEL_3, TTER_3, previous_exposure_4, onset_4, isSympt_4, PCR_4, TYPE_4, TTEL_4, TTER_4\n";
+    outSurveillance << "previous_exposure_1, onset_1, symptoms_1, severity_1, PCR_1, TYPE_1, TTEL_1, TTER_1, previous_exposure_2, onset_2, symptoms_2, severity_2, PCR_2, TYPE_2, TTEL_2, TTER_2, ";
+    outSurveillance << "previous_exposure_3, onset_3, symptoms_3, severity_3, PCR_3, TYPE_3, TTEL_3, TTER_3, previous_exposure_4, onset_4, symptoms_4, severity_4, PCR_4, TYPE_4, TTEL_4, TTER_4\n";
     std::map<std::string, hRecord>::iterator it;
     for(it = recordsDatabase.begin(); it != recordsDatabase.end(); ++it){
 	std::string serostatus = ((*it).second.seroStatusAtVaccination == true) ? "POSITIVE" : "NEGATIVE";
@@ -186,16 +184,17 @@ void Surveillance::printRecords(std::string file, int currDay){
 	outSurveillance << (*it).second.houseID.c_str() << "_" << (*it).second.houseMemNum << ", " << (*it).second.ageDaysAtVaccination / 365 << ", " << (*it).second.trialArm.c_str() << ", " << serostatus.c_str() << ", ";
 	outSurveillance << (*it).second.enrollmentDay << ", " << lastDay << ", ";
 	for(int i = 0; i < 4; i++){
-	    std::string sympt = "NA";
+	    std::string sympt = "NO";
+	    std::string hosp = "NA";
+	    std::string onset = "NA";
 	    if((*it).second.symptoms[i] == 1){
 		sympt =  "symptomatic";
-	    }else if((*it).second.symptoms[i] == 0){
-		sympt =  "asymptomatic";
+		onset = std::to_string((*it).second.onset[i]); 
+		hosp = ((*it).second.hosp[i] == 1) ? "hospitalized" : "mild";
 	    }
-	    std::string preExposure = (*it).second.previousExposure[i] == true ? "YES" : "NO";
-	    std::string onset = (*it).second.onset[i] >= 0 ? std::to_string((*it).second.onset[i]) : "NA";
+	    std::string preExposure = (*it).second.previousExposure[i] == true ? "POSITIVE" : "NEGATIVE";
 	    std::string ttr = (*it).second.rightCensored[i] >= 0 ? std::to_string((*it).second.rightCensored[i]) : "NA";
-	    outSurveillance << preExposure << ", " << onset << ", " << sympt << ", " << (*it).second.pcr[i].c_str() << ", " << (*it).second.primary[i] << ", " << (*it).second.leftCensored[i] << ", " << ttr;
+	    outSurveillance << preExposure << ", " << onset << ", " << sympt << ", " << hosp << ", " << (*it).second.pcr[i].c_str() << ", " << (*it).second.primary[i] << ", " << (*it).second.leftCensored[i] << ", " << ttr;
 	    if(i == 3){
 		outSurveillance << "\n";
 	    }else{

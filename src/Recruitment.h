@@ -35,7 +35,7 @@ class Recruitment {
     int recruitmentStartDay;
     int dailyVaccineRecruitmentRate;
     int dailyPlaceboRecruitmentRate;
-    int trialDurationDay;
+    int trialDurationDays;
 
     std::string recruitmentStrategy;
     std::string outSurveillance;

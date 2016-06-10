@@ -250,7 +250,7 @@ void Human::infect(
 
 	if(symptomatic == true && enrolledInTrial == true){
 	    if(rGen->getEventProbability() < selfReportProb){
-		selfReportDay = rGen->getSelfReportDay(infection->getSymptomOnset() + rGen->getRandomNum(5));
+		selfReportDay = rGen->getSelfReportDay(infection->getSymptomOnset() + 3 + rGen->getRandomNum(4));
 	    }
 	}
 
@@ -321,6 +321,7 @@ void Human::reincarnate(unsigned currDay){
     recent_dis = 0;
     recent_hosp = 0;
     vaccineImmunity = false;
+    trialDay = 0;
 }
 
 
@@ -370,7 +371,7 @@ void Human::setSeroStatusAtVaccination(){
     seroStatusAtVaccination = true;
   }
   for(int i = 0; i < 4;i++){
-      if(immunity_perm[i]){
+      if(immunity_perm[i+1]){
 	  preExposureAtVaccination[i] = true;
       }
   }

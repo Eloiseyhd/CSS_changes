@@ -101,11 +101,11 @@ void Simulation::humanDynamics() {
     for(auto it = humans.begin(); it != humans.end(); ++it){
         // daily mortality for humans by age
         if(rGen.getEventProbability() < (deathRate * it->second->getAgeDays(currentDay))){
-            it->second->reincarnate(currentDay);
-	    if(vaccinationStrategy == "random_trial"){
+	    if(vaccinationStrategy == "random_trial" && (it->second).get()->isEnrolledInTrial() == true){
 		// remove from trial
 		recruitmentTrial.removeParticipant((it->second).get(),currentDay);
 	    }
+            it->second->reincarnate(currentDay);
 	}
 	
         // update temporary cross-immunity status if necessary

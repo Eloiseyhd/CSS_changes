@@ -103,6 +103,7 @@ public:
     void vaccinateWithProfile(int, RandomNumGenerator *, Vaccine *);
     void waneVaccination(){vaccinated = false;}
     void boostVaccine(int, RandomNumGenerator *);
+    void unenrollTrial(){enrolledInTrial = false;}
 
     double getAttractiveness() const;
     double getBodySize() const;
@@ -127,7 +128,7 @@ public:
     int getNextDoseDay();
     int getLastContactByTrial(){return lastDayContactedByTrial;}
     int getSelfReportDay(){return selfReportDay;}
-
+    int getTrialEnrollmentDay(){return trialDay;}
     bool isHospitalized(){return hospitalized;}
     bool isImmune(unsigned) const;
     bool isImmuneTemp(){return immunity_temp;}

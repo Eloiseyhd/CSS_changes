@@ -11,7 +11,6 @@
 
 using namespace std;
 
-
 Recruitment::Recruitment(){
     vaccineSampleSize = 0;
     placeboSampleSize = 0;
@@ -19,6 +18,7 @@ Recruitment::Recruitment(){
     dailyVaccineRecruitmentRate = 0;
     dailyPlaceboRecruitmentRate = 0;
     recruitmentStartDay = 0;
+    trialDurationDays = 0;
 
     recruitmentStrategy = "none";
     ageGroups.clear();
@@ -32,12 +32,10 @@ void Recruitment::update(int currDay, RandomNumGenerator * rGen){
 	if(currDay < recruitmentStartDay + recruitmentTimeFrame){
 	    this->enrollTodayParticipants(currDay, rGen);
 	}
-	if(currDay > recruitmentStartDay){
-	    //update enrolled participants activities
+	if(currDay > recruitmentStartDay && currDay <= ( recruitmentStartDay + recruitmentTimeFrame + trialDurationDays)){
 	    this->updateParticipants(currDay, rGen);
 	}
     }else if(currDay == recruitmentStartDay + recruitmentTimeFrame){
-	// Check that everything went smoothly
 	for(int i = 0; i < ageGroups.size(); i ++){
 	    if(ageGroups[i].vaccine.size() != vaccineSampleSize || ageGroups[i].placebo.size() != placeboSampleSize ){
 		printf("Take a look at the size  age group %d of vaccine %lu and placebo %lu\n", i, ageGroups[i].vaccine.size(),ageGroups[i].placebo.size());
@@ -48,55 +46,65 @@ void Recruitment::update(int currDay, RandomNumGenerator * rGen){
 	}
     }
 }
+
 void Recruitment::removeParticipant(Human * h, int currDay){
     trialSurveillance.finalize_human_surveillance(h, currDay);
+    h->unenrollTrial();
 }
+
 void Recruitment::finalizeTrial(int currDay){
     trialSurveillance.printRecords(outSurveillance, currDay);
 }
+
 void Recruitment::updateParticipants(int currDay, RandomNumGenerator * rGen){
-    printf("UpdateParticipants day %d\n", currDay);
-
-    if(currDay > recruitmentStartDay + recruitmentTimeFrame){
-	for(int i = 0; i < ageGroups.size(); i++){
-	    if(rGen->getEventProbability() < ageGroups[i].dropoutRate){
-		if(rGen->getEventProbability() < 0.5){
-		    int pos_ = rGen->getRandomNum(ageGroups[i].vaccine.size());
-		    trialSurveillance.finalize_human_surveillance(ageGroups[i].vaccine[pos_], currDay);
-		    ageGroups[i].vaccine.erase(ageGroups[i].vaccine.begin() + pos_);
-		}else{
-		    int pos_ = rGen->getRandomNum(ageGroups[i].placebo.size());
-		    trialSurveillance.finalize_human_surveillance(ageGroups[i].vaccine[pos_], currDay);
-		    ageGroups[i].placebo.erase(ageGroups[i].placebo.begin() + pos_);		
-		}
-	    }
-	}
-    }
-
     // update doses if needed, remove dead people  and test for denv: self-reported and calls
     for(int i = 0;i < ageGroups.size(); i++){
 	updateArm(vaccineProfile,&ageGroups[i].vaccine, currDay, rGen);
 	updateArm(placeboProfile,&ageGroups[i].placebo, currDay, rGen);
     }
+
+    if(currDay > recruitmentStartDay + recruitmentTimeFrame){
+	for(int i = 0; i < ageGroups.size(); i++){
+	    if(rGen->getEventProbability() < ageGroups[i].dropoutRate){
+		if(rGen->getEventProbability() < 0.5){
+		    if(ageGroups[i].vaccine.size() > 0){
+			int pos_ = rGen->getRandomNum(ageGroups[i].vaccine.size());
+			removeParticipant(ageGroups[i].vaccine[pos_], currDay);
+			ageGroups[i].vaccine.erase(ageGroups[i].vaccine.begin() + pos_);
+		    }
+		}else{
+		    if(ageGroups[i].placebo.size() > 0){
+			int pos_ = rGen->getRandomNum(ageGroups[i].placebo.size());
+			removeParticipant(ageGroups[i].vaccine[pos_], currDay);
+			ageGroups[i].placebo.erase(ageGroups[i].placebo.begin() + pos_);		
+		    }
+		}
+	    }
+	}
+    }
 }
 
 void Recruitment::updateArm(unsigned vaxID, std::vector<Human *> * arm, int currDay, RandomNumGenerator * rGen){
-    printf("Update arm day %d vaxID %u\n", currDay, vaxID);
     if(vaccinesPtr.at(vaxID).getDoses() > 1){
 	std::vector<Human *>::iterator it;
 	for(it = arm->begin(); it != arm->end(); ){
 	    if((*it) != NULL){
 		if((*it)->isEnrolledInTrial() == true){
-		    trialSurveillance.update_human_surveillance((*it),currDay, rGen);
-		    if((*it)->isFullyVaccinated() == false && (*it)->getNextDoseDay() == currDay){
-			(*it)->boostVaccine(currDay, rGen);
+		    if(currDay < (*it)->getTrialEnrollmentDay() + trialDurationDays){
+			trialSurveillance.update_human_surveillance((*it),currDay, rGen);
+			if((*it)->isFullyVaccinated() == false && (*it)->getNextDoseDay() == currDay){
+			    (*it)->boostVaccine(currDay, rGen);
+			}
+			++it;
+		    }else{
+			removeParticipant(*it,currDay);
+			arm->erase(it);
 		    }
-		    ++it;
 		}else{
 		    arm->erase(it);
 		}
 	    }else{
-		++it;
+		arm->erase(it);
 	    }
 	}
     }
@@ -135,19 +143,16 @@ void Recruitment::enrollTodayParticipants(int currDay, RandomNumGenerator * rGen
 	}
 	j = 0;
 	//Placebo enrollment
-
 	while(!ageGroups[i].eligible.empty() && j < dailyPlaceboRecruitmentRate && ageGroups[i].placebo.size() < placeboSampleSize){
 	    double temp_age = (double) ageGroups[i].eligible.back()->getAgeDays(currDay) / 365.0;
 	    if(temp_age >= ageGroups[i].max){
 		ageGroups[i].eligible.pop_back();
 	    }else if(temp_age < ageGroups[i].min){
-		printf("Placebo Person: %s-%d in position %lu to be moved to another position\n", ageGroups[i].eligible.back()->getHouseID().c_str(),ageGroups[i].eligible.back()->getHouseMemNum(), ageGroups[i].eligible.size());
 		Human * temp_h = ageGroups[i].eligible.back();
 		ageGroups[i].eligible.pop_back();
 		std::vector<Human *>::iterator it = ageGroups[i].eligible.begin();
 		long unsigned pos = rGen->getRandomNum(ageGroups[i].eligible.size());
 		ageGroups[i].eligible.insert(it+pos,temp_h);
-		printf("Placebo Person: %s-%d moved to position %lu\n",ageGroups[i].eligible[pos]->getHouseID().c_str(),ageGroups[i].eligible[pos]->getHouseMemNum(),pos);
 	    }else{
 		if(ageGroups[i].eligible.back()->isEnrolledInTrial() == false){
 		    ageGroups[i].eligible.back()->enrollInTrial(currDay, "placebo");
@@ -216,6 +221,9 @@ void Recruitment::setupRecruitment(std::string file, std::map<unsigned,Vaccine> 
 	if(line2 == "trial_placebo_profile"){
 	    placeboProfile = this->parseInteger(line3);
 	}
+	if(line2 == "trial_following_days"){
+	    trialDurationDays = this->parseInteger(line3);
+	}
 	if(line2 == "trial_daily_dropout_rate"){
 	    parseVector(line3, &dropoutTemp);
 	}
@@ -229,7 +237,7 @@ void Recruitment::setupRecruitment(std::string file, std::map<unsigned,Vaccine> 
 	}
 	printf("Group %d %d_%d. Dropout rate: %.6f\n",i,ageGroups[i].min,ageGroups[i].max, ageGroups[i].dropoutRate);
     }
-    printf("Recruitment strategy: ---%s---\n",recruitmentStrategy.c_str());
+    printf("Recruitment strategy: |%s| duration %d\n",recruitmentStrategy.c_str(), trialDurationDays);
     printf("Vaccine Profile ID: %d, placebo profile ID: %d\n",vaccineProfile, placeboProfile);
     if(recruitmentStrategy == "none"){
 	printf("Please specify a recruitment Strategy\n");
@@ -361,19 +369,15 @@ void Recruitment::parseVector(std::string line, std::vector<double> * vector_tem
     stringstream linetemp;
     string line2;
     linetemp.clear();
-    int count =0;
     linetemp << line;
     vector_temp->clear();
-
     while(getline(linetemp,line2,',')){
 	double temp = strtod(line2.c_str(), NULL);
 	if(temp >= 0){
 	    vector_temp->push_back(temp);
 	}
     }
-
     if(vector_temp->empty()){
-	printf("Vector_temp is empty\n");
 		exit(1);
     }
 }
