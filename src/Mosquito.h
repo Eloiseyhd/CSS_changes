@@ -14,12 +14,15 @@ class Mosquito {
 public:
     std::string getLocationID() const;
     void setLocation(std::string);
+    void setBirthDay(int currDay) {bday = currDay;}
+    int getBirthDay(){return bday;}
     double getDDay() const;
     void setBiteStartDay(double);
     double getBiteStartDay();
-    bool takeBite(double,Location *,RandomNumGenerator *, RandomNumGenerator *,std::map<unsigned,double> *,std::map<unsigned,double> *,int,int,std::ofstream *);
+    double getNumBites(){return nbites;}
+    bool takeBite(double,Location *,RandomNumGenerator *, RandomNumGenerator *,std::map<unsigned,double> *,std::map<unsigned,double> *,int,int,std::ofstream *, double);
     Human * whoBite(double,Location *,RandomNumGenerator *);
-    bool infectingBite(double,Location *,RandomNumGenerator *,RandomNumGenerator *,int,int);
+    bool infectingBite(double,Location *,RandomNumGenerator *,RandomNumGenerator *,int,int, double);
     bool infectiousBite(double,Location *,RandomNumGenerator *,RandomNumGenerator *,std::map<unsigned,double> *,std::map<unsigned,double> *,int,int,std::ofstream *);
     Mosquito(double, double, std::string);
     Mosquito();
@@ -30,6 +33,8 @@ private:
     std::string locationID;
     double dday;
     double biteStartDay;    
+    int nbites;
+    int bday;
 };
 
 #endif	/* MOSQUITO_H */

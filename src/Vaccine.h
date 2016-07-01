@@ -55,6 +55,7 @@ public:
     double getVaccineProtection(){return protection;}
     double getWaning(){return waning;}
     double getRR(double, double);
+    double getVE(){return total_VE;}
 
 };
 

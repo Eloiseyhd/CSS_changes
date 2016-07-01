@@ -14,6 +14,7 @@ Surveillance::Surveillance(){
     contactFrequency = 0;
     firstContactDelay = 0;
     selfReportProb = 0.0;
+    reportTodayProb = 0.0;
     recordsDatabase.clear();
 }
 
@@ -37,11 +38,18 @@ void Surveillance::setup(std::string file){
 	if(line2 == "surveillance_first_contact_delay"){
 	    firstContactDelay = this->parseInteger(line3);
 	}
-	if(line2 == "self_report_probability"){
+	if(line2 == "surveillance_self_report_probability"){
 	    selfReportProb = this->parseDouble(line3);
 	}
+	if(line2 == "surveillance_avg_report_delay"){
+	    double avgDelay = this->parseDouble(line3);
+	    reportTodayProb = avgDelay > 0.0 ? (double) 1.0 / avgDelay : 1.0;
+	    if(reportTodayProb > 1.0){
+		reportTodayProb = 1.0;
+	    }
+	}
     }
-    printf("Surveillance setup contact frecuency %d first delay %d selfReport probability %.2f\n", contactFrequency, firstContactDelay, selfReportProb);
+    printf("Surveillance setup contact frecuency %d first delay %d selfReport probability %.2f prob report %.6f\n", contactFrequency, firstContactDelay, selfReportProb, reportTodayProb);
 }
 
 void Surveillance::initialize_human_surveillance(Human * h, int currDay){
@@ -60,13 +68,14 @@ void Surveillance::initialize_human_surveillance(Human * h, int currDay){
     tempRecord.pcr.clear();
     tempRecord.primary.clear();
     for(int i = 0;i < 4; i++){
-	tempRecord.leftCensored[i] = currDay;
-	tempRecord.rightCensored[i] = -1;
+	tempRecord.TTL[i] = currDay;
+	tempRecord.TTR[i] = -1;
 	tempRecord.onset[i] = -1.0;
 	tempRecord.symptoms[i] = -1;
 	tempRecord.hosp[i] = -1;
 	tempRecord.previousExposure[i] = h->getPreExposureAtVaccination(i);
 	tempRecord.pcr.push_back("NA");
+	tempRecord.pcrDay[i] = -1;
 	tempRecord.primary.push_back("NA");
     }
     tempRecord.lastType = -1;
@@ -74,49 +83,53 @@ void Surveillance::initialize_human_surveillance(Human * h, int currDay){
 }
 
 void Surveillance::update_human_surveillance(Human * h, int currDay, RandomNumGenerator * rGen){
-    if(!(h->getTrialArm().empty())){
-	std::string id = h->getHouseID() + std::to_string(h->getHouseMemNum());
-	if(h->isInfected()){
-	    if(h->infection != NULL){
-		// set IIP and serotype and symptoms
-		unsigned serotype = h->infection->getInfectionType() - 1;
-		recordsDatabase.find(id)->second.onset[serotype] = h->infection->getSymptomOnset();
-		recordsDatabase.find(id)->second.lastType = h->infection->getInfectionType() - 1;
-		recordsDatabase.find(id)->second.symptoms[serotype] = (h->isSymptomatic() == true) ? 1 : 0;
-		recordsDatabase.find(id)->second.hosp[serotype] = (h->isHospitalized() == true) ? 1 : 0;
-		recordsDatabase.find(id)->second.primary[serotype] = (h->infection->isPrimary()) ? "primary" : "secondary";
+    std::string id = h->getHouseID() + std::to_string(h->getHouseMemNum());
+    if(recordsDatabase.find(id) != recordsDatabase.end() && h->isEnrolledInTrial()){
+	if(h->infection != NULL){
+	    // set IIP and serotype and symptoms
+	    unsigned serotype = h->infection->getInfectionType() - 1;
+	    recordsDatabase.find(id)->second.onset[serotype] = h->infection->getSymptomOnset();
+	    recordsDatabase.find(id)->second.lastType = h->infection->getInfectionType() - 1;
+	    recordsDatabase.find(id)->second.symptoms[serotype] = (h->isSymptomatic() == true) ? 1 : 0;
+	    recordsDatabase.find(id)->second.hosp[serotype] = (h->isHospitalized() == true) ? 1 : 0;
+	    recordsDatabase.find(id)->second.primary[serotype] = (h->infection->isPrimary()) ? "primary" : "secondary";
+
+	    if(h->mayReport()){
+		if(currDay > recordsDatabase.find(id)->second.onset[serotype] + 2 && currDay <= recordsDatabase.find(id)->second.onset[serotype] + 7){
+		    if(recordsDatabase.find(id)->second.TTR[h->infection->getInfectionType() - 1] == -1){
+			if(rGen->getEventProbability() < reportTodayProb){
+			    int serotype_ = this->PCR_test(h,currDay,rGen);
+			    recordsDatabase.find(id)->second.pcrDay[serotype] = currDay;
+			    if(serotype_ >= 0){
+				recordsDatabase.find(id)->second.TTR[serotype_] = currDay;
+				recordsDatabase.find(id)->second.pcr[serotype_] = "POSITIVE"; 
+			    }
+			}
+			//wrap up
+			for(int i = 0; i < 4; i++){
+			    if(recordsDatabase.find(id)->second.TTR[i] == -1){
+				recordsDatabase.find(id)->second.TTL[i] = currDay;
+			    }
+			}
+			h->setContactByTrial(currDay);
+		    }
+		}else if(currDay > recordsDatabase.find(id)->second.onset[serotype] + 7){
+		    h->setReportSymptoms(false);
+		}
 	    }
 	}
-	//better to save a variable with the next contact day
+
 	if(h->getLastContactByTrial() + contactFrequency == currDay){
-	    int serotype_ = this->contactPerson(h, currDay, rGen);
-	    if(serotype_ >= 0){
-		recordsDatabase.find(id)->second.rightCensored[serotype_] = currDay;
-	    }
+	    this->contactPerson(h, currDay, rGen);
 	    for(int i = 0; i < 4; i++){
-		if(recordsDatabase.find(id)->second.rightCensored[i] == -1){
-		    recordsDatabase.find(id)->second.leftCensored[i] = currDay;
+		if(recordsDatabase.find(id)->second.TTR[i] == -1){
+		    recordsDatabase.find(id)->second.TTL[i] = currDay;
 		}
 	    }
 	    h->setContactByTrial(currDay);
-	}else if(h->getSelfReportDay() == currDay){
-	    if(h->infection != NULL){
-		if(recordsDatabase.find(id)->second.rightCensored[h->infection->getInfectionType() - 1] == -1){
-		    int serotype_ = this->PCR_test(h,currDay,rGen);
-		    if(serotype_ >= 0){
-			recordsDatabase.find(id)->second.rightCensored[serotype_] = currDay;
-		    }
-		    //wrap up
-		    for(int i = 0; i < 4; i++){
-			if(recordsDatabase.find(id)->second.rightCensored[i] == -1){
-			    recordsDatabase.find(id)->second.leftCensored[i] = currDay;
-			}
-		    }
-		    h->setContactByTrial(currDay);
-		}
-	    }
 	}
-	//annual visits
+
+	//annual visits -> detect one or more infections in a small sample -- TO BE IMPLEMENTED !!!!
 	
     }
 }
@@ -126,18 +139,15 @@ void Surveillance::finalize_human_surveillance(Human *h, int currDay){
     recordsDatabase.find(id)->second.dropoutDay = currDay;
 }
 
-int Surveillance::contactPerson(Human * h, int currDay, RandomNumGenerator * rGen){
+void Surveillance::contactPerson(Human * h, int currDay, RandomNumGenerator * rGen){
     std::string id = h->getHouseID() + std::to_string(h->getHouseMemNum());
     int serotype = (h->infection != NULL) ? h->infection->getInfectionType() -1 : recordsDatabase.find(id)->second.lastType;
-    if(recordsDatabase.find(id)->second.rightCensored[serotype] == -1){
+    if(recordsDatabase.find(id)->second.TTR[serotype] == -1){
 	// If the symptoms happened between last contact and today
 	if(recordsDatabase.find(id)->second.symptoms[serotype] > 0 && recordsDatabase.find(id)->second.onset[serotype] <= currDay && recordsDatabase.find(id)->second.onset[serotype] > h->getLastContactByTrial()){
-	    int pcr_result =  this->PCR_test(h, currDay + rGen->getRandomNum(4), rGen);
-	    recordsDatabase.find(id)->second.pcr[serotype] = (pcr_result >= 0) ? "POSITIVE" : "NA";
-	    return pcr_result; 
+	    h->setReportSymptoms(true);
 	}
     }
-    return -1;
 }
 
 int Surveillance::PCR_test(Human * h, int currDay, RandomNumGenerator * rGen){
@@ -146,15 +156,17 @@ int Surveillance::PCR_test(Human * h, int currDay, RandomNumGenerator * rGen){
     int serotype = (h->infection != NULL) ? h->infection->getInfectionType() -1 : recordsDatabase.find(id)->second.lastType;
     double sensitivity = 0.0;
     if(h->infection != NULL){
-	// Is a primary or secondary infection? 
+	// Is this a primary or secondary infection? 
+	// Vaccinees will have a secondary-like viral curve
 	double b1 = 0.0;
 	double b2 = 0.0;
-	if(h->infection->isPrimary() == true){
-	    b1 = 13.185066;
-	    b2 = -1.665468;
-	}else{
+	if(h->infection->isPrimary() == false || h->getTrialArm() == "vaccine"){
+	    // secondary infection
 	    b1 = 6.834631;
 	    b2 = -1.166282;
+	}else{
+	    b1 = 13.185066;
+	    b2 = -1.665468;
 	}
 	sensitivity = (1.0 / (1.0 + exp(-1 * (b1 + b2 * (currDay - h->infection->getSymptomOnset())))));
 	if(rGen->getEventProbability() < sensitivity){
@@ -175,8 +187,8 @@ void Surveillance::printRecords(std::string file, int currDay){
 	exit(1);
     }
     outSurveillance << "ID, Age, Arm, Serostatus, Enrollment_day, Last_day, ";
-    outSurveillance << "previous_exposure_1, onset_1, symptoms_1, severity_1, PCR_1, TYPE_1, TTEL_1, TTER_1, previous_exposure_2, onset_2, symptoms_2, severity_2, PCR_2, TYPE_2, TTEL_2, TTER_2, ";
-    outSurveillance << "previous_exposure_3, onset_3, symptoms_3, severity_3, PCR_3, TYPE_3, TTEL_3, TTER_3, previous_exposure_4, onset_4, symptoms_4, severity_4, PCR_4, TYPE_4, TTEL_4, TTER_4\n";
+    outSurveillance << "previous_exposure_1, onset_1, symptoms_1, severity_1, PCRday_1, PCR_1, TYPE_1, TTEL_1, TTER_1, previous_exposure_2, onset_2, symptoms_2, severity_2, PCRday_2, PCR_2, TYPE_2, TTEL_2, TTER_2, ";
+    outSurveillance << "previous_exposure_3, onset_3, symptoms_3, severity_3, PCRday_3, PCR_3, TYPE_3, TTEL_3, TTER_3, previous_exposure_4, onset_4, symptoms_4, severity_4, PCRday_4, PCR_4, TYPE_4, TTEL_4, TTER_4\n";
     std::map<std::string, hRecord>::iterator it;
     for(it = recordsDatabase.begin(); it != recordsDatabase.end(); ++it){
 	std::string serostatus = ((*it).second.seroStatusAtVaccination == true) ? "POSITIVE" : "NEGATIVE";
@@ -184,7 +196,7 @@ void Surveillance::printRecords(std::string file, int currDay){
 	outSurveillance << (*it).second.houseID.c_str() << "_" << (*it).second.houseMemNum << ", " << (*it).second.ageDaysAtVaccination / 365 << ", " << (*it).second.trialArm.c_str() << ", " << serostatus.c_str() << ", ";
 	outSurveillance << (*it).second.enrollmentDay << ", " << lastDay << ", ";
 	for(int i = 0; i < 4; i++){
-	    std::string sympt = "NO";
+	    std::string sympt = "NA";
 	    std::string hosp = "NA";
 	    std::string onset = "NA";
 	    if((*it).second.symptoms[i] == 1){
@@ -193,8 +205,9 @@ void Surveillance::printRecords(std::string file, int currDay){
 		hosp = ((*it).second.hosp[i] == 1) ? "hospitalized" : "mild";
 	    }
 	    std::string preExposure = (*it).second.previousExposure[i] == true ? "POSITIVE" : "NEGATIVE";
-	    std::string ttr = (*it).second.rightCensored[i] >= 0 ? std::to_string((*it).second.rightCensored[i]) : "NA";
-	    outSurveillance << preExposure << ", " << onset << ", " << sympt << ", " << hosp << ", " << (*it).second.pcr[i].c_str() << ", " << (*it).second.primary[i] << ", " << (*it).second.leftCensored[i] << ", " << ttr;
+	    std::string ttr = (*it).second.TTR[i] >= 0 ? std::to_string((*it).second.TTR[i]) : "NA";
+	    std::string pcr_day = (*it).second.pcrDay[i] >= 0 ? std::to_string((*it).second.pcrDay[i]) : "NA";
+	    outSurveillance << preExposure << ", " << onset << ", " << sympt << ", " << hosp << ", " << pcr_day << ", "<< (*it).second.pcr[i].c_str() << ", " << (*it).second.primary[i] << ", " << (*it).second.TTL[i] << ", " << ttr;
 	    if(i == 3){
 		outSurveillance << "\n";
 	    }else{

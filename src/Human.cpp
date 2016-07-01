@@ -30,6 +30,7 @@ Human::Human(
     cohort = 0;
     tAge = 0;
     trialDay = 0;
+    vaxWaneDay = 0;
     vaccineComplete = false;
     enrolledInTrial = false;
     seroStatusAtVaccination = false;
@@ -40,9 +41,9 @@ Human::Human(
     symptomatic = false;
     hospitalized = false;
     vaccineImmunity = false;
+    reportSymptoms = false;
     vaccineDosesReceived = 0;
     lastDayContactedByTrial = 0;
-    selfReportDay = -1;
     selfReportProb = 0.0;
     if(bday < currDay - 180){
         immunity_temp = false;
@@ -69,7 +70,7 @@ void Human::checkRecovered(unsigned currDay){
        infected = false;
        hospitalized = false;
        symptomatic = false;
-       selfReportDay = -1;
+       reportSymptoms = false;
     }
 }
 
@@ -84,7 +85,6 @@ double Human::getAttractiveness() const {
 int Human::getAgeDays(unsigned currDay) const {
     return currDay - bday;
 }
-
 
 
 double Human::getBodySize() const {
@@ -202,13 +202,21 @@ void Human::infect(
 	    printf("Human::infect vaccineProfile is NULL and person is vaccinated\n");
 	    exit(1);
 	}
+	
 	if(vaccineProfile->getMode() == "advance"){
     	    vaxAdvancement = 1;
     	}else if(vaccineProfile->getMode() == "age"){
 	    RR =  vaccineProfile->getRR(getPreviousInfections(), double(getAgeDays(currentDay)));
     	    RRInf = pow(RR, vaccineProfile->getPropInf());
     	    RRDis = pow(RR, 1.0 - vaccineProfile->getPropInf());
-    	}
+    	}else if(vaccineProfile->getMode() == "GSK"){
+	    vaxAdvancement = 1;
+	    // After the waning period there's no reduction in the relative risk of infection
+	    if(currentDay < vaxWaneDay){
+		RRInf = pow(vaccineProfile->getVE(), vaccineProfile->getPropInf());
+		RRDis = pow(vaccineProfile->getVE(), 1 - vaccineProfile->getPropInf());
+	    }
+	}
     }
     
     double vax_protection = 1.0;
@@ -240,6 +248,7 @@ void Human::infect(
     	    if(rGen->getEventProbability() < (*disRates)[2] * RRDis){
         		recent_dis = infectionType;
         		symptomatic = true;
+			hospitalized = true;
         		if(rGen->getEventProbability() < (*hospRates)[2]){
         		    recent_hosp = infectionType;
         		}
@@ -250,7 +259,7 @@ void Human::infect(
 
 	if(symptomatic == true && enrolledInTrial == true){
 	    if(rGen->getEventProbability() < selfReportProb){
-		selfReportDay = rGen->getSelfReportDay(infection->getSymptomOnset() + 3 + rGen->getRandomNum(4));
+		reportSymptoms = true;
 	    }
 	}
 
@@ -309,8 +318,8 @@ void Human::reincarnate(unsigned currDay){
     enrolledInTrial = false;
     trialArm.clear();
     vaccineComplete = false;
+    reportSymptoms = false;
     lastDayContactedByTrial = 0;
-    selfReportDay = -1;
     immStartDay = bday;
     immEndDay = bday + 180;
     updateImmunityPerm(1,false);
@@ -322,6 +331,7 @@ void Human::reincarnate(unsigned currDay){
     recent_hosp = 0;
     vaccineImmunity = false;
     trialDay = 0;
+    vaxWaneDay = 0;
 }
 
 
@@ -442,6 +452,13 @@ void Human::vaccinateAdvanceMode(int currDay, RandomNumGenerator& rGen)
     setVaxImmEndDay(currDay + 365.0 + rGen.getVaxHumanImmunity(rGen.getWaningTime(vaccineProfile->getWaning())));
 }
 
+void Human::vaccinateGSKMode(int currDay, RandomNumGenerator& rGen)
+{
+    vaccinated = true;
+    vday = currDay;
+    vaxWaneDay = rGen.getVaxHumanImmunity(vaccineProfile->getWaning()) + currDay;
+}
+
 void Human::vaccinateWithProfile(int currDay, RandomNumGenerator * rGen, Vaccine * vax){
     vaccineProfile = vax;
     if(vaccineProfile != NULL){
@@ -451,12 +468,33 @@ void Human::vaccinateWithProfile(int currDay, RandomNumGenerator * rGen, Vaccine
 	    this->vaccinateAdvanceMode(currDay, (*rGen));
 	}else if(vaccineProfile->getMode() == "age"){
 	    this->vaccinate(currDay);
+	}else if(vaccineProfile->getMode() == "GSK"){
+	    this->vaccinateGSKMode(currDay, (*rGen));
 	}
 	if(vaccineProfile->getDoses() == vaccineDosesReceived){
 	    vaccineComplete = true;
 	}
     }else{
 	printf("VaccineProfile is NULL in Human::vaccinateWithProfile\n");
+	exit(1);
+    }
+}
+
+void Human::boostVaccine(int currDay, RandomNumGenerator * rGen){
+    if(vaccineProfile != NULL){
+	vaccineDosesReceived++;
+	if(vaccineProfile->getMode() == "advance"){
+	    this->vaccinateAdvanceMode(currDay, (*rGen));
+	}else if(vaccineProfile->getMode() == "age"){
+	    this->vaccinate(currDay);
+	}else if(vaccineProfile->getMode() == "GSK"){
+	    this->vaccinateGSKMode(currDay, (*rGen));
+	}
+	if(vaccineProfile->getDoses() == vaccineDosesReceived){
+	    vaccineComplete = true;
+	}
+    }else{
+	printf("VaccineProfile is NULL in Human::boostVaccine\n");
 	exit(1);
     }
 }
@@ -481,20 +519,12 @@ int Human::getNextDoseDay(){
     }
 }
 
-void Human::boostVaccine(int currDay, RandomNumGenerator * rGen){
-    if(vaccineProfile != NULL){
-	vaccineDosesReceived++;
-	if(vaccineProfile->getMode() == "advance"){
-	    this->vaccinateAdvanceMode(currDay, (*rGen));
-	}else if(vaccineProfile->getMode() == "age"){
-	    this->vaccinate(currDay);
-	}
-	if(vaccineProfile->getDoses() == vaccineDosesReceived){
-	    vaccineComplete = true;
-	}
-    }else{
-	printf("VaccineProfile is NULL in Human::boostVaccine\n");
-	exit(1);
+
+
+void Human::updateVaccineEfficacy(int currDay){
+    // Sanofi-like vaccine includes a temporary complete immunity that wanes with time
+    if(vaccineProfile->getMode() == "advance" && currDay == this->getVaxImmEndDay()){
+	this->setVaxImmunity(false);
     }
 }
 

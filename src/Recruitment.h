@@ -1,6 +1,5 @@
 #ifndef RECRUITMENT_H
 #define	RECRUITMENT_H
-
 #include <fstream>
 #include <string>
 #include <vector>
@@ -20,7 +19,6 @@ class Recruitment {
     struct groupStruct{
 	int min;
 	int max;
-	double dropoutRate;
 	std::vector<Human *> placebo;
 	std::vector<Human *> vaccine;
 	std::vector<Human *> eligible;
@@ -44,6 +42,7 @@ class Recruitment {
     unsigned vaccineProfile;
     unsigned placeboProfile;
 
+    double dropoutRate;
 
     int getAgeGroup(int, std::vector<groupStruct>);
     int getPossibleAgeGroup(int, std::vector<groupStruct>, int);

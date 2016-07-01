@@ -17,10 +17,11 @@
 class Surveillance {
     struct hRecord{
 	int ageDaysAtVaccination;
-	int leftCensored[4];
-	int rightCensored[4];
+	int TTL[4];
+	int TTR[4];
 	int symptoms[4];
 	int hosp[4];
+	int pcrDay[4];
 	int lastType;
 	int dropoutDay;
 	int enrollmentDay;
@@ -45,11 +46,11 @@ class Surveillance {
     void printRecords(std::string, int);
 
  private:
-    int contactPerson(Human *, int, RandomNumGenerator *);
+    void contactPerson(Human *, int, RandomNumGenerator *);
     int contactFrequency;
     int firstContactDelay;
     double selfReportProb;
-
+    double reportTodayProb;
     int PCR_test(Human *, int, RandomNumGenerator *);
     int parseInteger(std::string);
     double parseDouble(std::string);

@@ -30,6 +30,10 @@ unsigned Infection::getInfectionType() const {
 void Infection::setInfectiousnessMosquito(double in){
     infectiousness = in;
 }
+void Infection::setInfectiousnessMosquito(double in, int sday){
+    infectiousness = in;
+    startDay = sday;
+}
 
 
 

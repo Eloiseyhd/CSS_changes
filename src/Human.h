@@ -31,11 +31,11 @@ private:
     int recent_inf;
     int vday;
     int tAge;
+    int vaxWaneDay;
     int cohort;
     int trialDay;
     int vaccineDosesReceived;
     int lastDayContactedByTrial;
-    int selfReportDay;
 
     double attractiveness;
     double bodySize;
@@ -57,6 +57,7 @@ private:
     bool vaccinated;
     bool vaccineComplete;
     bool enrolledInTrial;    
+    bool reportSymptoms;
 
     Vaccine * vaccineProfile;
 
@@ -100,10 +101,12 @@ public:
     void updateRecent(int,int,int);
     void vaccinate(int);
     void vaccinateAdvanceMode(int, RandomNumGenerator&);
+    void vaccinateGSKMode(int, RandomNumGenerator&);
     void vaccinateWithProfile(int, RandomNumGenerator *, Vaccine *);
-    void waneVaccination(){vaccinated = false;}
+    void updateVaccineEfficacy(int);
     void boostVaccine(int, RandomNumGenerator *);
     void unenrollTrial(){enrolledInTrial = false;}
+    void setReportSymptoms(bool rIn){reportSymptoms = rIn;}
 
     double getAttractiveness() const;
     double getBodySize() const;
@@ -127,7 +130,6 @@ public:
     int getAgeTrialEnrollment(){return tAge;}
     int getNextDoseDay();
     int getLastContactByTrial(){return lastDayContactedByTrial;}
-    int getSelfReportDay(){return selfReportDay;}
     int getTrialEnrollmentDay(){return trialDay;}
     bool isHospitalized(){return hospitalized;}
     bool isImmune(unsigned) const;
@@ -140,6 +142,7 @@ public:
     bool getPreExposureAtVaccination(unsigned);
     bool isEnrolledInTrial(){return enrolledInTrial;}
     bool isFullyVaccinated(){return vaccineComplete;}
+    bool mayReport(){return reportSymptoms;}
 
     std::string getCurrentLoc(double);
     std::string getHouseID() const;

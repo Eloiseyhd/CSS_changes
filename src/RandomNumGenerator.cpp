@@ -20,13 +20,36 @@ double RandomNumGenerator::getMozLifeSpan() {
     return d(gen);
 }
 
-double RandomNumGenerator::getMozLatencyDays() {
-    lognormal_distribution<> d(1.648721, 0.451754);
+double RandomNumGenerator::getMozDeathRate(double deathIn) {    
+    exponential_distribution<> d(deathIn);
+    return (1 / d(gen));
+}
+
+double RandomNumGenerator::getMozLifeSpan(double deathIn) {    
+    exponential_distribution<> d(deathIn);
     return d(gen);
+}
+
+double RandomNumGenerator::getMozLatencyDays(double muIn) {
+    //    lognormal_distribution<> d(1.648721, 0.451754);
+    lognormal_distribution<> d(muIn,0.451754);
+    return d(gen);
+}
+
+double RandomNumGenerator::getMozLatencyRate(double muIn) {
+    //    lognormal_distribution<> d(1.648721, 0.451754);
+    lognormal_distribution<> d(muIn,0.451754);
+    double EIPrate = 1 / d(gen);
+    return EIPrate;
 }
 
 double RandomNumGenerator::getMozRestDays() {
     exponential_distribution<> d(mozRest);
+    return d(gen);
+}
+
+double RandomNumGenerator::getMozRestDays(double mozRestIn) {
+    exponential_distribution<> d(mozRestIn);
     return d(gen);
 }
 

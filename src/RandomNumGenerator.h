@@ -17,10 +17,14 @@ public:
 
     double getWaningTime(double);
     double getMozLifeSpan();
+    double getMozLifeSpan(double);
+    double getMozDeathRate(double);
     double getRandomNormal();
     double getEventProbability();
-    double getMozLatencyDays();
+    double getMozLatencyDays(double);
+    double getMozLatencyRate(double);
     double getMozRestDays();
+    double getMozRestDays(double);
 
     int getSelfReportDay(double);
 

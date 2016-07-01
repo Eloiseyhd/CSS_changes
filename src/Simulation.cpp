@@ -23,6 +23,8 @@ void Simulation::simulate() {
 string Simulation::readInputs() {
     readSimControlFile(configLine);
 
+    readAegyptiFile(aegyptiRatesFile);
+
     outputPath.erase(remove(outputPath.begin(), outputPath.end(), '\"'), outputPath.end());
     outputReport.setupReport(reportsFile,outputPath,simName);
 
@@ -54,11 +56,14 @@ string Simulation::readInputs() {
 
 
 void Simulation::simEngine() {
+    deathMoz = 0;
+    lifeMoz = 0;
     while(currentDay < numDays){
         for(auto itLoc = locations.begin(); itLoc != locations.end(); itLoc++){
             itLoc->second->updateInfectedVisitor();
         }
 	if(vaccinationStrategy == "random_trial"){
+	    printf("Day: %d\n", currentDay);
 	    if(currentDay == recruitmentTrial.getRecruitmentStartDay()){
 		printf("Current Day : %d is recruitment Start Day\n",currentDay);
 		selectEligibleTrialParticipants();
@@ -79,6 +84,7 @@ void Simulation::simEngine() {
     if(vaccinationStrategy == "random_trial"){
 	recruitmentTrial.finalizeTrial(currentDay);
     }
+    printf("Mosquitoes ever death: %d avg lifespan: %.6f\n",deathMoz, (double) lifeMoz / (double) deathMoz);
 }
 
 
@@ -102,7 +108,6 @@ void Simulation::humanDynamics() {
         // daily mortality for humans by age
         if(rGen.getEventProbability() < (deathRate * it->second->getAgeDays(currentDay))){
 	    if(vaccinationStrategy == "random_trial" && (it->second).get()->isEnrolledInTrial() == true){
-		// remove from trial
 		recruitmentTrial.removeParticipant((it->second).get(),currentDay);
 	    }
             it->second->reincarnate(currentDay);
@@ -129,17 +134,12 @@ void Simulation::humanDynamics() {
         }
 
 	//update vaccine immunity if necessary
-
 	if(it->second->isVaccinated()){
-	    if(vaccines.at(vaccineID).getMode() == "advance" && currentDay == it->second->getVaxImmEndDay()){
-		it->second->setVaxImmunity(false);
-	    }
+	    it->second->updateVaccineEfficacy(currentDay);
 	}
 
 
-    	// vaccination, first record the cohorts depending on the vaccination strategy, then vaccinate. 
-
-
+    	// Routine vaccination: first record the cohorts depending on the vaccination strategy, then vaccinate. 
     	age = it->second->getAgeDays(currentDay);
 	if(vaccinationStrategy == "sanofi_trial"){
 	    if(currentDay == vaccineDay){
@@ -178,7 +178,6 @@ void Simulation::humanDynamics() {
             
 	outputReport.updateReport(currentDay,(it->second).get());
            
-
     }
 }
 
@@ -186,49 +185,84 @@ void Simulation::humanDynamics() {
 void Simulation::mosquitoDynamics(){
     double biteTime, dieTime;
     bool biteTaken;
+    double mozEIP = meanDailyEIP.back();
+    double mozDeath = mozDailyDeathRate.back();
+    double mozFBiteRate = firstBiteRate.back();
+    double mozSBiteRate = secondBiteRate.back();
 
     generateMosquitoes();
 
+    // Read entomological parameters that depend on temperature
+    // If there are not enough values, take the last one
+    if(currentDay < meanDailyEIP.size()){
+	mozEIP = meanDailyEIP[currentDay];
+    }
+    if(currentDay < mozDailyDeathRate.size()){
+	mozDeath = mozDailyDeathRate[currentDay];
+    }
+    if(currentDay < firstBiteRate.size()){
+	mozFBiteRate = firstBiteRate[currentDay];
+    }
+    if(currentDay < secondBiteRate.size()){
+	mozSBiteRate = secondBiteRate[currentDay];
+    }
     for(auto it = mosquitoes.begin(); it != mosquitoes.end();){
-        if(it->second->infection != nullptr){
-            if(currentDay == it->second->infection->getStartDay())
-                it->second->infection->setInfectiousnessMosquito(mozInfectiousness);
+	if(it->second->infection != nullptr){
+	    if(it->second->infection->getStartDay() < 0 && rGenInf.getEventProbability() < rGenInf.getMozLatencyRate(mozEIP)){
+		//            if(currentDay == it->second->infection->getStartDay())
+		//		printf("Setting infection for mosquito day %d\n",currentDay);
+                it->second->infection->setInfectiousnessMosquito(mozInfectiousness, currentDay);
+	    }
         }
- 
+	
         // determine if the mosquito will bite and/or die today, and if so at what time
         biteTime = double(numDays + 1);
         dieTime = double(numDays + 1); 
-        if(it->second->getBiteStartDay() <= double(currentDay + 1)){
+        
+	if(it->second->getBiteStartDay() <= double(currentDay + 1)){
             biteTime = it->second->getBiteStartDay() - double(currentDay);
             if(biteTime < 0.0){
-                biteTime = rGenInf.getEventProbability();
+                biteTime = rGen.getEventProbability();
             }
         }
-        if(it->second->getDDay() <= double(currentDay + 1)){
-            dieTime = it->second->getDDay() - double(currentDay);
+
+	// If the mosquito dies today, then set a time to day during the day
+	// Right now that time is being set with an uniform distribution -- Double check!!!!
+        if(rGen.getEventProbability() < mozDeath){
+            dieTime =rGen.getEventProbability();
+	    // it->second->getDDay() - double(currentDay);
         }
+
 
         // if the mosquito dies first, then kill it
         if(dieTime <= biteTime && dieTime <= 1.0){
             auto it_temp = it;
-            it++;
+	    lifeMoz += currentDay - it->second->getBirthDay();
+	    deathMoz++;
+            ++it;
             mosquitoes.erase(it_temp);
             continue;
         }
 
         // if the mosquito bites first, then let it bite and then see about dying
         while(biteTime < dieTime && biteTime <= 1.0){
-            biteTaken = it->second->takeBite(biteTime,locations[it->second->getLocationID()].get(),&rGen,&rGenInf,&disRates,&hospRates,currentDay,numDays,&out);
-            it->second->setBiteStartDay(currentDay + rGen.getMozRestDays());
-            biteTime = it->second->getBiteStartDay() - double(currentDay);
-
-            if(!biteTaken){
+            biteTaken = it->second->takeBite(biteTime,locations[it->second->getLocationID()].get(),&rGen,&rGenInf,&disRates,&hospRates,currentDay,numDays,&out, mozEIP);
+	    if(biteTaken){
+		it->second->setBiteStartDay(currentDay + rGen.getMozRestDays(mozSBiteRate));
+	    }else{
+		it->second->setBiteStartDay(currentDay + rGen.getMozRestDays(mozFBiteRate));
+	    }
+	   
+	    biteTime = it->second->getBiteStartDay() - double(currentDay);
+	    
+	    if(!biteTaken){
+		//		printf("Bite not taken trying to move day %d\n", currentDay);
                 string newLoc = locations.find(it->first)->second->getRandomCloseLoc(rGen);
                 if(newLoc != "TOO_FAR_FROM_ANYWHERE"){
                     it->second->setLocation(newLoc);
                     mosquitoes.insert(make_pair(newLoc, move(it->second)));
                     auto it_temp = it;
-                    it++;
+                    ++it;
                     mosquitoes.erase(it_temp);
                 }
             }
@@ -236,7 +270,9 @@ void Simulation::mosquitoDynamics(){
 
         if(dieTime < 1.0){
             auto it_temp = it;
-            it++;
+	    lifeMoz += currentDay - it->second->getBirthDay();
+	    deathMoz++;
+            ++it;
             mosquitoes.erase(it_temp);
             continue;
         }
@@ -249,15 +285,15 @@ void Simulation::mosquitoDynamics(){
                 it->second->setLocation(newLoc);
                 mosquitoes.insert(make_pair(newLoc, move(it->second)));
                 auto it_temp = it;
-                it++;
+                ++it;
                 mosquitoes.erase(it_temp);
             }
             else{
-                it++;
+                ++it;
             }
         }
         else{
-            it++;
+            ++it;
         }
     }
 }
@@ -266,13 +302,21 @@ void Simulation::mosquitoDynamics(){
 
 void Simulation::generateMosquitoes(){
     int mozCount = 0;
-
+    double mozFBiteRate = firstBiteRate.back();
+    if(currentDay < firstBiteRate.size()){
+	mozFBiteRate = firstBiteRate[currentDay];
+    }
+    double mozLife = mozDailyDeathRate.back();
+    if(currentDay < mozDailyDeathRate.size()){
+	mozLife = mozDailyDeathRate[currentDay];
+    }
     for(auto& x : locations){
         mozCount = rGen.getMozEmerge(x.second->getEmergenceRate());
 
         for(int i = 0; i < mozCount; i++){
             unique_ptr<Mosquito> moz(new Mosquito(
-                double(currentDay) + rGen.getMozLifeSpan(), double(currentDay) + rGen.getMozRestDays(), x.first));
+                double(currentDay) + rGen.getMozLifeSpan(mozLife), double(currentDay) + rGen.getMozRestDays(mozFBiteRate), x.first));
+	    moz->setBirthDay(currentDay);
             mosquitoes.insert(make_pair(x.first, move(moz)));
         }
     }
@@ -299,6 +343,39 @@ void Simulation::selectEligibleTrialParticipants(){
     }
     printf("In total %lu participants are eligible out of %lu\n",recruitmentTrial.getEligibleParticipantsSize(),humans.size());
     recruitmentTrial.shuffleEligibleParticipants();
+}
+
+void Simulation::readAegyptiFile(string file){
+    printf("Reading aegypti file %s\n", file.c_str());
+    ifstream infile(file);
+    if (!infile.good()) {
+        exit(1);
+    }
+    std::string line;
+    getline(infile,line);
+    firstBiteRate.clear();
+    secondBiteRate.clear();
+    mozDailyDeathRate.clear();
+    meanDailyEIP.clear();
+    while (getline(infile, line, ',')) {
+	double eip_temp = strtod(line.c_str(), NULL);
+        getline(infile, line, ',');
+	double fb = strtod(line.c_str(), NULL);
+        getline(infile, line, ',');
+	double sb = strtod(line.c_str(), NULL);
+        getline(infile, line, '\n');
+	double dr = strtod(line.c_str(), NULL);
+	if(eip_temp + fb + sb + dr > 0){
+	    firstBiteRate.push_back(fb);
+	    secondBiteRate.push_back(sb);
+	    mozDailyDeathRate.push_back(dr);
+	    meanDailyEIP.push_back(eip_temp);
+	}
+    }
+    if(firstBiteRate.empty() || secondBiteRate.empty() || mozDailyDeathRate.empty() || meanDailyEIP.empty()){
+	exit(1);
+    }
+    infile.close();
 }
 
 void Simulation::readSimControlFile(string line) {
@@ -342,6 +419,9 @@ void Simulation::readSimControlFile(string line) {
     mozMoveProbability = strtod(line.c_str(), NULL);
     getline(infile, line, ',');
     mbite = strtod(line.c_str(), NULL);
+    getline(infile, line, ',');
+    aegyptiRatesFile = line;
+
 }
 
 void Simulation::readLocationFile(string locFile) {
