@@ -28,10 +28,10 @@ string Simulation::readInputs() {
     outputPath.erase(remove(outputPath.begin(), outputPath.end(), '\"'), outputPath.end());
     outputReport.setupReport(reportsFile,outputPath,simName);
 
-    RandomNumGenerator rgen(rSeed, huImm, emergeFactor, mlife, mbite, halflife);
+    RandomNumGenerator rgen(rSeed, huImm, emergeFactor, 1 / mozDailyDeathRate.back(), firstBiteRate.back(), halflife);
     rGen = rgen;
 
-    RandomNumGenerator rgen2(rSeedInf, huImm, emergeFactor, mlife, mbite, halflife);
+    RandomNumGenerator rgen2(rSeedInf, huImm, emergeFactor, 1 / mozDailyDeathRate.back(), firstBiteRate.back(), halflife);
     rGenInf = rgen2;
 
     readDiseaseRatesFile();
@@ -84,7 +84,6 @@ void Simulation::simEngine() {
     if(vaccinationStrategy == "random_trial"){
 	recruitmentTrial.finalizeTrial(currentDay);
     }
-    printf("Mosquitoes ever death: %d avg lifespan: %.6f\n",deathMoz, (double) lifeMoz / (double) deathMoz);
 }
 
 
@@ -185,27 +184,16 @@ void Simulation::humanDynamics() {
 void Simulation::mosquitoDynamics(){
     double biteTime, dieTime;
     bool biteTaken;
-    double mozEIP = meanDailyEIP.back();
-    double mozDeath = mozDailyDeathRate.back();
-    double mozFBiteRate = firstBiteRate.back();
-    double mozSBiteRate = secondBiteRate.back();
 
     generateMosquitoes();
 
     // Read entomological parameters that depend on temperature
     // If there are not enough values, take the last one
-    if(currentDay < meanDailyEIP.size()){
-	mozEIP = meanDailyEIP[currentDay];
-    }
-    if(currentDay < mozDailyDeathRate.size()){
-	mozDeath = mozDailyDeathRate[currentDay];
-    }
-    if(currentDay < firstBiteRate.size()){
-	mozFBiteRate = firstBiteRate[currentDay];
-    }
-    if(currentDay < secondBiteRate.size()){
-	mozSBiteRate = secondBiteRate[currentDay];
-    }
+    double mozEIP = currentDay < meanDailyEIP.size() ? meanDailyEIP[currentDay] : meanDailyEIP.back();
+    double mozDeath = currentDay < mozDailyDeathRate.size() ? mozDailyDeathRate[currentDay] : mozDailyDeathRate.back();
+    double mozFBiteRate = currentDay < firstBiteRate.size() ? firstBiteRate[currentDay] : firstBiteRate.back();
+    double mozSBiteRate = currentDay < secondBiteRate.size() ? secondBiteRate[currentDay] : secondBiteRate.back();
+
     for(auto it = mosquitoes.begin(); it != mosquitoes.end();){
 	if(it->second->infection != nullptr){
 	    if(it->second->infection->getStartDay() < 0 && rGenInf.getEventProbability() < rGenInf.getMozLatencyRate(mozEIP)){
@@ -302,20 +290,15 @@ void Simulation::mosquitoDynamics(){
 
 void Simulation::generateMosquitoes(){
     int mozCount = 0;
-    double mozFBiteRate = firstBiteRate.back();
-    if(currentDay < firstBiteRate.size()){
-	mozFBiteRate = firstBiteRate[currentDay];
-    }
-    double mozLife = mozDailyDeathRate.back();
-    if(currentDay < mozDailyDeathRate.size()){
-	mozLife = mozDailyDeathRate[currentDay];
-    }
+    double mozFBiteRate = currentDay < firstBiteRate.size() ? firstBiteRate[currentDay] : firstBiteRate.back();
+    double seasFactor = currentDay < dailyEmergenceFactor.size() ? dailyEmergenceFactor[currentDay] : dailyEmergenceFactor.back();
+
     for(auto& x : locations){
-        mozCount = rGen.getMozEmerge(x.second->getEmergenceRate());
+        mozCount = rGen.getMozEmerge(x.second->getEmergenceRate(), seasFactor);
 
         for(int i = 0; i < mozCount; i++){
             unique_ptr<Mosquito> moz(new Mosquito(
-                double(currentDay) + rGen.getMozLifeSpan(mozLife), double(currentDay) + rGen.getMozRestDays(mozFBiteRate), x.first));
+                double(currentDay) + rGen.getMozLifeSpan(), double(currentDay) + rGen.getMozRestDays(mozFBiteRate), x.first));
 	    moz->setBirthDay(currentDay);
             mosquitoes.insert(make_pair(x.first, move(moz)));
         }
@@ -357,22 +340,27 @@ void Simulation::readAegyptiFile(string file){
     secondBiteRate.clear();
     mozDailyDeathRate.clear();
     meanDailyEIP.clear();
+    dailyEmergenceFactor.clear();
+
     while (getline(infile, line, ',')) {
 	double eip_temp = strtod(line.c_str(), NULL);
         getline(infile, line, ',');
 	double fb = strtod(line.c_str(), NULL);
         getline(infile, line, ',');
 	double sb = strtod(line.c_str(), NULL);
+        getline(infile, line, ',');
+	double ef = strtod(line.c_str(), NULL);
         getline(infile, line, '\n');
 	double dr = strtod(line.c_str(), NULL);
-	if(eip_temp + fb + sb + dr > 0){
+	if(eip_temp + fb + sb + dr + ef > 0){
 	    firstBiteRate.push_back(fb);
 	    secondBiteRate.push_back(sb);
 	    mozDailyDeathRate.push_back(dr);
 	    meanDailyEIP.push_back(eip_temp);
+	    dailyEmergenceFactor.push_back(ef);
 	}
     }
-    if(firstBiteRate.empty() || secondBiteRate.empty() || mozDailyDeathRate.empty() || meanDailyEIP.empty()){
+    if(firstBiteRate.empty() || secondBiteRate.empty() || mozDailyDeathRate.empty() || meanDailyEIP.empty() || dailyEmergenceFactor.empty()){
 	exit(1);
     }
     infile.close();
@@ -412,16 +400,14 @@ void Simulation::readSimControlFile(string line) {
     getline(infile, line, ',');
     emergeFactor = strtod(line.c_str(), NULL);
     getline(infile, line, ',');
-    mlife = strtod(line.c_str(), NULL);
-    getline(infile, line, ',');
     mozInfectiousness = strtod(line.c_str(), NULL);
     getline(infile, line, ',');
     mozMoveProbability = strtod(line.c_str(), NULL);
     getline(infile, line, ',');
-    mbite = strtod(line.c_str(), NULL);
-    getline(infile, line, ',');
     aegyptiRatesFile = line;
 
+    //    mlife = strtod(line.c_str(), NULL);
+    //    mbite = strtod(line.c_str(), NULL);
 }
 
 void Simulation::readLocationFile(string locFile) {
@@ -493,6 +479,7 @@ void Simulation::readDiseaseRatesFile(){
 }
 
 void Simulation::readVaccineSettingsFile(){
+    vaccinationStrategy = "none";
     if(vaccineSettingsFile.length() == 0){
         exit(1);
     }
@@ -608,6 +595,36 @@ void Simulation::readVaccineProfilesFile(){
 		}
 		if(line2 == "vaccine_veneg_c_" + s_id){
 		    vaxTemp.addVE_neg(this->parseDouble(line3),2);
+		}
+		if(line2 == "vaccine_veneg_" + s_id){
+		    vaxTemp.setVaccineEfficacy(false,this->parseDouble(line3));
+		}
+		if(line2 == "vaccine_vepos_" + s_id){
+		    vaxTemp.setVaccineEfficacy(true,this->parseDouble(line3));
+		}
+		if(line2 == "vaccine_RRInfneg_" + s_id){
+		    vaxTemp.setRRInf(false,this->parseDouble(line3));
+		}
+		if(line2 == "vaccine_RRInfpos_" + s_id){
+		    vaxTemp.setRRInf(true,this->parseDouble(line3));
+		}
+		if(line2 == "vaccine_RRDisneg_" + s_id){
+		    vaxTemp.setRRDis(false,this->parseDouble(line3));
+		}
+		if(line2 == "vaccine_RRDispos_" + s_id){
+		    vaxTemp.setRRDis(true,this->parseDouble(line3));
+		}
+		if(line2 == "vaccine_RRHospneg_" + s_id){
+		    vaxTemp.setRRHosp(false,this->parseDouble(line3));
+		}
+		if(line2 == "vaccine_RRHosppos_" + s_id){
+		    vaxTemp.setRRHosp(true,this->parseDouble(line3));
+		}
+		if(line2 == "vaccine_waning_pos_" + s_id){
+		    vaxTemp.setWaning(true,this->parseDouble(line3));
+		}
+		if(line2 == "vaccine_waning_neg_" + s_id){
+		    vaxTemp.setWaning(false,this->parseDouble(line3));
 		}
 		if(line2 == "vaccine_prop_inf_" + s_id){
 		    vaxTemp.setPropInf(this->parseDouble(line3));

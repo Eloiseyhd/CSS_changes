@@ -113,6 +113,7 @@ private:
     std::vector<double> firstBiteRate;
     std::vector<double> secondBiteRate;
     std::vector<double> mozDailyDeathRate;
+    std::vector<double> dailyEmergenceFactor;
     std::ofstream out;
     std::ofstream outpop;
     std::ofstream outprevac;

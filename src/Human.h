@@ -31,7 +31,8 @@ private:
     int recent_inf;
     int vday;
     int tAge;
-    int vaxWaneDay;
+    int vaxWaning_pos;
+    int vaxWaning_neg;
     int cohort;
     int trialDay;
     int vaccineDosesReceived;

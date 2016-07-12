@@ -122,8 +122,8 @@ void Recruitment::enrollTodayParticipants(int currDay, RandomNumGenerator * rGen
 		if(ageGroups[i].eligible.back()->isEnrolledInTrial() == false){
 		    ageGroups[i].eligible.back()->enrollInTrial(currDay, "vaccine");
 		    ageGroups[i].vaccine.push_back(ageGroups[i].eligible.back());
-		    ageGroups[i].vaccine.back()->vaccinateWithProfile(currDay, rGen, &(vaccinesPtr.at(vaccineProfile)));
 		    trialSurveillance.initialize_human_surveillance(ageGroups[i].vaccine.back(), currDay);
+		    ageGroups[i].vaccine.back()->vaccinateWithProfile(currDay, rGen, &(vaccinesPtr.at(vaccineProfile)));
 		    j++;
 		}
 		ageGroups[i].eligible.pop_back();
@@ -145,8 +145,8 @@ void Recruitment::enrollTodayParticipants(int currDay, RandomNumGenerator * rGen
 		if(ageGroups[i].eligible.back()->isEnrolledInTrial() == false){
 		    ageGroups[i].eligible.back()->enrollInTrial(currDay, "placebo");
 		    ageGroups[i].placebo.push_back(ageGroups[i].eligible.back());
-		    ageGroups[i].placebo.back()->vaccinateWithProfile(currDay, rGen, &(vaccinesPtr.at(placeboProfile)));
 		    trialSurveillance.initialize_human_surveillance(ageGroups[i].placebo.back(), currDay);
+		    ageGroups[i].placebo.back()->vaccinateWithProfile(currDay, rGen, &(vaccinesPtr.at(placeboProfile)));		   
 		    j++;
 		}
 		ageGroups[i].eligible.pop_back();

@@ -7,6 +7,7 @@
 class RandomNumGenerator {
 public:
     unsigned getMozEmerge(double);
+    unsigned getMozEmerge(double, double);
     unsigned getHumanTrajectory();
     unsigned getHumanImmunity();
     unsigned getVaxHumanImmunity(unsigned);

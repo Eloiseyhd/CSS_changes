@@ -30,7 +30,8 @@ Human::Human(
     cohort = 0;
     tAge = 0;
     trialDay = 0;
-    vaxWaneDay = 0;
+    vaxWaning_pos = 0;
+    vaxWaning_neg = 0;
     vaccineComplete = false;
     enrolledInTrial = false;
     seroStatusAtVaccination = false;
@@ -194,6 +195,7 @@ void Human::infect(
     double RR = 1.0;
     double RRInf = 1.0;
     double RRDis = 1.0;
+    double RRHosp = 1.0;
     
     int vaxAdvancement = 0;
 
@@ -203,6 +205,9 @@ void Human::infect(
 	    exit(1);
 	}
 	
+	// There are multiple vaccines supported: GSK, advance (Sanofi), or age
+	// We have to specify the effects for each of these vaccine modes
+
 	if(vaccineProfile->getMode() == "advance"){
     	    vaxAdvancement = 1;
     	}else if(vaccineProfile->getMode() == "age"){
@@ -210,11 +215,16 @@ void Human::infect(
     	    RRInf = pow(RR, vaccineProfile->getPropInf());
     	    RRDis = pow(RR, 1.0 - vaccineProfile->getPropInf());
     	}else if(vaccineProfile->getMode() == "GSK"){
-	    vaxAdvancement = 1;
-	    // After the waning period there's no reduction in the relative risk of infection
-	    if(currentDay < vaxWaneDay){
-		RRInf = pow(vaccineProfile->getVE(), vaccineProfile->getPropInf());
-		RRDis = pow(vaccineProfile->getVE(), 1 - vaccineProfile->getPropInf());
+
+	    // After the waning period there's no effect of the vaccine in the reduction of the relative risk of infection
+	    // The waning time is approximately tau * 4, being waning = exp(-t/tau), the RR should go up from RR(0) to 1
+	    double vaxWaning = getPreviousInfections() > 0 ? vaxWaning_pos : vaxWaning_neg;
+	    double wan_ = exp(-double(currentDay - vday) / (vaxWaning));
+	    RRInf = 1 - (1 - vaccineProfile->getRRInf(getPreviousInfections() > 0)) * wan_ ;
+	    RRDis = 1 - (1 - vaccineProfile->getRRDis(getPreviousInfections() > 0)) * wan_;
+	    RRHosp = 1 - (1 - vaccineProfile->getRRHosp(getPreviousInfections() > 0)) * wan_;
+	    if(vday == 15){
+		printf("ID %s-%d day %d vday %d RRInf %.4f RRDis %.4f RRHosp %.4f\n", houseID.c_str(), houseMemNum,currentDay, vday, RRInf, RRDis, RRHosp);
 	    }
 	}
     }
@@ -240,7 +250,7 @@ void Human::infect(
     	    if(rGen->getEventProbability() < (*disRates)[1] * RRDis){
         		recent_dis = infectionType;
         		symptomatic = true;
-        		if(rGen->getEventProbability() < (*hospRates)[1]){
+        		if(rGen->getEventProbability() < (*hospRates)[1] * RRHosp){
         		    recent_hosp = infectionType;
         		}
     	    }
@@ -249,7 +259,7 @@ void Human::infect(
         		recent_dis = infectionType;
         		symptomatic = true;
 			hospitalized = true;
-        		if(rGen->getEventProbability() < (*hospRates)[2]){
+        		if(rGen->getEventProbability() < (*hospRates)[2] * RRHosp){
         		    recent_hosp = infectionType;
         		}
     	    }
@@ -331,7 +341,8 @@ void Human::reincarnate(unsigned currDay){
     recent_hosp = 0;
     vaccineImmunity = false;
     trialDay = 0;
-    vaxWaneDay = 0;
+    vaxWaning_pos = 0;
+    vaxWaning_neg = 0;
 }
 
 
@@ -456,7 +467,8 @@ void Human::vaccinateGSKMode(int currDay, RandomNumGenerator& rGen)
 {
     vaccinated = true;
     vday = currDay;
-    vaxWaneDay = rGen.getVaxHumanImmunity(vaccineProfile->getWaning()) + currDay;
+    vaxWaning_neg = rGen.getVaxHumanImmunity(vaccineProfile->getWaning(false));
+    vaxWaning_pos = rGen.getVaxHumanImmunity(vaccineProfile->getWaning(true));
 }
 
 void Human::vaccinateWithProfile(int currDay, RandomNumGenerator * rGen, Vaccine * vax){
@@ -525,6 +537,13 @@ void Human::updateVaccineEfficacy(int currDay){
     // Sanofi-like vaccine includes a temporary complete immunity that wanes with time
     if(vaccineProfile->getMode() == "advance" && currDay == this->getVaxImmEndDay()){
 	this->setVaxImmunity(false);
+    }else if (vaccineProfile->getMode() == "GSK" && houseID == "PU047"){
+	double vaxWaning = getPreviousInfections() > 0 ? vaxWaning_pos : vaxWaning_neg;
+	double wan_ = exp(-double(currDay - vday) / (vaxWaning));
+	double RRInf = 1 - (1 - vaccineProfile->getRRInf(getPreviousInfections() > 0)) * wan_ ;
+	double RRDis = 1 - (1 - vaccineProfile->getRRDis(getPreviousInfections() > 0)) * wan_;
+	double RRHosp = 1 - (1 - vaccineProfile->getRRHosp(getPreviousInfections() > 0)) * wan_;
+	printf("ID %s-%d day %d vday %d Previous %d RRInf %.4f RRDis %.4f RRHosp %.4f wanPos %d wanNeg %d\n", houseID.c_str(), houseMemNum,currDay, vday, getPreviousInfections(), RRInf, RRDis, RRHosp, vaxWaning_pos, vaxWaning_neg);
     }
 }
 
