@@ -29,6 +29,7 @@ Human::Human(
     resetRecent();
     cohort = 0;
     tAge = 0;
+    vday = -1;
     trialDay = 0;
     vaxWaning_pos = 0;
     vaxWaning_neg = 0;
@@ -343,6 +344,7 @@ void Human::reincarnate(unsigned currDay){
     trialDay = 0;
     vaxWaning_pos = 0;
     vaxWaning_neg = 0;
+    vday = -1;
 }
 
 
@@ -537,7 +539,7 @@ void Human::updateVaccineEfficacy(int currDay){
     // Sanofi-like vaccine includes a temporary complete immunity that wanes with time
     if(vaccineProfile->getMode() == "advance" && currDay == this->getVaxImmEndDay()){
 	this->setVaxImmunity(false);
-    }else if (vaccineProfile->getMode() == "GSK" && houseID == "PU047"){
+    }else if (vaccineProfile->getMode() == "GSK" && houseID == "BG111"){
 	double vaxWaning = getPreviousInfections() > 0 ? vaxWaning_pos : vaxWaning_neg;
 	double wan_ = exp(-double(currDay - vday) / (vaxWaning));
 	double RRInf = 1 - (1 - vaccineProfile->getRRInf(getPreviousInfections() > 0)) * wan_ ;
