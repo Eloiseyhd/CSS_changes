@@ -26,6 +26,7 @@ public:
     void readDiseaseRatesFile();
     void readVaccineProfileFile();
     void readVaccinationGroupsFile();
+    void readAegyptiFile(std::string);
     void setLocNeighborhood(double);
     void simEngine();
     void humanDynamics();
@@ -61,6 +62,8 @@ private:
     std::string reportsFile;
     std::string diseaseRatesFile;
     std::string vaccinationGroupsFile;
+    std::string aegyptiRatesFile;
+
     bool routineVaccination;
     bool catchupFlag;
     bool trialVaccination;
@@ -88,7 +91,12 @@ private:
     double ForceOfImportation;
     double ForceOfImportationTrial;
     unsigned year;
-    //    int seroposAtVax[101], seronegAtVax[101], disAtVax[101], hospAtVax[101];
+
+    std::vector<double> meanDailyEIP;
+    std::vector<double> firstBiteRate;
+    std::vector<double> secondBiteRate;
+    std::vector<double> mozDailyDeathRate;
+    std::vector<double> dailyEmergenceFactor;
 
     std::ofstream out;
     std::ofstream outpop;

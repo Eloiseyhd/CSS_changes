@@ -23,6 +23,10 @@ void Infection::setInfectiousnessMosquito(double in){
     infectiousness = in;
 }
 
+void Infection::setInfectiousnessMosquito(double in, int sday){
+    infectiousness = in;
+    startDay = sday;
+}
 
 
 void Infection::setInfectiousnessHuman(int currentDay){

@@ -15,6 +15,11 @@ unsigned RandomNumGenerator::getMozEmerge(double mozMean) {
     return dis(gen);
 }
 
+unsigned RandomNumGenerator::getMozEmerge(double mozMean, double seasonalFactor) {    
+    poisson_distribution<> dis(emergeFactor * mozMean * seasonalFactor);
+    return dis(gen);
+}
+
 double RandomNumGenerator::getMozLifeSpan() {    
     exponential_distribution<> d(1./mozLife);
     return d(gen);
@@ -25,8 +30,19 @@ double RandomNumGenerator::getMozLatencyDays() {
     return d(gen);
 }
 
+double RandomNumGenerator::getMozLatencyRate(double muIn) {
+    lognormal_distribution<> d(muIn,0.451754);
+    double EIPrate = (double) 1.0 / d(gen);
+    return EIPrate;
+}
+
 double RandomNumGenerator::getMozRestDays() {
     exponential_distribution<> d(mozRest);
+    return d(gen);
+}
+
+double RandomNumGenerator::getMozRestDays(double mozRestIn) {
+    exponential_distribution<> d(mozRestIn);
     return d(gen);
 }
 

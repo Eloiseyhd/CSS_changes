@@ -8,6 +8,7 @@ class RandomNumGenerator {
 public:
     double getWaningTime(double);
     unsigned getMozEmerge(double);
+    unsigned getMozEmerge(double, double);
     double getMozLifeSpan();
     unsigned getHumanTrajectory();
     unsigned getHumanImmunity();
@@ -17,7 +18,9 @@ public:
     double getRandomNormal();
     double getEventProbability();
     double getMozLatencyDays();
+    double getMozLatencyRate(double);
     double getMozRestDays();
+    double getMozRestDays(double);
     unsigned getMozNextLoc(unsigned);
     void setSeed(unsigned);
     std::string toString() const;

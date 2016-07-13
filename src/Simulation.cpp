@@ -23,13 +23,15 @@ void Simulation::simulate() {
 string Simulation::readInputs() {
     readSimControlFile(configLine);
 
+    readAegyptiFile(aegyptiRatesFile);
+
     outputPath.erase(remove(outputPath.begin(), outputPath.end(), '\"'), outputPath.end());
     outputReport.setupReport(reportsFile,outputPath,simName);
 
-    RandomNumGenerator rgen(rSeed, huImm, emergeFactor, mlife, mbite, halflife);
+    RandomNumGenerator rgen(rSeed, huImm, emergeFactor, 1 / mozDailyDeathRate.back(),firstBiteRate.back(), halflife);
     rGen = rgen;
 
-    RandomNumGenerator rgen2(rSeedInf, huImm, emergeFactor, mlife, mbite, halflife);
+    RandomNumGenerator rgen2(rSeedInf, huImm, emergeFactor, 1 / mozDailyDeathRate.back(),firstBiteRate.back(), halflife);
     rGenInf = rgen2;
 
     readDiseaseRatesFile();
@@ -195,29 +197,41 @@ void Simulation::mosquitoDynamics(){
 
     generateMosquitoes();
 
+    // Read entomological parameters that depend on temperature
+    // If there are not enough values, take the last one
+    double mozEIP = currentDay < meanDailyEIP.size() ? meanDailyEIP[currentDay] : meanDailyEIP.back();
+    double mozDeath = currentDay < mozDailyDeathRate.size() ? mozDailyDeathRate[currentDay] : mozDailyDeathRate.back();
+    double mozFBiteRate = currentDay < firstBiteRate.size() ? firstBiteRate[currentDay] : firstBiteRate.back();
+    double mozSBiteRate = currentDay < secondBiteRate.size() ? secondBiteRate[currentDay] : secondBiteRate.back();
+    //    printf("Day %d EIP %.4f death %.4f fbite %.4f sbite %.4f\n", currentDay, mozEIP, mozDeath, mozFBiteRate, mozSBiteRate);
     for(auto it = mosquitoes.begin(); it != mosquitoes.end();){
         if(it->second->infection != nullptr){
-            if(currentDay == it->second->infection->getStartDay())
-                it->second->infection->setInfectiousnessMosquito(mozInfectiousness);
+	    if(it->second->infection->getStartDay() < 0 && rGenInf.getEventProbability() < rGenInf.getMozLatencyRate(mozEIP)){
+                it->second->infection->setInfectiousnessMosquito(mozInfectiousness, currentDay);
+	    }
         }
  
         // determine if the mosquito will bite and/or die today, and if so at what time
         biteTime = double(numDays + 1);
         dieTime = double(numDays + 1); 
+
         if(it->second->getBiteStartDay() <= double(currentDay + 1)){
             biteTime = it->second->getBiteStartDay() - double(currentDay);
             if(biteTime < 0.0){
-                biteTime = rGenInf.getEventProbability();
+                biteTime = rGen.getEventProbability();
             }
         }
-        if(it->second->getDDay() <= double(currentDay + 1)){
-            dieTime = it->second->getDDay() - double(currentDay);
+	// If the mosquito dies today, then set a time to day during the day
+	// Right now that time is being set with an uniform distribution -- Double check!!!!
+        if(rGen.getEventProbability() < mozDeath){
+            dieTime =rGen.getEventProbability();
+	    // it->second->getDDay() - double(currentDay);
         }
 
         // if the mosquito dies first, then kill it
         if(dieTime <= biteTime && dieTime <= 1.0){
             auto it_temp = it;
-            it++;
+            ++it;
             mosquitoes.erase(it_temp);
             continue;
         }
@@ -225,16 +239,26 @@ void Simulation::mosquitoDynamics(){
         // if the mosquito bites first, then let it bite and then see about dying
         while(biteTime < dieTime && biteTime <= 1.0){
             biteTaken = it->second->takeBite(biteTime,locations[it->second->getLocationID()].get(),&rGen,&rGenInf,&disRates,&hospRates,currentDay,numDays,&out,normdev);
-            it->second->setBiteStartDay(currentDay + rGen.getMozRestDays());
-            biteTime = it->second->getBiteStartDay() - double(currentDay);
-
-            if(!biteTaken){
+	    if(biteTaken){
+		it->second->setBiteStartDay(currentDay + rGen.getMozRestDays(mozSBiteRate));
+	    }else{
+		//There could be a bug here ! check the number of bites before assigning the restdays
+		if(it->second->getNumBites() == 0){
+		    it->second->setBiteStartDay(currentDay + rGen.getMozRestDays(mozFBiteRate));
+		}else{
+		    it->second->setBiteStartDay(currentDay + rGen.getMozRestDays(mozSBiteRate));
+		}
+	    }
+	    
+	    biteTime = it->second->getBiteStartDay() - double(currentDay);
+	    
+	    if(!biteTaken){
                 string newLoc = locations.find(it->first)->second->getRandomCloseLoc(rGen);
                 if(newLoc != "TOO_FAR_FROM_ANYWHERE"){
                     it->second->setLocation(newLoc);
                     mosquitoes.insert(make_pair(newLoc, move(it->second)));
                     auto it_temp = it;
-                    it++;
+                    ++it;
                     mosquitoes.erase(it_temp);
                 }
             }
@@ -242,7 +266,7 @@ void Simulation::mosquitoDynamics(){
 
         if(dieTime < 1.0){
             auto it_temp = it;
-            it++;
+            ++it;
             mosquitoes.erase(it_temp);
             continue;
         }
@@ -259,11 +283,11 @@ void Simulation::mosquitoDynamics(){
                 mosquitoes.erase(it_temp);
             }
             else{
-                it++;
+                ++it;
             }
         }
         else{
-            it++;
+            ++it;
         }
     }
 }
@@ -272,13 +296,20 @@ void Simulation::mosquitoDynamics(){
 
 void Simulation::generateMosquitoes(){
     int mozCount = 0;
+    double mozFBiteRate = currentDay < firstBiteRate.size() ? firstBiteRate[currentDay] : firstBiteRate.back();
+    double seasFactor = currentDay < dailyEmergenceFactor.size() ? dailyEmergenceFactor[currentDay] : dailyEmergenceFactor.back();
 
     for(auto& x : locations){
-        mozCount = rGen.getMozEmerge(x.second->getEmergenceRate());
+	// The emergence is multiplied by a seasonal factor that could vary everyday
+	// The emergence seasonal factor is being included by reading an external file with the entomological parameters
+
+        mozCount = rGen.getMozEmerge(x.second->getEmergenceRate(), seasFactor);
 
         for(int i = 0; i < mozCount; i++){
+	    // This is a temporary fix, to be discussed further...
+	    // When creating a mosquito there's a lifespan assigned, but it's not being used anymore
             unique_ptr<Mosquito> moz(new Mosquito(
-                double(currentDay) + rGen.getMozLifeSpan(), double(currentDay) + rGen.getMozRestDays(), x.first));
+                double(currentDay) + rGen.getMozLifeSpan(), double(currentDay) + rGen.getMozRestDays(mozFBiteRate), x.first));
             mosquitoes.insert(make_pair(x.first, move(moz)));
         }
     }
@@ -359,15 +390,49 @@ void Simulation::readSimControlFile(string line) {
     getline(infile, line, ',');
     emergeFactor = strtod(line.c_str(), NULL);
     getline(infile, line, ',');
-    mlife = strtod(line.c_str(), NULL);
-    getline(infile, line, ',');
     mozInfectiousness = strtod(line.c_str(), NULL);
     getline(infile, line, ',');
     mozMoveProbability = strtod(line.c_str(), NULL);
     getline(infile, line, ',');
-    mbite = strtod(line.c_str(), NULL);
+    aegyptiRatesFile = line;
 }
 
+void Simulation::readAegyptiFile(string file){
+    ifstream infile(file);
+    if (!infile.good()) {
+        exit(1);
+    }
+    std::string line;
+    getline(infile,line);
+    firstBiteRate.clear();
+    secondBiteRate.clear();
+    mozDailyDeathRate.clear();
+    meanDailyEIP.clear();
+    dailyEmergenceFactor.clear();
+
+    while (getline(infile, line, ',')) {
+	double eip_temp = strtod(line.c_str(), NULL);
+        getline(infile, line, ',');
+	double fb = strtod(line.c_str(), NULL);
+        getline(infile, line, ',');
+	double sb = strtod(line.c_str(), NULL);
+        getline(infile, line, ',');
+	double dr = strtod(line.c_str(), NULL);
+        getline(infile, line, '\n');
+	double ef = strtod(line.c_str(), NULL);
+	if(eip_temp + fb + sb + dr + ef > 0){
+	    firstBiteRate.push_back(fb);
+	    secondBiteRate.push_back(sb);
+	    mozDailyDeathRate.push_back(dr);
+	    meanDailyEIP.push_back(eip_temp);
+	    dailyEmergenceFactor.push_back(ef);
+	}
+    }
+    if(firstBiteRate.empty() || secondBiteRate.empty() || mozDailyDeathRate.empty() || meanDailyEIP.empty() || dailyEmergenceFactor.empty()){
+	exit(1);
+    }
+    infile.close();
+}
 
 
 void Simulation::readLocationFile(string locFile) {

@@ -13,6 +13,7 @@ public:
     unsigned getInfectionType() const;
     void setInfectiousnessHuman(int);
     void setInfectiousnessMosquito(double);
+    void setInfectiousnessMosquito(double, int);
     std::string toString() const;
     Infection(unsigned, unsigned, double, unsigned, bool, bool, double);
     Infection();

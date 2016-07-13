@@ -39,7 +39,7 @@ bool Mosquito::takeBite(
         if(locNow->getInfectedVisitor()){
             return infectingBite(time, locNow, rGen, rGenInf, currentDay, numDays);            
         } else {
-            setBiteStartDay(currentDay + rGen->getMozRestDays());
+	    nbites++;
             return true;
         }
     }
@@ -98,13 +98,13 @@ bool Mosquito::infectingBite(
         if(humBite->infection != nullptr){
             humBite->infection->setInfectiousnessHuman(currentDay);
             if(rGenInf->getEventProbability() < humBite->infection->getInfectiousness()){
-                double sday = double(currentDay) + rGenInf->getMozLatencyDays();
+		//                double sday = double(currentDay) + rGenInf->getMozLatencyDays();
                 int eday = numDays + 1;
                 infection.reset(new Infection(
-                    round(sday), eday, 0.0, humBite->infection->getInfectionType(), 0, 0, 0.0));
+                    -1, eday, 0.0, humBite->infection->getInfectionType(), 0, 0, 0.0));
             }
         }
-        setBiteStartDay(currentDay + rGen->getMozRestDays());
+	nbites++;
         return true;
     }else{
         return false;
@@ -132,7 +132,7 @@ bool Mosquito::infectiousBite(
                 humBite->infect(currentDay, infection->getInfectionType(), rGenInf, disRates, hospRates, normdev);
             }
         }
-        setBiteStartDay(currentDay + rGen->getMozRestDays());
+	nbites++;
         return true;
     }else{
         return false;
@@ -146,6 +146,7 @@ Mosquito::Mosquito(double dd, double bsd, string loc) {
     dday = dd;
     biteStartDay = bsd;
     infection.reset(nullptr);
+    nbites = 0;
 }
 
 
