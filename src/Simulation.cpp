@@ -238,7 +238,11 @@ void Simulation::mosquitoDynamics(){
 	    if(biteTaken){
 		it->second->setBiteStartDay(currentDay + rGen.getMozRestDays(mozSBiteRate));
 	    }else{
-		it->second->setBiteStartDay(currentDay + rGen.getMozRestDays(mozFBiteRate));
+		if(it->second->getNumBites() == 0){
+		    it->second->setBiteStartDay(currentDay + rGen.getMozRestDays(mozFBiteRate));
+		}else{
+		    it->second->setBiteStartDay(currentDay + rGen.getMozRestDays(mozSBiteRate));
+		}
 	    }
 	   
 	    biteTime = it->second->getBiteStartDay() - double(currentDay);
@@ -329,7 +333,6 @@ void Simulation::selectEligibleTrialParticipants(){
 }
 
 void Simulation::readAegyptiFile(string file){
-    printf("Reading aegypti file %s\n", file.c_str());
     ifstream infile(file);
     if (!infile.good()) {
         exit(1);
@@ -349,9 +352,9 @@ void Simulation::readAegyptiFile(string file){
         getline(infile, line, ',');
 	double sb = strtod(line.c_str(), NULL);
         getline(infile, line, ',');
-	double ef = strtod(line.c_str(), NULL);
-        getline(infile, line, '\n');
 	double dr = strtod(line.c_str(), NULL);
+        getline(infile, line, '\n');
+	double ef = strtod(line.c_str(), NULL);
 	if(eip_temp + fb + sb + dr + ef > 0){
 	    firstBiteRate.push_back(fb);
 	    secondBiteRate.push_back(sb);
