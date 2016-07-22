@@ -42,8 +42,8 @@ string Simulation::readInputs() {
 
     if(vaccinationStrategy == "random_trial"){
 	recruitmentTrial.setupRecruitment(trialSettingsFile, vaccines, outputPath, simName);
-	printf("Vax Sample: %d, Plac Sample: %d\n", recruitmentTrial.getVaccineSampleSize(), recruitmentTrial.getPlaceboSampleSize());
-	printf("Recruitment day: %d\n",recruitmentTrial.getRecruitmentStartDay());
+	//	printf("Vax Sample: %d, Plac Sample: %d\n", recruitmentTrial.getVaccineSampleSize(), recruitmentTrial.getPlaceboSampleSize());
+	//	printf("Recruitment day: %d\n",recruitmentTrial.getRecruitmentStartDay());
     }
     if(vaccinationStrategy == "sanofi_trial"){
 	readVaccinationGroupsFile();
@@ -63,9 +63,9 @@ void Simulation::simEngine() {
             itLoc->second->updateInfectedVisitor();
         }
 	if(vaccinationStrategy == "random_trial"){
-	    printf("Day: %d\n", currentDay);
+	    //	    printf("Day: %d\n", currentDay);
 	    if(currentDay == recruitmentTrial.getRecruitmentStartDay()){
-		printf("Current Day : %d is recruitment Start Day\n",currentDay);
+		//		printf("Current Day : %d is recruitment Start Day\n",currentDay);
 		selectEligibleTrialParticipants();
 	    }
 	    recruitmentTrial.update(currentDay, &rGenInf);
@@ -186,7 +186,6 @@ void Simulation::mosquitoDynamics(){
     bool biteTaken;
 
     generateMosquitoes();
-
     // Read entomological parameters that depend on temperature
     // If there are not enough values, take the last one
     double mozEIP = currentDay < meanDailyEIP.size() ? meanDailyEIP[currentDay] : meanDailyEIP.back();
@@ -328,7 +327,7 @@ void Simulation::selectEligibleTrialParticipants(){
     for(auto it = humans.begin(); it != humans.end(); ++it){
 	recruitmentTrial.addPossibleParticipant((it->second).get(),currentDay);
     }
-    printf("In total %lu participants are eligible out of %lu\n",recruitmentTrial.getEligibleParticipantsSize(),humans.size());
+    //    printf("In total %lu participants are eligible out of %lu\n",recruitmentTrial.getEligibleParticipantsSize(),humans.size());
     recruitmentTrial.shuffleEligibleParticipants();
 }
 
@@ -446,7 +445,7 @@ void Simulation::readLocationFile(string locFile) {
         while (infile.peek() == '\n')
             infile.ignore(1, '\n');
 
-        unique_ptr<Location> location(new Location(locID, locType, x, y, 1.0));
+        unique_ptr<Location> location(new Location(locID, locType, x, y, mozzes));
         locations.insert(make_pair(locID, move(location)));
 
     }
@@ -525,7 +524,7 @@ void Simulation::readVaccineSettingsFile(){
 	}
     }
     infile.close();
-    printf("vStrategy %s day %d age %d coverage: %.2f: groups_file: %s: profilesFile: %s: ID: %d\n",vaccinationStrategy.c_str(), vaccineDay, vaccineAge,vaccineCoverage, vaccinationGroupsFile.c_str(), vaccineProfilesFile.c_str(), vaccineID);
+    //    printf("vStrategy %s day %d age %d coverage: %.2f: groups_file: %s: profilesFile: %s: ID: %d\n",vaccinationStrategy.c_str(), vaccineDay, vaccineAge,vaccineCoverage, vaccinationGroupsFile.c_str(), vaccineProfilesFile.c_str(), vaccineID);
 }
 
 
@@ -553,7 +552,7 @@ void Simulation::readVaccineProfilesFile(){
     }
 
     if(numVaccines > 0){
-	printf("There are %d vaccines to read in the file\n",numVaccines);
+	//	printf("There are %d vaccines to read in the file\n",numVaccines);
 	// Now we should read the rest of the parameters and store them in the appropiate vaccine structure
 	for(unsigned i = 0;i < numVaccines; i++){
 	    infile.clear();
@@ -644,9 +643,9 @@ void Simulation::readVaccineProfilesFile(){
 	    }
 	    vaccines.insert(make_pair(i,vaxTemp));
 	}
-	for(unsigned j = 0;j < vaccines.size(); j++){
+	/*	for(unsigned j = 0;j < vaccines.size(); j++){
 	    vaccines.at(j).printVaccine();
-	}
+	    }*/
     }else{
 	printf("There are no vaccines to read in %s\n",vaccineProfilesFile.c_str());
 	exit(1);
@@ -682,7 +681,6 @@ void Simulation::parseVector(std::string line, std::vector<int> * vector_temp){
     stringstream linetemp;
     string line2;
     linetemp.clear();
-    int count =0;
     linetemp << line;
     vector_temp->clear();
 

@@ -16,7 +16,7 @@ unsigned RandomNumGenerator::getMozEmerge(double mozMean) {
 }
 
 unsigned RandomNumGenerator::getMozEmerge(double mozMean, double seasonalFactor) {    
-    poisson_distribution<> dis(emergeFactor * mozMean * seasonalFactor);
+    poisson_distribution<> dis( mozMean * seasonalFactor);
     return dis(gen);
 }
 
