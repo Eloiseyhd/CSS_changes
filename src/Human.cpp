@@ -13,7 +13,7 @@ Human::Human(
     unique_ptr<vector<vector<pair<string, double >> >> &paths,
     RandomNumGenerator& rGen,
     unsigned currDay,
-    double FOI)
+    std::vector<double> FOI)
 {
     houseID = hID;
     houseMemNum = hMemID;
@@ -47,12 +47,13 @@ Human::Human(
     vaccineDosesReceived = 0;
     lastDayContactedByTrial = 0;
     selfReportProb = 0.0;
-    if(bday < currDay - 180){
+    if(bday < (currDay - 180)){
         immunity_temp = false;
-        setImmunityPerm(1, rGen.getHumanSeropositivity(FOI, double(currDay - bday)));
-        setImmunityPerm(2, rGen.getHumanSeropositivity(FOI, double(currDay - bday)));
-        setImmunityPerm(3, rGen.getHumanSeropositivity(FOI, double(currDay - bday)));
-        setImmunityPerm(4, rGen.getHumanSeropositivity(FOI, double(currDay - bday)));
+	// Set the initial conditions for the immune profile by serotype
+        setImmunityPerm(1, rGen.getHumanSeropositivity(FOI[0], double(currDay - bday)));
+        setImmunityPerm(2, rGen.getHumanSeropositivity(FOI[1], double(currDay - bday)));
+        setImmunityPerm(3, rGen.getHumanSeropositivity(FOI[2], double(currDay - bday)));
+        setImmunityPerm(4, rGen.getHumanSeropositivity(FOI[3], double(currDay - bday)));
     } else {
         immunity_temp = true;
         immStartDay = bday;

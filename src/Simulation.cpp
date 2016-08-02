@@ -103,6 +103,8 @@ void Simulation::humanDynamics() {
         cohort = floor(double(currentDay - vaccineDay) / 365.0) + 1;
     }
 
+    double ImmuneSize[4] = {0,0,0,0};
+
     for(auto it = humans.begin(); it != humans.end(); ++it){
         // daily mortality for humans by age
         if(rGen.getEventProbability() < (deathRate * it->second->getAgeDays(currentDay))){
@@ -124,7 +126,7 @@ void Simulation::humanDynamics() {
         (it->second)->setTrajDay(rGen.getRandomNum(5));
 
         // simulate possible imported infection
-        if(rGen.getEventProbability() < ForceOfImportationTrial){
+        if(rGen.getEventProbability() < ForceOfImportation){
             for(int serotype = 1; serotype <= 4; serotype++){
                 if(!it->second->isImmune(serotype)){
                     it->second->infect(currentDay, serotype, &rGenInf, &disRates, &hospRates);                
@@ -396,7 +398,7 @@ void Simulation::readSimControlFile(string line) {
     getline(infile, line, ',');
     ForceOfImportation = strtod(line.c_str(),NULL);
     getline(infile, line, ',');
-    ForceOfImportationTrial = strtod(line.c_str(),NULL);
+    std::string foiFile = line;
     getline(infile, line, ',');
     huImm = strtol(line.c_str(), NULL, 10);
     getline(infile, line, ',');
@@ -408,8 +410,31 @@ void Simulation::readSimControlFile(string line) {
     getline(infile, line, ',');
     aegyptiRatesFile = line;
 
+    readInitialFOI(foiFile);
+
     //    mlife = strtod(line.c_str(), NULL);
     //    mbite = strtod(line.c_str(), NULL);
+}
+
+void Simulation::readInitialFOI(string fileIn){
+    if(fileIn.length() == 0){
+	exit(1);
+    }
+    ifstream infile(fileIn);
+    string line;
+    if(!infile.good()){
+	exit(1);
+    }
+    getline(infile, line);
+    for(int i = 0; i < 4; i++){
+	getline(infile, line, ',');
+	double foiTemp = strtod(line.c_str(),NULL);
+	InitialConditionsFOI.push_back(foiTemp);
+    }
+    if(InitialConditionsFOI.size() != 4){
+	printf("InitialConditionsFOI not set\n");
+	exit(1);
+    }
 }
 
 void Simulation::readLocationFile(string locFile) {
@@ -742,7 +767,7 @@ void Simulation::readHumanFile(string humanFile) {
             }
         }
 
-        unique_ptr<Human> h(new Human(houseID, hMemID, age, gen, trajectories, rGen, currentDay, ForceOfImportation));
+        unique_ptr<Human> h(new Human(houseID, hMemID, age, gen, trajectories, rGen, currentDay, InitialConditionsFOI));
 
         std::set<std::string> locsVisited = h->getLocsVisited();
         for(std::set<std::string>::iterator itrSet = locsVisited.begin(); itrSet != locsVisited.end(); itrSet++){

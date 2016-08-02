@@ -31,6 +31,7 @@ public:
     void readVaccinationGroupsFile();
     void readVaccineSettingsFile();
     void readAegyptiFile(std::string);
+    void readInitialFOI(std::string);
     void setLocNeighborhood(double);
     void simEngine();
     void humanDynamics();
@@ -101,9 +102,8 @@ private:
     double biteProbablity;
     double mozInfectiousness;   
     double mozMoveProbability;
-    double ForceOfImportation;
-    double ForceOfImportationTrial;
     double selfReportProb;
+    double ForceOfImportation;
     unsigned year;
 
     int deathMoz;
@@ -114,6 +114,7 @@ private:
     std::vector<double> secondBiteRate;
     std::vector<double> mozDailyDeathRate;
     std::vector<double> dailyEmergenceFactor;
+    std::vector<double> InitialConditionsFOI;
     std::ofstream out;
     std::ofstream outpop;
     std::ofstream outprevac;

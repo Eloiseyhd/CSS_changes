@@ -72,7 +72,7 @@ private:
 public:
     std::unique_ptr<Infection> infection;
 
-    Human(std::string,int,int,char,std::unique_ptr<std::vector<std::vector<std::pair<std::string,double>>>>&,RandomNumGenerator&,unsigned,double);
+    Human(std::string,int,int,char,std::unique_ptr<std::vector<std::vector<std::pair<std::string,double>>>>&,RandomNumGenerator&,unsigned,std::vector<double>);
     Human();
     Human(const Human& orig);
     virtual ~Human();
