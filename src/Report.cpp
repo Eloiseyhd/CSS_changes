@@ -15,6 +15,7 @@ Report::Report(){
     reportCohort = false;
     reportAges = false;
     reportGroups = false;
+    reportFOI = false;
 
     printCohortPop = false;
     printAgesPop = false;
@@ -38,34 +39,46 @@ Report::Report(){
     discreteAges.max = 0;
     ageStats.clear();
 
-    for(int i = 0;i < 5;i++){
-		cohortEvents[i] = 0;
-		groupsEvents[i] = 0;
-		ageEvents[i] = 0;
-    }
+    parameters.clear();
 
+    for(int i = 0;i < 5;i++){
+	cohortEvents[i] = 0;
+	groupsEvents[i] = 0;
+	ageEvents[i] = 0;
+    }
+    
     for(int i = 0; i < 2; i++){
-		cohortStatus[i] = 0;
-		groupsStatus[i] = 0;
-		ageStatus[i] = 0;
+	cohortStatus[i] = 0;
+	groupsStatus[i] = 0;
+	ageStatus[i] = 0;
     }
     
     for(int i = 0; i < 3; i++){
-		groupsReportPeriod[i] = 0;
-		cohortReportPeriod[i] = 0;
-		ageReportPeriod[i] = 0;
+	groupsReportPeriod[i] = 0;
+	cohortReportPeriod[i] = 0;
+	ageReportPeriod[i] = 0;
+	foiReportPeriod[i] = 0;
+    }
+    
+    for(int i = 0; i < 4; i++){
+	foiTypes[i] = 0;
+	newInfections[i] = 0;
+	susceptibles[i] = 0;
+	mozSusceptibles[i] = 0;
+	mozExposed[i] = 0;
+	mozInfectious[i] = 0;
     }
 
     for(int i = 0; i < 5; i++){
-		// There are four status VacSero+ VacSero- PlacSero+ PlacSero-
-		for(int j = 0; j < 4; j++){
-		    groupsTotalAgeStats.status[j].events[i] = 0;
-		    groupsTotalAgeStats.status[j].nonevents[i] = 0;
-		}
-		groupsTotalAgeStats.total.events[i] = 0;
-		groupsTotalAgeStats.total.nonevents[i] = 0;
+	// There are four status VacSero+ VacSero- PlacSero+ PlacSero-
+	for(int j = 0; j < 4; j++){
+	    groupsTotalAgeStats.status[j].events[i] = 0;
+	    groupsTotalAgeStats.status[j].nonevents[i] = 0;
+	}
+	groupsTotalAgeStats.total.events[i] = 0;
+	groupsTotalAgeStats.total.nonevents[i] = 0;
     }
-
+    
     outCohort.close();
     outAges.close();
     outGroups.close();
@@ -74,98 +87,53 @@ Report::Report(){
     status = {"vac", "plac", "serop", "seron"};
 }
 
-
-
 void Report::setupReport(string file, string outputPath_, string simName_) {
+    //       Read the reporting file and assign variable values
     if (file.length() == 0) {
-		exit(1);
+	exit(1);
     }
-
     string line;
     ifstream infile(file);
-
     if(!infile.good()){
-		exit(1);
+	exit(1);
     }
-
     while(getline(infile,line,'\n')){
-	stringstream linetemp;
-	string line2;
-	string line3;
-	linetemp.clear();
-	linetemp << line;
-	getline(linetemp,line2,'=');
-	getline(linetemp,line3,'=');
-	linetemp.clear();
-	linetemp << line2;
-	getline(linetemp,line2,' ');
-
-	// group variables		
-	if(line2 == "groups_events"){
-	    parseEvents(line3,groupsEvents);
-	}
-	if(line2 == "groups_status"){
-	    parseStatus(line3,groupsStatus);
-	}
-	if(line2 == "groups_ages"){
-	    parseGroupsAges(line3,&groupsAges);
-	}
-	if(line2 == "groups_report_period"){
-	    parsePeriod(line3,groupsReportPeriod);
-	}
-	if(line2 == "groups_complement"){
-	    printGroupsPop = parseComplement(line3);
-	}
-	if(line2 == "groups_avg_first"){
-	    printGroupsAgeFirst = parseGroupsAgeFirst(line3);
-	}	
-	if(line2 == "groups_print"){
-	    reportGroups = parsePrintFlag(line3);
-	}
-	if(line2 == "groups_print_total_ages"){
-	    printGroupsTotalAges = parsePrintFlag(line3);
-	}
-
-	// cohort variables
-	if(line2 == "cohort_events"){
-	    parseEvents(line3,cohortEvents);
-	}
-	if(line2 == "cohort_status"){
-	    parseStatus(line3,cohortStatus);
-	}	
-	if(line2 == "cohort_ages"){
-	    parseGroupsAges(line3,&cohortAges);
-	}
-	if(line2 == "cohort_report_period"){
-	    parsePeriod(line3,cohortReportPeriod);
-	}
-	if(line2 == "cohort_complement"){
-	    printCohortPop = parseComplement(line3);
-	}
-	if(line2 == "cohort_print"){
-	    reportCohort = parsePrintFlag(line3);
-	}
-	// discrete ages variables
-	if(line2 == "age_events"){
-	    parseEvents(line3,ageEvents);
-	}
-	if(line2 == "age_status"){
-	    parseStatus(line3,ageStatus);
-	}	
-	if(line2 == "age_ages"){
-	    discreteAges = parseDiscreteAges(line3);
-	}
-	if(line2 == "age_report_period"){
-	    parsePeriod(line3,ageReportPeriod);
-	}
-	if(line2 == "age_complement"){
-	    printAgesPop = parseComplement(line3);
-	}
-	if(line2 == "age_print"){
-	    reportAges = parsePrintFlag(line3);
-	}
+	addParameter(line);
     }
     infile.close();
+
+    readParameter("groups_events", "events",groupsEvents);
+    readParameter("cohort_events","events",cohortEvents);
+    readParameter("age_events","events", ageEvents);
+    readParameter("groups_status","status",groupsStatus);
+    readParameter("cohort_status","status",cohortStatus);
+    readParameter("age_status","status",ageStatus);
+    readParameter("groups_report_period","period",groupsReportPeriod);
+    readParameter("cohort_report_period","period",cohortReportPeriod);
+    readParameter("age_report_period","period",ageReportPeriod);
+    readParameter("foi_report_period","period",foiReportPeriod);
+    readParameter("foi_serotypes","serotypes",foiTypes);
+
+    readParameter("groups_ages","ages",&groupsAges);
+    readParameter("cohort_ages","ages",&cohortAges);
+    discreteAges = readParameter("age_ages","ages", discreteAges);
+    printGroupsPop = readParameter("groups_complement", printGroupsPop);
+    printCohortPop = readParameter("cohort_complement", printCohortPop);
+    printAgesPop = readParameter("age_complement", printAgesPop);
+    printGroupsAgeFirst = readParameter("groups_avg_first", printGroupsAgeFirst);
+    printGroupsTotalAges = readParameter("groups_print_total_ages", printGroupsTotalAges);
+    reportGroups = readParameter("groups_print", reportGroups);
+    reportCohort = readParameter("cohort_print", reportCohort);
+    reportAges = readParameter("age_print", reportAges);
+    reportFOI = readParameter("foi_print", reportFOI);
+
+    if(reportFOI == true){
+	std::string outputFOIFile = outputPath_ + "/" + simName_ + "_foi.csv";
+	outFOI.open(outputFOIFile);
+	if (!outFOI.good()) {
+	    exit(1);
+	}
+    }
 
     if(reportGroups == true){
 	outputGroupsFile = outputPath_ + "/" + simName_ + "_pop.csv";
@@ -190,33 +158,94 @@ void Report::setupReport(string file, string outputPath_, string simName_) {
 	    exit(1);
 	}
     }
-
     resetReports();
     printHeaders();
 }
 
-
-
-bool Report::parsePrintFlag(std::string line){
-   bool print_temp = (stoi(line.c_str(), NULL, 10) == 0 ? false : true);
-   return print_temp;
+void Report::readParameter(std::string param_name,std::string param_type, std::vector<rangeStruct> * values_){
+   std::map<std::string, std::string>::iterator it;
+    it = parameters.find(param_name);
+    if(it != parameters.end()){
+	if(param_type == "ages"){
+	    if(param_name != "age_ages"){
+		parseGroupsAges(it->second,values_);
+	    }
+	}
+    }
 }
 
-
-
-bool Report::parseGroupsAgeFirst(std::string line){
-    bool age_temp = (stoi(line.c_str(), NULL, 10) == 0 ? false : true);
-    return age_temp;
+Report::rangeStruct Report::readParameter(std::string param_name,std::string param_type, rangeStruct vtemp){
+   std::map<std::string, std::string>::iterator it;
+   rangeStruct values_ = vtemp;
+    it = parameters.find(param_name);
+    if(it != parameters.end()){
+	if(param_type == "ages" && param_name == "age_ages"){
+	    values_ = parseDiscreteAges(it->second);
+	}
+    }
+    return values_;
 }
 
-
-
-bool Report::parseComplement(std::string line){
-    bool complement_temp = (stoi(line.c_str(), NULL, 10) == 0 ? false : true);
-    return complement_temp;
+bool Report::readParameter(std::string param_name, bool vtemp){
+    std::map<std::string, std::string>::iterator it;
+    bool values_ = vtemp;
+    it = parameters.find(param_name);
+    if(it != parameters.end()){
+	values_ = parseBoolean(it->second);
+    }
+    return values_;
 }
 
+void Report::readParameter(std::string param_name, std::string param_type, int * values_){
+    std::map<std::string, std::string>::iterator it;
+    it = parameters.find(param_name);
+    if(it != parameters.end()){
+	if(param_type == "events"){
+	    parseEvents(it->second,values_,5);
+	}
+	if(param_type == "status"){
+	    parseEvents(it->second,values_,2);
+	}
+	if(param_type == "period"){
+	    parsePeriod(it->second,values_);
+	}
+	if(param_type == "serotypes"){
+	    parseEvents(it->second,values_,4);
+	}
+    }
+}
 
+void Report::addParameter(std::string line){
+    if(line.size() > 0 && line[0] != '#' && line[0] != ' '){
+	string param_name, param_value;
+	size_t pos_equal = line.find_first_of('=');
+	if(pos_equal != string::npos){
+	    param_name = line.substr(0,pos_equal);
+	    param_value = line.substr(pos_equal + 1);	    
+	    // trim trailing spaces and weird stuff for param_name
+	    pos_equal = param_name.find_first_of(" \t");
+	    if(pos_equal != string::npos){
+		param_name = param_name.substr(0,pos_equal);
+	    }
+	    // trim trailing and leading spaces and weird stuff from param_value
+	    pos_equal = param_value.find_first_not_of(" \t");
+	    if(pos_equal != string::npos){
+		param_value = param_value.substr(pos_equal);
+	    }
+	    pos_equal = param_value.find_first_of("#");
+	    if(pos_equal != string::npos){
+		param_value = param_value.substr(0,pos_equal);
+	    }
+	    // Add the parameter name and value to the map
+	    parameters.insert(make_pair(param_name,param_value));
+	}
+    }
+}
+
+bool Report::parseBoolean(std::string line){
+    bool flag_temp = (stoi(line.c_str(), NULL, 10) == 0 ? false : true);
+    return flag_temp;
+}
 
 void Report::parsePeriod(std::string line, int * period_temp){
     stringstream linetemp;
@@ -234,12 +263,11 @@ void Report::parsePeriod(std::string line, int * period_temp){
 		}
 		count++;
     }
+    // If there are less than 3 values in the period, or the the start:increase:end don't make sense
     if(count < 3 || !(period_temp[0] < period_temp[1] + period_temp[2] && period_temp[1] < period_temp[2])){
 		exit(1);
     }
 }
-
-
 
 void Report::parseGroupsAges(std::string line, std::vector<rangeStruct> * ages_temp){
     stringstream linetemp;
@@ -260,7 +288,6 @@ void Report::parseGroupsAges(std::string line, std::vector<rangeStruct> * ages_t
 		    ages_temp->push_back(rangeTemp);
 		}
     }
-
     if(ages_temp->empty()){
 		exit(1);
     }
@@ -284,40 +311,15 @@ Report::rangeStruct Report::parseDiscreteAges(std::string line){
     }
 }
 
+void Report::parseEvents(std::string line, int * Events_, int len){
 
-
-void Report::parseStatus(std::string line, int * Status_){
-    stringstream linetemp;
-    string line2;
-    linetemp.clear();
-    int count =0;
-    linetemp << line;
-    count = 0;
-    while(getline(linetemp,line2,',')){
-	if(count > 1){
-	    break;
-	}
-	Status_[count] = strtol(line2.c_str(), NULL, 10);
-	if(Status_[count] > 1){
-	    Status_[count] = 1;
-	}
-	if(Status_[count] < 0){
-	    Status_[count] = 0;
-	}
-	count++;
-    }
-}
-
-
-
-void Report::parseEvents(std::string line, int * Events_){
     stringstream linetemp;
     string line2;
     linetemp.clear();
     int count =0;
     linetemp << line;
     while(getline(linetemp,line2,',')){
-	if(count > 4){
+	if(count >= len){
 	    break;
 	}
 	Events_[count] = strtol(line2.c_str(), NULL, 10);
@@ -331,8 +333,25 @@ void Report::parseEvents(std::string line, int * Events_){
     }
 }
 
-
-
+void Report::updateMosquitoReport(int currDay, Mosquito * m){
+    if(reportFOI == true){
+	if(currDay >= foiReportPeriod[0] && currDay <= foiReportPeriod[2] && (currDay - foiReportPeriod[0]) % foiReportPeriod[1] == 0){
+	    if(m->infection == nullptr){
+		for(unsigned i = 0; i < 4; i++){
+		    mozSusceptibles[i]++;
+		}
+	    }else{
+		// get type
+		unsigned sero = m->infection->getInfectionType();
+		if(m->infection->getInfectiousness() > 0.0){
+		    mozInfectious[sero - 1]++;
+		}else{
+		    mozExposed[sero - 1]++;
+		}
+	    }
+	}
+    }
+}
 void Report::updateReport(int currDay, Human * h){
     int reportNum = 0;
     if(reportGroups == true){
@@ -353,12 +372,16 @@ void Report::updateReport(int currDay, Human * h){
 	    reportNum++;
 	}
     }
+    if(reportFOI == true){
+	if(currDay >= foiReportPeriod[0] && currDay <= foiReportPeriod[2] && (currDay - foiReportPeriod[0]) % foiReportPeriod[1] == 0){
+	    updateFOIReport(currDay, h);
+	    reportNum++;
+	}
+    }
     if(reportNum > 0){
 	h->resetRecent();
     }
 }
-
-
 
 void Report::printReport(int currDay){
     if(reportGroups == true){
@@ -379,7 +402,29 @@ void Report::printReport(int currDay){
 	    resetAgeStats();
 	}
     }
+    if(reportFOI == true){
+	if(currDay >= foiReportPeriod[0] && currDay <= foiReportPeriod[2] && (currDay - foiReportPeriod[0]) % foiReportPeriod[1] == 0){
+	    printFOIReport(currDay);
+	    resetFOIStats();
+	}
+    }
 
+}
+
+void Report::updateFOIReport(int currDay, Human * h){
+    // Collect the number of susceptibles and infections per serotype
+    // If h is infectious, then get the serotype
+    if(h->getRecentInf() > 0){
+	int sero = h->getRecentType();
+	if(sero > 0){
+	    newInfections[sero - 1]++; //The types from Human go from 1 - 4
+	}
+    }else{
+	// If h isn't infected then check for immunity to all the serotypes
+	for(unsigned i = 0; i < 4; i++){
+	    susceptibles[i] +=  h->isImmune(i + 1) ? 0 : 1;
+	}
+    }
 }
 
 void Report::updateAgesReport(int currDay, Human * h){
@@ -1052,6 +1097,25 @@ int Report::getGroup(int age_, std::vector<rangeStruct> groups_temp){
     return -1;
 }
 
+void Report::printFOIReport(int currDay){
+    std::vector<string> foi_values; string outstring;
+    foi_values.clear();
+    for(int i = 0; i < 4; i++){
+	if(foiTypes[i]){
+	    double foi_temp = susceptibles[i] > 0 ? (double) newInfections[i] / (double) susceptibles[i] : 1;
+	    foi_values.push_back(std::to_string(foi_temp));
+	    foi_values.push_back(std::to_string(susceptibles[i]));
+	    foi_values.push_back(std::to_string(mozSusceptibles[i]));
+	    foi_values.push_back(std::to_string(mozExposed[i]));
+	    foi_values.push_back(std::to_string(mozInfectious[i]));
+	}
+    }
+    if(!foi_values.empty()){
+	Report::join(foi_values,',',outstring);
+	outFOI << currDay << ",";
+	outFOI << outstring;
+    }
+}
 
 void Report::printAgesReport(int currDay){
     outAges << currDay << ",";
@@ -1277,8 +1341,43 @@ void Report::printHeaders(){
     if(reportAges == true){
 	printAgesHeader();
     }
+    if(reportFOI == true){
+	printFOIHeader();
+    }
 }
 
+void Report::join(const vector<std::string>& v, char c, string& s) {
+
+    s.clear();
+
+    for (vector<std::string>::const_iterator p = v.begin(); p != v.end(); ++p) {
+	s += *p;
+	if (p != v.end() - 1){
+	    s += c;
+	}else{
+	    s +="\n";
+	}
+    }
+
+}
+void Report::printFOIHeader(){
+    std::vector<string> headers; string outstring;
+    headers.clear();
+    for(int i = 0; i < 4; i++){
+	if(foiTypes[i]){
+	    headers.push_back("Denv" + std::to_string(i+1));
+	    headers.push_back("Susceptible_" + std::to_string(i+1));
+	    headers.push_back("MozSusceptible_" + std::to_string(i+1));
+	    headers.push_back("MozExposed_" + std::to_string(i+1));
+	    headers.push_back("MozInfectious_" + std::to_string(i+1));
+	}
+    }
+    if(!headers.empty()){
+	Report::join(headers,',',outstring);
+	outFOI << "day,";
+	outFOI << outstring;
+    }
+}
 
 void Report::printAgesHeader(){
     outAges << "day,";
@@ -1522,9 +1621,20 @@ void Report::resetReports(){
     if(reportAges == true){
 	resetAgeStats();
     }
+    if(reportFOI == true){
+	resetFOIStats();
+    }
 }
 
-
+void Report::resetFOIStats(){
+    for(int i = 0; i < 4; i++){
+	newInfections[i] = 0;
+	susceptibles[i] = 0;
+	mozSusceptibles[i] = 0;
+	mozInfectious[i] = 0;
+	mozExposed[i] = 0;
+    }
+}
 
 void Report::resetAgeStats(){
     ageStats.clear();
@@ -1626,6 +1736,7 @@ void Report::finalizeReport(){
     outCohort.close();
     outAges.close();
     outGroups.close();
+    outFOI.close();
 }
 
 

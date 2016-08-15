@@ -29,6 +29,7 @@ private:
     int recent_dis;
     int recent_hosp;
     int recent_inf;
+    int last_serotype;
     int vday;
     int tAge;
     int vaxWaning_pos;
@@ -122,6 +123,7 @@ public:
     int getAgeDays(unsigned) const;
     int getHouseMemNum() const;
     int getPreviousInfections();
+    int getRecentType(){return last_serotype;}
     int getRecentDis(){return recent_dis;}
     int getRecentHosp(){return recent_hosp;}
     int getRecentInf(){return recent_inf;}

@@ -58,7 +58,14 @@ string Simulation::readInputs() {
 void Simulation::simEngine() {
     deathMoz = 0;
     lifeMoz = 0;
+    printf("tempStats, day, deaths, mosquitoes\n");
     while(currentDay < numDays){
+	humanDeaths = 0;
+        if(ceil(double(currentDay + 1) / 365.0) != ceil(double(currentDay) / 365.0)){
+            year++;
+            updatePop();
+        }
+	//	printf("day %d year %d\n",currentDay, year);
         for(auto itLoc = locations.begin(); itLoc != locations.end(); itLoc++){
             itLoc->second->updateInfectedVisitor();
         }
@@ -72,13 +79,9 @@ void Simulation::simEngine() {
 	}
         humanDynamics();
 	outputReport.printReport(currentDay);
-        mosquitoDynamics();
-	
-        if(ceil(double(currentDay + 1) / 365.0) != ceil(double(currentDay) / 365.0)){
-            year++;
-            updatePop();
-        }
+        mosquitoDynamics();	
         currentDay++;
+       	printf("tempStats, %d, %d, %lu\n", currentDay, humanDeaths, mosquitoes.size());
     }
     outputReport.finalizeReport();
     if(vaccinationStrategy == "random_trial"){
@@ -102,8 +105,11 @@ void Simulation::humanDynamics() {
     if(currentDay >= vaccineDay){
         cohort = floor(double(currentDay - vaccineDay) / 365.0) + 1;
     }
-
-    double ImmuneSize[4] = {0,0,0,0};
+    std::map<unsigned,double>ForceOfImportation;
+    ForceOfImportation.clear();
+    ForceOfImportation = (year - 1) < annualForceOfImportation.size() ? annualForceOfImportation[year - 1] : annualForceOfImportation.back();
+    int susceptibles[4] = {0,0,0,0};
+    int infectious[4] = {0,0,0,0};
 
     for(auto it = humans.begin(); it != humans.end(); ++it){
         // daily mortality for humans by age
@@ -112,6 +118,7 @@ void Simulation::humanDynamics() {
 		recruitmentTrial.removeParticipant((it->second).get(),currentDay);
 	    }
             it->second->reincarnate(currentDay);
+	    humanDeaths++;
 	}
 	
         // update temporary cross-immunity status if necessary
@@ -122,17 +129,28 @@ void Simulation::humanDynamics() {
         if(it->second->infection != nullptr)
             it->second->checkRecovered(currentDay);
 
+	if(currentDay == 0){
+	    for(int i = 0; i< 4; i++){
+		if(!it->second->isImmune(i+1)){
+		    susceptibles[i]++;
+		}else{
+		    infectious[i]++;
+		}
+	    }
+	}
         // select movement trajectory for the day
         (it->second)->setTrajDay(rGen.getRandomNum(5));
 
         // simulate possible imported infection
-        if(rGen.getEventProbability() < ForceOfImportation){
-            for(int serotype = 1; serotype <= 4; serotype++){
-                if(!it->second->isImmune(serotype)){
-                    it->second->infect(currentDay, serotype, &rGenInf, &disRates, &hospRates);                
-                }
-            }
-        }
+	if(currentDay - (year - 1) * 365 < 50){
+	    for(unsigned serotype = 1; serotype <= 4; serotype++){
+		if(rGen.getEventProbability() < ForceOfImportation.at(serotype)){
+		    if(!it->second->isImmune(serotype)){
+			it->second->infect(currentDay, serotype, &rGenInf, &disRates, &hospRates);                
+		    }
+		}
+	    }
+	}
 
 	//update vaccine immunity if necessary
 	if(it->second->isVaccinated()){
@@ -180,6 +198,12 @@ void Simulation::humanDynamics() {
 	outputReport.updateReport(currentDay,(it->second).get());
            
     }
+    /*
+    if(currentDay == 0){
+	for(int i = 0; i < 4; i++){
+	    printf("Serotype %d Susceptibles %d Immune %d Proportion %f\n", i+1,susceptibles[i], infectious[i], (double) susceptibles[i] / (double) humans.size());
+	}
+	}*/
 }
 
 
@@ -196,6 +220,8 @@ void Simulation::mosquitoDynamics(){
     double mozSBiteRate = currentDay < secondBiteRate.size() ? secondBiteRate[currentDay] : secondBiteRate.back();
 
     for(auto it = mosquitoes.begin(); it != mosquitoes.end();){
+	outputReport.updateMosquitoReport(currentDay,(it->second).get());
+
 	if(it->second->infection != nullptr){
 	    if(it->second->infection->getStartDay() < 0 && rGenInf.getEventProbability() < rGenInf.getMozLatencyRate(mozEIP)){
 		//            if(currentDay == it->second->infection->getStartDay())
@@ -248,6 +274,7 @@ void Simulation::mosquitoDynamics(){
 	   
 	    biteTime = it->second->getBiteStartDay() - double(currentDay);
 	    
+	    
 	    if(!biteTaken){
 		//		printf("Bite not taken trying to move day %d\n", currentDay);
                 string newLoc = locations.find(it->first)->second->getRandomCloseLoc(rGen);
@@ -299,7 +326,7 @@ void Simulation::generateMosquitoes(){
     double seasFactor = currentDay < dailyEmergenceFactor.size() ? dailyEmergenceFactor[currentDay] : dailyEmergenceFactor.back();
 
     for(auto& x : locations){
-        mozCount = rGen.getMozEmerge(x.second->getEmergenceRate(), seasFactor);
+        mozCount = rGen.getMozEmerge(x.second->getEmergenceRate(), seasFactor * emergeFactor);
 
         for(int i = 0; i < mozCount; i++){
             unique_ptr<Mosquito> moz(new Mosquito(
@@ -396,7 +423,8 @@ void Simulation::readSimControlFile(string line) {
     getline(infile, line, ',');
     deathRate = strtod(line.c_str(), NULL);    
     getline(infile, line, ',');
-    ForceOfImportation = strtod(line.c_str(),NULL);
+    std::string annualFoiFile = line;
+    //    ForceOfImportation = strtod(line.c_str(),NULL);
     getline(infile, line, ',');
     std::string foiFile = line;
     getline(infile, line, ',');
@@ -411,6 +439,7 @@ void Simulation::readSimControlFile(string line) {
     aegyptiRatesFile = line;
 
     readInitialFOI(foiFile);
+    readAnnualFOI(annualFoiFile);
 
     //    mlife = strtod(line.c_str(), NULL);
     //    mbite = strtod(line.c_str(), NULL);
@@ -433,6 +462,38 @@ void Simulation::readInitialFOI(string fileIn){
     }
     if(InitialConditionsFOI.size() != 4){
 	printf("InitialConditionsFOI not set\n");
+	exit(1);
+    }
+}
+
+void Simulation::readAnnualFOI(string fileIn){
+    if(fileIn.length() == 0){
+	exit(1);
+    }
+    ifstream infile(fileIn);
+    string line;
+    if(!infile.good()){
+	exit(1);
+    }
+    getline(infile, line);
+    while (getline(infile, line, ',')) {
+	double d1 = strtod(line.c_str(), NULL);
+        getline(infile, line, ',');
+	double d2 = strtod(line.c_str(), NULL);
+        getline(infile, line, ',');
+	double d3 = strtod(line.c_str(), NULL);
+        getline(infile, line, '\n');
+	double d4 = strtod(line.c_str(), NULL);
+	std::map<unsigned,double> map_temp;
+	map_temp.clear();
+	map_temp.insert(make_pair(1, d1));
+	map_temp.insert(make_pair(2, d2));
+	map_temp.insert(make_pair(3, d3));
+	map_temp.insert(make_pair(4, d4));     
+	annualForceOfImportation.push_back(map_temp);
+    }
+    if(annualForceOfImportation.size() == 0){
+	printf("ForceOfImportation not set\n");
 	exit(1);
     }
 }

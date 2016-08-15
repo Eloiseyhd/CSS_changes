@@ -240,6 +240,8 @@ void Human::infect(
     	recent_inf = 1;
     	recent_dis = 0;
     	recent_hosp = 0;
+	last_serotype = infectionType;
+
     	if(getPreviousInfections() + vaxAdvancement == 0){
     	    if(rGen->getEventProbability() < (*disRates)[0] * RRDis){
         		recent_dis = infectionType;
@@ -324,7 +326,7 @@ void Human::reincarnate(unsigned currDay){
     hospitalized = false;
     symptomatic = false;
     seroStatusAtVaccination = false;
-    immunity_temp = true;
+    immunity_temp = false;
     vaccinated = false;
     vaccineProfile = NULL;
     enrolledInTrial = false;
@@ -354,6 +356,7 @@ void Human::resetRecent(){
     recent_inf = 0;
     recent_dis = 0; 
     recent_hosp = 0;
+    last_serotype = -1;
 }
 
 
