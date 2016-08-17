@@ -126,8 +126,20 @@ void Simulation::humanDynamics() {
             it->second->setImmunityTemp(false);
 
         // update infection status if necessary
-        if(it->second->infection != nullptr)
+        if(it->second->infection != nullptr){
+	    if(it->second->infection->getEndDay() == currentDay){
+		printf("Infectious, %d, %d, %s\n", it->second->infection->getStartDay(), it->second->infection->getEndDay(), it->second->getHouseID().c_str());
+		if(locations.find(it->second->getHouseID()) != locations.end()){
+		    Location * loctemp = locations.find(it->second->getHouseID())->second.get();
+		    printf("Recovered, %d, %d, %u, %s, %f, %f\n", it->second->infection->getStartDay(), currentDay, 1, it->second->getHouseID().c_str(), loctemp->getLocX(),0.2);
+		//		printf("Recovered, %d, %d, %u, %s, %f, %f\n", it->second->infection->getStartDay(), currentDay, it->second->infection->getInfectionType(), loctemp->getLocID().substr(0,3).c_str(),loctemp->getLocX(), loctemp->getLocY());
+		}else{
+		    printf("Can't find %s\n",it->second->getHouseID().c_str());
+		}
+	    }
             it->second->checkRecovered(currentDay);
+
+	}
 
 	if(currentDay == 0){
 	    for(int i = 0; i< 4; i++){
@@ -142,15 +154,15 @@ void Simulation::humanDynamics() {
         (it->second)->setTrajDay(rGen.getRandomNum(5));
 
         // simulate possible imported infection
-	if(currentDay - (year - 1) * 365 < 50){
-	    for(unsigned serotype = 1; serotype <= 4; serotype++){
-		if(rGen.getEventProbability() < ForceOfImportation.at(serotype)){
-		    if(!it->second->isImmune(serotype)){
-			it->second->infect(currentDay, serotype, &rGenInf, &disRates, &hospRates);                
-		    }
+	//	if(currentDay - (year - 1) * 365 < 50){
+	for(unsigned serotype = 1; serotype <= 4; serotype++){
+	    if(rGen.getEventProbability() < ForceOfImportation.at(serotype)){
+		if(!it->second->isImmune(serotype)){
+		    it->second->infect(currentDay, serotype, &rGenInf, &disRates, &hospRates);                
 		}
 	    }
 	}
+	    //	}
 
 	//update vaccine immunity if necessary
 	if(it->second->isVaccinated()){
@@ -530,8 +542,8 @@ void Simulation::readLocationFile(string locFile) {
 
         while (infile.peek() == '\n')
             infile.ignore(1, '\n');
-
         unique_ptr<Location> location(new Location(locID, locType, x, y, mozzes));
+	printf("%s %f %f\n",locID.c_str(), location->getLocX(), location->getLocY());
         locations.insert(make_pair(locID, move(location)));
 
     }
