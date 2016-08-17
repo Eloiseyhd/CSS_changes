@@ -131,7 +131,7 @@ void Simulation::humanDynamics() {
 		printf("Infectious, %d, %d, %s\n", it->second->infection->getStartDay(), it->second->infection->getEndDay(), it->second->getHouseID().c_str());
 		if(locations.find(it->second->getHouseID()) != locations.end()){
 		    Location * loctemp = locations.find(it->second->getHouseID())->second.get();
-		    printf("Recovered, %d, %d, %u, %s, %f, %f\n", it->second->infection->getStartDay(), currentDay, 1, it->second->getHouseID().c_str(), loctemp->getLocX(),0.2);
+		    printf("Recovered, %d, %d, %u, %s, %f, %f\n", it->second->infection->getStartDay(), currentDay, 1, it->second->getHouseID().c_str(), loctemp->getLocX(),loctemp->getLocY());
 		//		printf("Recovered, %d, %d, %u, %s, %f, %f\n", it->second->infection->getStartDay(), currentDay, it->second->infection->getInfectionType(), loctemp->getLocID().substr(0,3).c_str(),loctemp->getLocX(), loctemp->getLocY());
 		}else{
 		    printf("Can't find %s\n",it->second->getHouseID().c_str());
@@ -543,7 +543,6 @@ void Simulation::readLocationFile(string locFile) {
         while (infile.peek() == '\n')
             infile.ignore(1, '\n');
         unique_ptr<Location> location(new Location(locID, locType, x, y, mozzes));
-	printf("%s %f %f\n",locID.c_str(), location->getLocX(), location->getLocY());
         locations.insert(make_pair(locID, move(location)));
 
     }
