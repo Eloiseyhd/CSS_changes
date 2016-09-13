@@ -13,6 +13,7 @@
 class Location {
 private:
     std::string locID;
+    std::string neighborhoodID;
     double xCor;
     double yCor;
     double emergenceRate;
@@ -33,7 +34,9 @@ public:
     bool getInfectedVisitor(){return infectedVisitor;}
     std::string getLocID() const;
     std::string getLocType() const;
+    std::string getNeighID() const;
     Location(std::string, std::string, double, double, double);
+    Location(std::string, std::string, std::string, double, double, double);
     Location();
     Location(const Location& orig);
     virtual ~Location();

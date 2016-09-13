@@ -13,6 +13,10 @@ string Location::getLocType() const {
     return locType;
 }
 
+string Location::getNeighID() const {
+    return neighborhoodID;
+}
+
 double Location::getLocX() const {
     return xCor;
 }
@@ -28,6 +32,17 @@ double Location::getEmergenceRate() const {
 Location::Location(string lID, string lType, double x, double y, double e) {
     locID = lID;
     locType = lType;
+    xCor = x;
+    yCor = y;
+    emergenceRate = e;
+    closeLocs.reset(new vector<string>());
+    infectedVisitor = false;
+}
+
+Location::Location(string lID, string lType, string NID, double x, double y, double e) {
+    locID = lID;
+    locType = lType;
+    neighborhoodID = NID;
     xCor = x;
     yCor = y;
     emergenceRate = e;

@@ -102,30 +102,30 @@ void Report::setupReport(string file, string outputPath_, string simName_) {
     }
     infile.close();
 
-    readParameter("groups_events", "events",groupsEvents);
-    readParameter("cohort_events","events",cohortEvents);
-    readParameter("age_events","events", ageEvents);
-    readParameter("groups_status","status",groupsStatus);
-    readParameter("cohort_status","status",cohortStatus);
-    readParameter("age_status","status",ageStatus);
-    readParameter("groups_report_period","period",groupsReportPeriod);
-    readParameter("cohort_report_period","period",cohortReportPeriod);
-    readParameter("age_report_period","period",ageReportPeriod);
-    readParameter("foi_report_period","period",foiReportPeriod);
-    readParameter("foi_serotypes","serotypes",foiTypes);
+    this->readParameter("groups_events", "events",groupsEvents);
+    this->readParameter("cohort_events","events",cohortEvents);
+    this->readParameter("age_events","events", ageEvents);
+    this->readParameter("groups_status","status",groupsStatus);
+    this->readParameter("cohort_status","status",cohortStatus);
+    this->readParameter("age_status","status",ageStatus);
+    this->readParameter("groups_report_period","period",groupsReportPeriod);
+    this->readParameter("cohort_report_period","period",cohortReportPeriod);
+    this->readParameter("age_report_period","period",ageReportPeriod);
+    this->readParameter("foi_report_period","period",foiReportPeriod);
+    this->readParameter("foi_serotypes","serotypes",foiTypes);
 
-    readParameter("groups_ages","ages",&groupsAges);
-    readParameter("cohort_ages","ages",&cohortAges);
-    discreteAges = readParameter("age_ages","ages", discreteAges);
-    printGroupsPop = readParameter("groups_complement", printGroupsPop);
-    printCohortPop = readParameter("cohort_complement", printCohortPop);
-    printAgesPop = readParameter("age_complement", printAgesPop);
-    printGroupsAgeFirst = readParameter("groups_avg_first", printGroupsAgeFirst);
-    printGroupsTotalAges = readParameter("groups_print_total_ages", printGroupsTotalAges);
-    reportGroups = readParameter("groups_print", reportGroups);
-    reportCohort = readParameter("cohort_print", reportCohort);
-    reportAges = readParameter("age_print", reportAges);
-    reportFOI = readParameter("foi_print", reportFOI);
+    this->readParameter("groups_ages","ages",&groupsAges);
+    this->readParameter("cohort_ages","ages",&cohortAges);
+    discreteAges = this->readParameter("age_ages","ages", discreteAges);
+    printGroupsPop = this->readParameter("groups_complement", printGroupsPop);
+    printCohortPop = this->readParameter("cohort_complement", printCohortPop);
+    printAgesPop = this->readParameter("age_complement", printAgesPop);
+    printGroupsAgeFirst = this->readParameter("groups_avg_first", printGroupsAgeFirst);
+    printGroupsTotalAges = this->readParameter("groups_print_total_ages", printGroupsTotalAges);
+    reportGroups = this->readParameter("groups_print", reportGroups);
+    reportCohort = this->readParameter("cohort_print", reportCohort);
+    reportAges = this->readParameter("age_print", reportAges);
+    reportFOI = this->readParameter("foi_print", reportFOI);
 
     if(reportFOI == true){
 	std::string outputFOIFile = outputPath_ + "/" + simName_ + "_foi.csv";

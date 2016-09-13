@@ -58,21 +58,21 @@ string Simulation::readInputs() {
 void Simulation::simEngine() {
     deathMoz = 0;
     lifeMoz = 0;
-    printf("tempStats, day, deaths, mosquitoes\n");
+    // printf("tempStats, day, deaths, mosquitoes\n");
     while(currentDay < numDays){
 	humanDeaths = 0;
         if(ceil(double(currentDay + 1) / 365.0) != ceil(double(currentDay) / 365.0)){
             year++;
             updatePop();
         }
-	//	printf("day %d year %d\n",currentDay, year);
+	printf("day %d year %d\n",currentDay, year);
         for(auto itLoc = locations.begin(); itLoc != locations.end(); itLoc++){
             itLoc->second->updateInfectedVisitor();
         }
 	if(vaccinationStrategy == "random_trial"){
 	    //	    printf("Day: %d\n", currentDay);
 	    if(currentDay == recruitmentTrial.getRecruitmentStartDay()){
-		//		printf("Current Day : %d is recruitment Start Day\n",currentDay);
+		printf("Current Day : %d is recruitment Start Day\n",currentDay);
 		selectEligibleTrialParticipants();
 	    }
 	    recruitmentTrial.update(currentDay, &rGenInf);
@@ -81,7 +81,7 @@ void Simulation::simEngine() {
 	outputReport.printReport(currentDay);
         mosquitoDynamics();	
         currentDay++;
-       	printf("tempStats, %d, %d, %lu\n", currentDay, humanDeaths, mosquitoes.size());
+	//       	printf("tempStats, %d, %d, %lu\n", currentDay, humanDeaths, mosquitoes.size());
     }
     outputReport.finalizeReport();
     if(vaccinationStrategy == "random_trial"){
@@ -128,13 +128,19 @@ void Simulation::humanDynamics() {
         // update infection status if necessary
         if(it->second->infection != nullptr){
 	    if(it->second->infection->getEndDay() == currentDay){
-		printf("Infectious, %d, %d, %s\n", it->second->infection->getStartDay(), it->second->infection->getEndDay(), it->second->getHouseID().c_str());
+		/*		
+				printf("Infectious, %d, %d, %s\n", it->second->infection->getStartDay(), it->second->infection->getEndDay(), it->second->getHouseID().c_str());
+		
 		if(locations.find(it->second->getHouseID()) != locations.end()){
 		    Location * loctemp = locations.find(it->second->getHouseID())->second.get();
 		    printf("Recovered, %d, %d, %u, %s, %f, %f\n", it->second->infection->getStartDay(), currentDay, 1, it->second->getHouseID().c_str(), loctemp->getLocX(),loctemp->getLocY());
-		//		printf("Recovered, %d, %d, %u, %s, %f, %f\n", it->second->infection->getStartDay(), currentDay, it->second->infection->getInfectionType(), loctemp->getLocID().substr(0,3).c_str(),loctemp->getLocX(), loctemp->getLocY());
+		    //		printf("Recovered, %d, %d, %u, %s, %f, %f\n", it->second->infection->getStartDay(), currentDay, it->second->infection->getInfectionType(), loctemp->getLocID().substr(0,3).c_str(),loctemp->getLocX(), loctemp->getLocY());
 		}else{
 		    printf("Can't find %s\n",it->second->getHouseID().c_str());
+		}
+		*/
+		if(locations.find(it->second->getHouseID()) == locations.end()){
+		    printf("HouseID: %s not found\n", it->second->getHouseID().c_str());
 		}
 	    }
             it->second->checkRecovered(currentDay);
@@ -337,6 +343,10 @@ void Simulation::generateMosquitoes(){
     double mozFBiteRate = currentDay < firstBiteRate.size() ? firstBiteRate[currentDay] : firstBiteRate.back();
     double seasFactor = currentDay < dailyEmergenceFactor.size() ? dailyEmergenceFactor[currentDay] : dailyEmergenceFactor.back();
 
+    if(currentDay > 1460){
+	seasFactor = seasFactor * 2;
+    }
+
     for(auto& x : locations){
         mozCount = rGen.getMozEmerge(x.second->getEmergenceRate(), seasFactor * emergeFactor);
 
@@ -514,7 +524,7 @@ void Simulation::readLocationFile(string locFile) {
     if (locFile.length() == 0) {
         exit(1);
     }
-    string line, locID, locType;
+    string line, locID, locType, nID;
     double x, y, mozzes;
 
     ifstream infile(locFile);
@@ -533,7 +543,9 @@ void Simulation::readLocationFile(string locFile) {
 
         getline(infile, line, ',');
         getline(infile, line, ',');
+
         getline(infile, line, ',');
+	nID = line;
         getline(infile, line, ',');
         locID = line;
 
@@ -542,7 +554,7 @@ void Simulation::readLocationFile(string locFile) {
 
         while (infile.peek() == '\n')
             infile.ignore(1, '\n');
-        unique_ptr<Location> location(new Location(locID, locType, x, y, mozzes));
+        unique_ptr<Location> location(new Location(locID, locType, nID, x, y, mozzes));
         locations.insert(make_pair(locID, move(location)));
 
     }
@@ -740,9 +752,9 @@ void Simulation::readVaccineProfilesFile(){
 	    }
 	    vaccines.insert(make_pair(i,vaxTemp));
 	}
-	/*	for(unsigned j = 0;j < vaccines.size(); j++){
+	for(unsigned j = 0;j < vaccines.size(); j++){
 	    vaccines.at(j).printVaccine();
-	    }*/
+	}
     }else{
 	printf("There are no vaccines to read in %s\n",vaccineProfilesFile.c_str());
 	exit(1);
@@ -838,17 +850,19 @@ void Simulation::readHumanFile(string humanFile) {
                 getline(infile, line, ',');
             }
         }
+	if(locations.find(houseID) == locations.end()){
+	    //	    printf("Location not found House ID: %s age %d \n", houseID.c_str(), age);
+	}else{
+	    unique_ptr<Human> h(new Human(houseID, hMemID, age, gen, trajectories, rGen, currentDay, InitialConditionsFOI));
+	    std::set<std::string> locsVisited = h->getLocsVisited();
+	    for(std::set<std::string>::iterator itrSet = locsVisited.begin(); itrSet != locsVisited.end(); itrSet++){
+		if(locations.find(*itrSet) != locations.end()){
+		    locations.find(*itrSet)->second->addHuman(h.get());
+		}	       
+	    }
+	    humans.insert(make_pair(houseID, move(h)));
+	}
 
-        unique_ptr<Human> h(new Human(houseID, hMemID, age, gen, trajectories, rGen, currentDay, InitialConditionsFOI));
-
-        std::set<std::string> locsVisited = h->getLocsVisited();
-        for(std::set<std::string>::iterator itrSet = locsVisited.begin(); itrSet != locsVisited.end(); itrSet++){
-            if(locations.find(*itrSet) != locations.end()){
-                locations.find(*itrSet)->second->addHuman(h.get());
-            }
-        }
-
-        humans.insert(make_pair(houseID, move(h)));
 
         while (infile.peek() == '\n'){
             infile.ignore(1, '\n');            

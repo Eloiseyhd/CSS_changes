@@ -38,6 +38,7 @@ private:
     int trialDay;
     int vaccineDosesReceived;
     int lastDayContactedByTrial;
+    int exposedCount[4];
 
     double attractiveness;
     double bodySize;
@@ -134,6 +135,8 @@ public:
     int getNextDoseDay();
     int getLastContactByTrial(){return lastDayContactedByTrial;}
     int getTrialEnrollmentDay(){return trialDay;}
+    int getExposedCount(unsigned sero){return exposedCount[sero];}
+
     bool isHospitalized(){return hospitalized;}
     bool isImmune(unsigned) const;
     bool isImmuneTemp(){return immunity_temp;}
@@ -145,7 +148,7 @@ public:
     bool getPreExposureAtVaccination(unsigned);
     bool isEnrolledInTrial(){return enrolledInTrial;}
     bool isFullyVaccinated(){return vaccineComplete;}
-    bool mayReport(){return reportSymptoms;}
+    bool getReportSymptoms(){return reportSymptoms;}
 
     std::string getCurrentLoc(double);
     std::string getHouseID() const;

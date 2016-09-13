@@ -14,11 +14,17 @@
 #include "RandomNumGenerator.h"
 #include "Human.h"
 
+using namespace std;
+
 class Surveillance {
     struct hRecord{
 	int ageDaysAtVaccination;
 	int TTL[4];
 	int TTR[4];
+	int numExp[4];
+	int firstTTL;
+	int firstTTR;
+	int firstExp;
 	int symptoms[4];
 	int hosp[4];
 	int pcrDay[4];
@@ -32,6 +38,7 @@ class Surveillance {
 	std::string trialArm;
 	std::vector<std::string> primary;
 	std::vector<std::string> pcr;
+	std::string firstPCR;
 	std::string houseID;
     };
  public:
@@ -46,16 +53,22 @@ class Surveillance {
     void printRecords(std::string, int);
 
  private:
-    void contactPerson(Human *, int, RandomNumGenerator *);
     int contactFrequency;
     int firstContactDelay;
     double selfReportProb;
     double reportTodayProb;
+
+    std::map<std::string, hRecord> recordsDatabase;
+    std::map<std::string, std::string> parameters;
+
+    void contactPerson(Human *, int, RandomNumGenerator *);
+    void addParameter(std::string);
+    void join(const vector<std::string>& , char , string& );
     int PCR_test(Human *, int, RandomNumGenerator *);
     int parseInteger(std::string);
+    int readParameter(std::string, int );
     double parseDouble(std::string);
-    std::vector<std::string> getParamsLine(std::string);
-    std::map<std::string, hRecord> recordsDatabase;
+    double readParameter(std::string, double );
 };
 
 #endif	/* SURVEILLANCE_H */
