@@ -11,41 +11,42 @@
 #include <memory>
 #include <cmath>
 #include "Human.h"
+#include "Mosquito.h"
 
+using namespace std;
 
-
-struct rangeStruct{
-    int min;
-    int max;
-};
-
-struct eventStats{
-    int events[5];
-    int nonevents[5];
-};
-
-struct reportStats{
-    eventStats status[4];
-    eventStats total;
-};
-
-
-
-class Report {
-
-private:
+class Report {    
+ public:
+    struct rangeStruct{
+	int min;
+	int max;
+    };
+    
+    struct eventStats{
+	int events[5];
+	int nonevents[5];
+    };
+    
+    struct reportStats{
+	eventStats status[4];
+	eventStats total;
+    };
+ private:
 
     std::string outputCohortFile;
     std::string outputAgesFile;
     std::string outputGroupsFile;
 
+
     std::ofstream outCohort;
     std::ofstream outAges;
     std::ofstream outGroups;
+    std::ofstream outFOI;
 
     bool reportCohort;
     bool reportAges;
     bool reportGroups;
+    bool reportFOI;
 
     bool printCohortPop;
     bool printAgesPop;
@@ -55,6 +56,8 @@ private:
 
     std::vector<std::string> events;
     std::vector<std::string> status;
+
+    std::map<std::string, std::string> parameters;
 
     int cohortEvents[5];
     int cohortStatus[4];
@@ -80,19 +83,30 @@ private:
     int ageMaxIndex;
     std::vector<reportStats> ageStats;
 
-    void parseEvents(std::string line, int *);
-    void parseStatus(std::string line, int *);
+    int foiReportPeriod[3];
+    int foiTypes[4];
+    int newInfections[4];
+    int susceptibles[4];
+    int mozSusceptibles[4];
+    int mozExposed[4];
+    int mozInfectious[4];
+
+    void parseEvents(std::string line, int *, int);
     void parseGroupsAges(std::string line, std::vector<rangeStruct> *);
     rangeStruct parseDiscreteAges(std::string);
     void parsePeriod(std::string line, int *);
+    void addParameter(std::string);
 
-    bool parseComplement(std::string line);
-    bool parsePrintFlag(std::string line);
-    bool parseGroupsAgeFirst(std::string line);
+    void readParameter(std::string,std::string,int *);
+    void readParameter(std::string,std::string, std::vector<rangeStruct> *);
+    rangeStruct readParameter(std::string,std::string, rangeStruct);
+    bool readParameter(std::string, bool);
 
+    bool parseBoolean(std::string line);
     int getGroup(int, std::vector<rangeStruct>);
 
 public:
+
 
     Report(std::string);
     Report();
@@ -101,22 +115,27 @@ public:
 
     void setupReport(std::string, std::string, std::string);
     void updateReport(int, Human *);
+    void join(const std::vector<string>&,char, std::string &);
     void printReport(int);
     void printHeaders();
     void printGroupsHeader();
     void printCohortHeader();
     void printAgesHeader();
+    void printFOIHeader();
     void printGroupsReport(int);
     void printCohortReport(int);
     void printAgesReport(int);
+    void printFOIReport(int);
     void updateCohortReport(int, Human *);
     void updateGroupsReport(int, Human *);
     void updateAgesReport(int, Human *);
-
+    void updateFOIReport(int, Human *);
+    void updateMosquitoReport(int, Mosquito *);
     void resetReports();
     void resetGroupStats();
     void resetCohortStats();
     void resetAgeStats();
+    void resetFOIStats();
     void finalizeReport();
 
 };

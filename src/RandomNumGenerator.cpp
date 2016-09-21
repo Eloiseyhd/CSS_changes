@@ -16,7 +16,7 @@ unsigned RandomNumGenerator::getMozEmerge(double mozMean) {
 }
 
 unsigned RandomNumGenerator::getMozEmerge(double mozMean, double seasonalFactor) {    
-    poisson_distribution<> dis(emergeFactor * mozMean * seasonalFactor);
+    poisson_distribution<> dis( mozMean * seasonalFactor);
     return dis(gen);
 }
 
@@ -25,14 +25,26 @@ double RandomNumGenerator::getMozLifeSpan() {
     return d(gen);
 }
 
-double RandomNumGenerator::getMozLatencyDays() {
-    lognormal_distribution<> d(1.648721, 0.451754);
+double RandomNumGenerator::getMozDeathRate(double deathIn) {    
+    exponential_distribution<> d(deathIn);
+    return (1 / d(gen));
+}
+
+double RandomNumGenerator::getMozLifeSpan(double deathIn) {    
+    exponential_distribution<> d(deathIn);
+    return d(gen);
+}
+
+double RandomNumGenerator::getMozLatencyDays(double muIn) {
+    //    lognormal_distribution<> d(1.648721, 0.451754);
+    lognormal_distribution<> d(muIn,0.451754);
     return d(gen);
 }
 
 double RandomNumGenerator::getMozLatencyRate(double muIn) {
+    //    lognormal_distribution<> d(1.648721, 0.451754);
     lognormal_distribution<> d(muIn,0.451754);
-    double EIPrate = (double) 1.0 / d(gen);
+    double EIPrate = 1 / d(gen);
     return EIPrate;
 }
 
@@ -80,6 +92,10 @@ unsigned RandomNumGenerator::getRandomNum(unsigned num) {
     return dis(gen);
 }
 
+int RandomNumGenerator::getSelfReportDay(double IIP){
+    return floor(IIP);
+}
+
 double RandomNumGenerator::getRandomNormal(){
     normal_distribution<> d(0.0, 1.0);
     return d(gen);
@@ -103,6 +119,8 @@ string RandomNumGenerator::toString() const {
     ss <<" mozRest:" << mozRest;
     return ss.str();
 }
+
+
 
 RandomNumGenerator::RandomNumGenerator(
     unsigned s, unsigned huImm, double efactor, double mlife,

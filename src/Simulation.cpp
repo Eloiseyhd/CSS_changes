@@ -6,6 +6,7 @@
 #include <vector>
 #include <algorithm>
 #include <sstream>
+#include <math.h>
 #include "Simulation.h"
 
 using namespace std;
@@ -50,6 +51,7 @@ string Simulation::readInputs() {
 
 void Simulation::simEngine() {
     while(currentDay < numDays){
+	//	printf("Simulation day: %d\n", currentDay);
         for(auto itLoc = locations.begin(); itLoc != locations.end(); itLoc++){
             itLoc->second->updateInfectedVisitor();
         }
@@ -85,21 +87,11 @@ void Simulation::humanDynamics() {
     if(currentDay >= vaccineDay){
         cohort = floor(double(currentDay - vaccineDay) / 365.0) + 1;
     }
-    /*
-    int dayVax0 = vaccineDay - 365;
-    if(dayVax0 < 0){
-        dayVax0 = 0;
-    }
 
-    if(currentDay == dayVax0){
-	        for(int i = 0; i < 101; i++){
-            seroposAtVax[i] = 0;
-            seronegAtVax[i] = 0;
-            disAtVax[i] = 0;
-            hospAtVax[i] = 0;
-	    }
-     }
-    */
+
+    std::map<unsigned,double> ForceOfImportation;
+    ForceOfImportation.clear();
+    ForceOfImportation = (year - 1) < annualForceOfImportation.size() ? annualForceOfImportation[year - 1] : annualForceOfImportation.back();
 
     for(auto it = humans.begin(); it != humans.end(); ++it){
         // daily mortality for humans by age
@@ -118,9 +110,9 @@ void Simulation::humanDynamics() {
         (it->second)->setTrajDay(rGen.getRandomNum(5));
 
         // simulate possible imported infection
-        if(rGen.getEventProbability() < ForceOfImportationTrial){
-            for(int serotype = 1; serotype <= 4; serotype++){
-                if(!it->second->isImmune(serotype)){
+	for(unsigned serotype = 1; serotype <= 4; serotype++){
+	    if(!it->second->isImmune(serotype)){
+		if(rGen.getEventProbability() < ForceOfImportation.at(serotype)){         
                     it->second->infect(currentDay, serotype, &rGenInf, &disRates, &hospRates, normdev);                
                 }
             }
@@ -182,11 +174,8 @@ void Simulation::humanDynamics() {
     		}
     	    }
     	}
-            
-        	outputReport.updateReport(currentDay,(it->second).get());
-           
-
-        }
+	outputReport.updateReport(currentDay,(it->second).get());
+    }
 }
 
 
@@ -203,8 +192,11 @@ void Simulation::mosquitoDynamics(){
     double mozDeath = currentDay < mozDailyDeathRate.size() ? mozDailyDeathRate[currentDay] : mozDailyDeathRate.back();
     double mozFBiteRate = currentDay < firstBiteRate.size() ? firstBiteRate[currentDay] : firstBiteRate.back();
     double mozSBiteRate = currentDay < secondBiteRate.size() ? secondBiteRate[currentDay] : secondBiteRate.back();
+
     //    printf("Day %d EIP %.4f death %.4f fbite %.4f sbite %.4f\n", currentDay, mozEIP, mozDeath, mozFBiteRate, mozSBiteRate);
     for(auto it = mosquitoes.begin(); it != mosquitoes.end();){
+	outputReport.updateMosquitoReport(currentDay, (it->second).get());
+
         if(it->second->infection != nullptr){
 	    if(it->second->infection->getStartDay() < 0 && rGenInf.getEventProbability() < rGenInf.getMozLatencyRate(mozEIP)){
                 it->second->infection->setInfectiousnessMosquito(mozInfectiousness, currentDay);
@@ -297,13 +289,14 @@ void Simulation::mosquitoDynamics(){
 void Simulation::generateMosquitoes(){
     int mozCount = 0;
     double mozFBiteRate = currentDay < firstBiteRate.size() ? firstBiteRate[currentDay] : firstBiteRate.back();
-    double seasFactor = currentDay < dailyEmergenceFactor.size() ? dailyEmergenceFactor[currentDay] : dailyEmergenceFactor.back();
+    double seasFactor = getMosquitoSeasonality(currentDay);
 
     for(auto& x : locations){
 	// The emergence is multiplied by a seasonal factor that could vary everyday
 	// The emergence seasonal factor is being included by reading an external file with the entomological parameters
+	// In this branch the seasonal factor is simulated in here using trigonometric functions
 
-        mozCount = rGen.getMozEmerge(x.second->getEmergenceRate(), seasFactor);
+        mozCount = rGen.getMozEmerge(x.second->getEmergenceRate(), seasFactor * emergeFactor);
 
         for(int i = 0; i < mozCount; i++){
 	    // This is a temporary fix, to be discussed further...
@@ -315,7 +308,15 @@ void Simulation::generateMosquitoes(){
     }
 }
 
-
+double Simulation::getMosquitoSeasonality(unsigned currDay){
+    double PI = 3.14159265;
+    double signal_mozz = y_mag * sin((2 * PI + y_phase * PI / 360) * currDay / (365 * y_freq)) + multi_mag * sin((2 * PI + multi_phase * PI / 360) * currDay / (365 * multi_freq)) + signal_offset;
+    if(signal_mozz < 0.0){
+	signal_mozz = 0.0;
+    }
+    //    printf("Day: %d, PI %.4f, YM %.4f, MM %.4f YF %.4f, MF %.4f, OFFSET %.2f, SIGNAL %.4f\n", currDay, PI, y_mag, multi_mag, y_freq, multi_freq, signal_offset, signal_mozz);
+    return signal_mozz;
+}
 
 void Simulation::setLocNeighborhood(double dist){
     for(auto it1 = locations.begin(); it1 != locations.end(); ++it1){
@@ -382,9 +383,9 @@ void Simulation::readSimControlFile(string line) {
     getline(infile, line, ',');
     deathRate = strtod(line.c_str(), NULL);    
     getline(infile, line, ',');
-    ForceOfImportation = strtod(line.c_str(),NULL);
+    std::string annualFoiFile = line;
     getline(infile, line, ',');
-    ForceOfImportationTrial = strtod(line.c_str(),NULL);
+    std::string foiFile = line;
     getline(infile, line, ',');
     huImm = strtol(line.c_str(), NULL, 10);
     getline(infile, line, ',');
@@ -395,6 +396,77 @@ void Simulation::readSimControlFile(string line) {
     mozMoveProbability = strtod(line.c_str(), NULL);
     getline(infile, line, ',');
     aegyptiRatesFile = line;
+    getline(infile, line, ',');
+    y_mag = strtod(line.c_str(), NULL);
+    getline(infile, line, ',');
+    multi_mag = strtod(line.c_str(), NULL);
+    getline(infile, line, ',');
+    y_freq = strtod(line.c_str(), NULL);
+    getline(infile, line, ',');
+    multi_freq = strtod(line.c_str(), NULL);
+    getline(infile, line, ',');
+    y_phase = strtod(line.c_str(), NULL);
+    getline(infile, line, ',');
+    multi_phase = strtod(line.c_str(), NULL);
+    getline(infile, line, ',');
+    signal_offset = strtod(line.c_str(), NULL);
+
+    readInitialFOI(foiFile);
+    readAnnualFOI(annualFoiFile);
+}
+
+void Simulation::readInitialFOI(std::string fileIn){
+    if(fileIn.length() == 0){
+	exit(1);
+    }
+    ifstream infile(fileIn);
+    string line;
+    if(!infile.good()){
+	exit(1);
+    }
+    getline(infile, line);
+    for(int i = 0; i < 4; i++){
+	getline(infile, line, ',');
+	double foiTemp = strtod(line.c_str(),NULL);
+	InitialConditionsFOI.push_back(foiTemp);
+    }
+    if(InitialConditionsFOI.size() != 4){
+	printf("InitialConditionsFOI not set\n");
+	exit(1);
+    }
+}
+
+void Simulation::readAnnualFOI(std::string fileIn){
+    if(fileIn.length() == 0){
+	exit(1);
+    }
+    ifstream infile(fileIn);
+    string line;
+    if(!infile.good()){
+	exit(1);
+    }
+    getline(infile, line);
+    while (getline(infile, line, ',')) {
+	double d1 = strtod(line.c_str(), NULL);
+        getline(infile, line, ',');
+	double d2 = strtod(line.c_str(), NULL);
+        getline(infile, line, ',');
+	double d3 = strtod(line.c_str(), NULL);
+        getline(infile, line, '\n');
+	double d4 = strtod(line.c_str(), NULL);
+	std::map<unsigned,double> map_temp;
+	map_temp.clear();
+	map_temp.insert(make_pair(1, d1));
+	map_temp.insert(make_pair(2, d2));
+	map_temp.insert(make_pair(3, d3));
+	map_temp.insert(make_pair(4, d4));     
+	annualForceOfImportation.push_back(map_temp);
+    }
+
+    if(annualForceOfImportation.size() == 0){
+	printf("ForceOfImportation not set\n");
+	exit(1);
+    }
 }
 
 void Simulation::readAegyptiFile(string file){
@@ -409,7 +481,7 @@ void Simulation::readAegyptiFile(string file){
     mozDailyDeathRate.clear();
     meanDailyEIP.clear();
     dailyEmergenceFactor.clear();
-
+    
     while (getline(infile, line, ',')) {
 	double eip_temp = strtod(line.c_str(), NULL);
         getline(infile, line, ',');
@@ -574,7 +646,7 @@ void Simulation::readHumanFile(string humanFile) {
             }
         }
 
-        unique_ptr<Human> h(new Human(houseID, hMemID, age, gen, trajectories, rGen, currentDay, ForceOfImportation));
+        unique_ptr<Human> h(new Human(houseID, hMemID, age, gen, trajectories, rGen, currentDay, InitialConditionsFOI));
 
         std::set<std::string> locsVisited = h->getLocsVisited();
         for(std::set<std::string>::iterator itrSet = locsVisited.begin(); itrSet != locsVisited.end(); itrSet++){
