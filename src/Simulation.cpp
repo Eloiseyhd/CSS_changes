@@ -422,6 +422,7 @@ void Simulation::readInitialFOI(std::string fileIn){
     ifstream infile(fileIn);
     string line;
     if(!infile.good()){
+	printf("can't read initialFOI file\n");
 	exit(1);
     }
     getline(infile, line);
