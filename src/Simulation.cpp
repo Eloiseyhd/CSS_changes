@@ -58,7 +58,6 @@ string Simulation::readInputs() {
 void Simulation::simEngine() {
     deathMoz = 0;
     lifeMoz = 0;
-    // printf("tempStats, day, deaths, mosquitoes\n");
     while(currentDay < numDays){
 	humanDeaths = 0;
         if(ceil(double(currentDay + 1) / 365.0) != ceil(double(currentDay) / 365.0)){
@@ -343,6 +342,7 @@ void Simulation::generateMosquitoes(){
     double mozFBiteRate = currentDay < firstBiteRate.size() ? firstBiteRate[currentDay] : firstBiteRate.back();
     double seasFactor = currentDay < dailyEmergenceFactor.size() ? dailyEmergenceFactor[currentDay] : dailyEmergenceFactor.back();
 
+    //CHANGE THIS!!!!! is only temporal to create more mosquitoes, because late epidemics are not being produced
     if(currentDay > 1460){
 	seasFactor = seasFactor * 2;
     }
