@@ -51,7 +51,7 @@ string Simulation::readInputs() {
 
 void Simulation::simEngine() {
     while(currentDay < numDays){
-	//	printf("Simulation day: %d\n", currentDay);
+	printf("Simulation day: %d\n", currentDay);
         for(auto itLoc = locations.begin(); itLoc != locations.end(); itLoc++){
             itLoc->second->updateInfectedVisitor();
         }
@@ -310,7 +310,7 @@ void Simulation::generateMosquitoes(){
 
 double Simulation::getMosquitoSeasonality(unsigned currDay){
     double PI = 3.14159265;
-    double signal_mozz = y_mag * sin((2 * PI + y_phase * PI / 360) * currDay / (365 * y_freq)) + multi_mag * sin((2 * PI + multi_phase * PI / 360) * currDay / (365 * multi_freq)) + signal_offset;
+    double signal_mozz = y_mag * sin(2 * PI * currDay / (365 * y_freq) + y_phase * PI / 180) + multi_mag * sin( 2 * PI * currDay / (365 * multi_freq) + multi_phase * PI / 180) + signal_offset;
     if(signal_mozz < 0.0){
 	signal_mozz = 0.0;
     }
