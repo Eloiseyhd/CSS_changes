@@ -74,56 +74,70 @@ void Surveillance::initialize_human_surveillance(Human * h, int currDay){
 	tempRecord.pcrDay[i] = -1;
 	tempRecord.primary.push_back("NA");
     }
-    tempRecord.lastType = -1;
     recordsDatabase.insert(make_pair(id,tempRecord));
 }
 
-void Surveillance::update_human_surveillance(Human * h, int currDay, RandomNumGenerator * rGen){
+int Surveillance::update_human_surveillance(Human * h, int currDay, RandomNumGenerator * rGen){
+    int pcr_result = -1;
     std::string id = h->getHouseID() + std::to_string(h->getHouseMemNum());
+    //    printf("update surveillance %s day %d\n", id.c_str(), currDay);
     if(recordsDatabase.find(id) != recordsDatabase.end() && h->isEnrolledInTrial()){
-	if(h->infection != NULL){
-	    // set IIP and serotype and symptoms
-	    unsigned serotype = h->infection->getInfectionType() - 1;
-	    recordsDatabase.find(id)->second.onset[serotype] = h->infection->getSymptomOnset();
-	    recordsDatabase.find(id)->second.lastType = h->infection->getInfectionType() - 1;
-	    recordsDatabase.find(id)->second.symptoms[serotype] = (h->isSymptomatic() == true) ? 1 : 0;
-	    recordsDatabase.find(id)->second.hosp[serotype] = (h->isHospitalized() == true) ? 1 : 0;
-	    recordsDatabase.find(id)->second.primary[serotype] = (h->infection->isPrimary()) ? "primary" : "secondary";
-
-	    if(h->getReportSymptoms()){
-		if(currDay > recordsDatabase.find(id)->second.onset[serotype] + 2 && currDay <= recordsDatabase.find(id)->second.onset[serotype] + 7){
-		    if(recordsDatabase.find(id)->second.TTR[h->infection->getInfectionType() - 1] == -1){
-			if(rGen->getEventProbability() < reportTodayProb){
-			    int serotype_ = this->PCR_test(h,currDay,rGen);
-			    recordsDatabase.find(id)->second.pcrDay[serotype] = currDay;
-			    if(serotype_ >= 0){
-				recordsDatabase.find(id)->second.TTR[serotype_] = currDay;
-				recordsDatabase.find(id)->second.pcr[serotype_] = "POSITIVE"; 
-				if(recordsDatabase.find(id)->second.firstTTR == -1){
-				    recordsDatabase.find(id)->second.firstTTR = currDay;
-				    recordsDatabase.find(id)->second.firstPCR = "POSITIVE";
-				    recordsDatabase.find(id)->second.firstExp = h->getExposedCount(serotype_);
+	if( ( currDay - recordsDatabase.find(id)->second.enrollmentDay ) >= 30){
+	    /*	    if(id == "BGD15410"){
+		for(int s = 0; s < 4; s++){
+		    printf("%s arm %s Day %d onset %.4f exposures %d\n", id.c_str(), h->getTrialArm().c_str(), currDay, recordsDatabase.find(id)->second.onset[s], h->getExposedCount(s));
+		}
+		if(h->infection != NULL){
+		    unsigned serotype = h->infection->getInfectionType() - 1;
+		    printf("%s infectious with %d \n", id.c_str(), serotype);
+		}
+		}*/
+	    if(h->infection != NULL){
+		//		printf("Surveillance::update %s infection is not null day %d\n",id.c_str(), currDay);
+		// set IIP and serotype and symptoms
+		unsigned serotype = h->infection->getInfectionType() - 1;
+		recordsDatabase.find(id)->second.onset[serotype] = h->infection->getSymptomOnset();
+		recordsDatabase.find(id)->second.symptoms[serotype] = (h->isSymptomatic() == true) ? 1 : 0;
+		recordsDatabase.find(id)->second.hosp[serotype] = (h->isHospitalized() == true) ? 1 : 0;
+		recordsDatabase.find(id)->second.primary[serotype] = (h->infection->isPrimary()) ? "primary" : "secondary";
+		
+		if(h->getReportSymptoms()){
+		    if(currDay > recordsDatabase.find(id)->second.onset[serotype] + 0 && currDay <= recordsDatabase.find(id)->second.onset[serotype] + 20){
+			if(recordsDatabase.find(id)->second.TTR[h->infection->getInfectionType() - 1] == -1){
+			    if(rGen->getEventProbability() < reportTodayProb){
+				pcr_result = this->PCR_test(h,currDay,rGen);
+				recordsDatabase.find(id)->second.pcrDay[serotype] = currDay;
+				if(pcr_result >= 0){
+				    recordsDatabase.find(id)->second.TTR[pcr_result] = currDay;
+				    recordsDatabase.find(id)->second.pcr[pcr_result] = "POSITIVE"; 
+				    if(recordsDatabase.find(id)->second.firstTTR == -1){
+					recordsDatabase.find(id)->second.firstTTR = currDay;
+					recordsDatabase.find(id)->second.firstPCR = "POSITIVE";
+					//				    recordsDatabase.find(id)->second.firstExp = h->getExposedCount(serotype_);
+				    }
 				}
 			    }
-			}
-			//Bookkeeping when reporting
-			for(int i = 0; i < 4; i++){
-			    if(recordsDatabase.find(id)->second.TTR[i] == -1){
-				recordsDatabase.find(id)->second.TTL[i] = currDay;
+			    
+			    //Bookkeeping when reporting
+			    for(int i = 0; i < 4; i++){
+				if(recordsDatabase.find(id)->second.TTR[i] == -1){
+				    recordsDatabase.find(id)->second.TTL[i] = currDay;
+				}
 			    }
+			    if(recordsDatabase.find(id)->second.firstTTR == -1){
+				recordsDatabase.find(id)->second.firstTTL = currDay;
+			    }
+			    h->setContactByTrial(currDay);
 			}
-			if(recordsDatabase.find(id)->second.firstTTR == -1){
-			    recordsDatabase.find(id)->second.firstTTL = currDay;
-			}
-			h->setContactByTrial(currDay);
+		    }else if(currDay > recordsDatabase.find(id)->second.onset[serotype] + 7){
+			h->setReportSymptoms(false);
 		    }
-		}else if(currDay > recordsDatabase.find(id)->second.onset[serotype] + 7){
-		    h->setReportSymptoms(false);
 		}
 	    }
 	}
 
 	if(h->getLastContactByTrial() + contactFrequency == currDay){
+	    //	    printf("Contacting person\n");
 	    this->contactPerson(h, currDay, rGen);
 	    //Bookkeeping for each contact 
 	    for(int i = 0; i < 4; i++){
@@ -140,23 +154,28 @@ void Surveillance::update_human_surveillance(Human * h, int currDay, RandomNumGe
 	//annual visits -> detect one or more infections in a small sample -- TO BE IMPLEMENTED !!!!
 	
     }
+    return pcr_result;
 }
 
 void Surveillance::finalize_human_surveillance(Human *h, int currDay){
     std::string id = h->getHouseID() + std::to_string(h->getHouseMemNum());
     recordsDatabase.find(id)->second.dropoutDay = currDay;
+    recordsDatabase.find(id)->second.firstExp = 0;
     for(unsigned i = 0; i < 4; i++){
 	recordsDatabase.find(id)->second.numExp[i] = h->getExposedCount(i);
+	recordsDatabase.find(id)->second.firstExp += h->getExposedCount(i);
     }
 }
 
 void Surveillance::contactPerson(Human * h, int currDay, RandomNumGenerator * rGen){
     std::string id = h->getHouseID() + std::to_string(h->getHouseMemNum());
-    int serotype = (h->infection != NULL) ? h->infection->getInfectionType() -1 : recordsDatabase.find(id)->second.lastType;
-    if(recordsDatabase.find(id)->second.TTR[serotype] == -1){
-	// If the symptoms happened between last contact and today
-	if(recordsDatabase.find(id)->second.symptoms[serotype] > 0 && recordsDatabase.find(id)->second.onset[serotype] <= currDay && recordsDatabase.find(id)->second.onset[serotype] > h->getLastContactByTrial()){
-	    h->setReportSymptoms(true);
+    if(h->infection != NULL){
+	int serotype =  h->infection->getInfectionType() -1;
+	if(recordsDatabase.find(id)->second.TTR[serotype] == -1){
+	    // If the symptoms happened between last contact and today
+	    if(recordsDatabase.find(id)->second.symptoms[serotype] > 0 && recordsDatabase.find(id)->second.onset[serotype] <= currDay && recordsDatabase.find(id)->second.onset[serotype] > h->getLastContactByTrial()){
+		h->setReportSymptoms(true);
+	    }
 	}
     }
 }
@@ -164,7 +183,6 @@ void Surveillance::contactPerson(Human * h, int currDay, RandomNumGenerator * rG
 int Surveillance::PCR_test(Human * h, int currDay, RandomNumGenerator * rGen){
     std::string id = h->getHouseID() + std::to_string(h->getHouseMemNum());
     int pcr_result = -1;
-    int serotype = (h->infection != NULL) ? h->infection->getInfectionType() -1 : recordsDatabase.find(id)->second.lastType;
     double sensitivity = 0.0;
     if(h->infection != NULL){
 	// Is this a primary or secondary infection? 
@@ -219,10 +237,10 @@ void Surveillance::printRecords(std::string file, int currDay){
 	for(int i = 0; i < 4; i++){
 	    std::string sympt = "NA";
 	    std::string hosp = "NA";
-	    std::string onset = "NA";
+	    std::string onset = ((*it).second.onset[i] < 0) ? "NA" : std::to_string((*it).second.onset[i]); 
 	    if((*it).second.symptoms[i] == 1){
 		sympt =  "symptomatic";
-		onset = std::to_string((*it).second.onset[i]); 
+		//		onset = std::to_string((*it).second.onset[i]); 
 		hosp = ((*it).second.hosp[i] == 1) ? "hospitalized" : "mild";
 	    }
 	    std::string preExposure = (*it).second.previousExposure[i] == true ? "POSITIVE" : "NEGATIVE";

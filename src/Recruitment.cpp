@@ -78,11 +78,16 @@ void Recruitment::updateArm(unsigned vaxID, std::vector<Human *> * arm, int curr
 			    removeParticipant(*it,currDay);
 			    arm->erase(it);
 			}else{
-			    trialSurveillance.update_human_surveillance((*it),currDay, rGen);
-			    if((*it)->isFullyVaccinated() == false && (*it)->getNextDoseDay() == currDay){
-				(*it)->boostVaccine(currDay, rGen);
+			    int pcr = trialSurveillance.update_human_surveillance((*it),currDay, rGen);
+			    if(pcr >= 0){
+				removeParticipant(*it,currDay);
+				arm->erase(it);
+			    }else{
+				if((*it)->isFullyVaccinated() == false && (*it)->getNextDoseDay() == currDay){
+				    (*it)->boostVaccine(currDay, rGen);
+				}
+				++it;
 			    }
-			    ++it;
 			}
 		    }else{
 			removeParticipant(*it,currDay);

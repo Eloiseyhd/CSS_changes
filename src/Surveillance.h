@@ -28,7 +28,6 @@ class Surveillance {
 	int symptoms[4];
 	int hosp[4];
 	int pcrDay[4];
-	int lastType;
 	int dropoutDay;
 	int enrollmentDay;
 	int houseMemNum;
@@ -46,7 +45,8 @@ class Surveillance {
     Surveillance(const Surveillance& orig);
     virtual ~Surveillance();
 
-    void update_human_surveillance(Human *, int, RandomNumGenerator *);
+    int update_human_surveillance(Human *, int, RandomNumGenerator *);
+
     void initialize_human_surveillance(Human *, int);
     void finalize_human_surveillance(Human *, int);
     void setup(std::string);

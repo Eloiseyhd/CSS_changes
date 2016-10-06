@@ -36,10 +36,12 @@ Human::Human(
     vaccineComplete = false;
     enrolledInTrial = false;
     seroStatusAtVaccination = false;
+
     for(int i = 0;i < 4; i++){
 	preExposureAtVaccination[i] = false;
 	exposedCount[i] = 0;
     }
+
     infected = false;
     symptomatic = false;
     hospitalized = false;
@@ -199,7 +201,7 @@ void Human::infect(
     double RRInf = 1.0;
     double RRDis = 1.0;
     double RRHosp = 1.0;
-    
+
     int vaxAdvancement = 0;
 
     if(vaccinated){
@@ -238,7 +240,16 @@ void Human::infect(
     if(isImmuneVax() == true && vaccineProfile->getMode() == "advance"){
     	vax_protection = 1.0 - vaccineProfile->getVaccineProtection();
     }
+
+    exposedCount[infectionType - 1]++;
+    /*    std::string id = this->getHouseID() + std::to_string(this->getHouseMemNum());
+    if(id == "BGD15410"){
+	printf("Trying to infect %s RRinf %.4f vax protection %.4f vax mode %s\n", id.c_str(), RRInf, vax_protection, vaccineProfile->getMode().c_str());
+	}*/
     if(rGen->getEventProbability() < RRInf * vax_protection){
+	/*	if(id == "BGD15410"){
+	    printf("In the process of infection %s RRinf %.4f vax protection %.4f\n", id.c_str(), RRInf, vax_protection);
+	    }*/
     	infected = true;
     	recent_inf = 1;
     	recent_dis = 0;
@@ -247,28 +258,28 @@ void Human::infect(
 
     	if(getPreviousInfections() + vaxAdvancement == 0){
     	    if(rGen->getEventProbability() < (*disRates)[0] * RRDis){
-        		recent_dis = infectionType;
-        		symptomatic = true;
-        		if(rGen->getEventProbability() < (*hospRates)[0]){
-        		    recent_hosp = infectionType;
-        		}
+		recent_dis = infectionType;
+		symptomatic = true;
+		if(rGen->getEventProbability() < (*hospRates)[0]){
+		    recent_hosp = infectionType;
+		}
     	    }
     	} else if(getPreviousInfections() + vaxAdvancement == 1) {
     	    if(rGen->getEventProbability() < (*disRates)[1] * RRDis){
-        		recent_dis = infectionType;
-        		symptomatic = true;
-        		if(rGen->getEventProbability() < (*hospRates)[1] * RRHosp){
-        		    recent_hosp = infectionType;
-        		}
+		recent_dis = infectionType;
+		symptomatic = true;
+		if(rGen->getEventProbability() < (*hospRates)[1] * RRHosp){
+		    recent_hosp = infectionType;
+		}
     	    }
     	} else {
     	    if(rGen->getEventProbability() < (*disRates)[2] * RRDis){
-        		recent_dis = infectionType;
-        		symptomatic = true;
-			hospitalized = true;
-        		if(rGen->getEventProbability() < (*hospRates)[2] * RRHosp){
-        		    recent_hosp = infectionType;
-        		}
+		recent_dis = infectionType;
+		symptomatic = true;
+		hospitalized = true;
+		if(rGen->getEventProbability() < (*hospRates)[2] * RRHosp){
+		    recent_hosp = infectionType;
+		}
     	    }
     	}
     	infection.reset(new Infection(
@@ -279,12 +290,18 @@ void Human::infect(
 		reportSymptoms = true;
 	    }
 	}
-	exposedCount[infectionType - 1]++;
     	updateImmunityPerm(infectionType, true);
     	setImmunityTemp(true);
     	setImmStartDay(currentDay);
     	setImmEndDay(currentDay + 15 + rGen->getHumanImmunity());
     }
+    /*    if(id == "BGD15410"){
+	if(infected == true){
+	    printf("Infect  successful day %d id %s exposures %d\n", currentDay, id.c_str(), exposedCount[infectionType - 1]);
+	}else{
+	    printf("Infect failed day %d id %s exposures %d\n", currentDay, id.c_str(), exposedCount[infectionType - 1]);
+	}
+	}*/
 }
 
 

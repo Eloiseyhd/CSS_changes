@@ -143,7 +143,6 @@ void Simulation::humanDynamics() {
 		}
 	    }
             it->second->checkRecovered(currentDay);
-
 	}
 
 	if(currentDay == 0){
@@ -204,7 +203,7 @@ void Simulation::humanDynamics() {
     	}
 
     	// catchup vaccination
-    	if(catchupFlag == true && vaccineDay == currentDay){
+    	if(catchupFlag == true && vaccineDay == currentDay && vaccinationStrategy == "routine"){
     	    if(age > vaccineAge * 365 && age < 18 * 365){
     		if(rGenInf.getEventProbability() < vaccineCoverage){
 		    it->second->vaccinateWithProfile(currentDay, &rGenInf, &(vaccines.at(vaccineID)));
