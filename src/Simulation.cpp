@@ -598,6 +598,7 @@ void Simulation::readVaccineSettingsFile(){
     if(!infile.good()){
         exit(1);
     }
+    printf("Reading vaccine settings file %s\n", vaccineSettingsFile.c_str());
     while(getline(infile,line,'\n')){
 	string line2,line3;
 	std::vector<std::string>param_line = getParamsLine(line);
@@ -632,11 +633,15 @@ void Simulation::readVaccineSettingsFile(){
 	}
     }
     infile.close();
+    printf("file %s read\n", vaccineSettingsFile.c_str());
     //    printf("vStrategy %s day %d age %d coverage: %.2f: groups_file: %s: profilesFile: %s: ID: %d\n",vaccinationStrategy.c_str(), vaccineDay, vaccineAge,vaccineCoverage, vaccinationGroupsFile.c_str(), vaccineProfilesFile.c_str(), vaccineID);
 }
 
 
 void Simulation::readVaccineProfilesFile(){
+    printf("reading vaccine profiles file\n");
+    printf("file = %s\n", vaccineProfilesFile.c_str());
+    
     if(vaccineProfilesFile.length() == 0){
         exit(1);
     }
@@ -648,7 +653,7 @@ void Simulation::readVaccineProfilesFile(){
     }
     int numVaccines = 0;
     // First find the number of vaccines
-
+    printf("reading vaccine profiles %s\n", vaccineProfilesFile.c_str());
     while(getline(infile,line,'\n')){
 	string line2,line3;
 	std::vector<std::string>param_line = getParamsLine(line);
@@ -658,7 +663,7 @@ void Simulation::readVaccineProfilesFile(){
 	    numVaccines = this->parseInteger(line3);
 	}
     }
-
+    
     if(numVaccines > 0){
 	//	printf("There are %d vaccines to read in the file\n",numVaccines);
 	// Now we should read the rest of the parameters and store them in the appropiate vaccine structure

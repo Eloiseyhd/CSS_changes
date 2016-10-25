@@ -181,7 +181,7 @@ void Recruitment::setupRecruitment(std::string file, std::map<unsigned,Vaccine> 
     if(!infile.good()){
 		exit(1);
     }
-
+    printf("Reading setuprecruitment file %s\n", file.c_str());
     // Read the trial recruitment parameters
     while(getline(infile,line,'\n')){
 	string line2,line3;

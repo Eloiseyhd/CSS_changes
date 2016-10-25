@@ -38,7 +38,7 @@ Human::Human(
     seroStatusAtVaccination = false;
 
     for(int i = 0;i < 4; i++){
-	preExposureAtVaccination[i] = false;
+	preExposureAtVaccination[i] = 0;
 	exposedCount[i] = 0;
     }
 
@@ -246,12 +246,15 @@ void Human::infect(
     if(id == "BGD15410"){
 	printf("Trying to infect %s RRinf %.4f vax protection %.4f vax mode %s\n", id.c_str(), RRInf, vax_protection, vaccineProfile->getMode().c_str());
 	}*/
+    /*    if(vaccinated){
+	printf("In the process of infection  RRinf %.4f vax protection %.4f vax advancement %d previous %d -> %d serotype %d\n",  RRInf, vax_protection, vaxAdvancement, getPreviousInfections(), pre infectionType);
+	}*/
     if(rGen->getEventProbability() < RRInf * vax_protection){
 	/*	if(id == "BGD15410"){
 	    printf("In the process of infection %s RRinf %.4f vax protection %.4f\n", id.c_str(), RRInf, vax_protection);
 	    }*/
     	infected = true;
-    	recent_inf = 1;
+    	recent_inf = infectionType;
     	recent_dis = 0;
     	recent_hosp = 0;
 	last_serotype = infectionType;
@@ -262,6 +265,7 @@ void Human::infect(
 		symptomatic = true;
 		if(rGen->getEventProbability() < (*hospRates)[0]){
 		    recent_hosp = infectionType;
+		    hospitalized = true;
 		}
     	    }
     	} else if(getPreviousInfections() + vaxAdvancement == 1) {
@@ -270,15 +274,16 @@ void Human::infect(
 		symptomatic = true;
 		if(rGen->getEventProbability() < (*hospRates)[1] * RRHosp){
 		    recent_hosp = infectionType;
+		    hospitalized = true;
 		}
     	    }
     	} else {
     	    if(rGen->getEventProbability() < (*disRates)[2] * RRDis){
 		recent_dis = infectionType;
 		symptomatic = true;
-		hospitalized = true;
 		if(rGen->getEventProbability() < (*hospRates)[2] * RRHosp){
 		    recent_hosp = infectionType;
+		    hospitalized = true;
 		}
     	    }
     	}
@@ -288,6 +293,13 @@ void Human::infect(
 	if(symptomatic == true && enrolledInTrial == true){
 	    if(rGen->getEventProbability() < selfReportProb){
 		reportSymptoms = true;
+	    }
+	}
+	preExposureAtVaccination[infectionType - 1] = getPreviousInfections();
+	
+	for(int i = 0;i < 4; i++){
+	    if(i != (infectionType - 1) && immunity_perm[i + 1] == false){
+		preExposureAtVaccination[i]++;
 	    }
 	}
     	updateImmunityPerm(infectionType, true);
@@ -369,7 +381,7 @@ void Human::reincarnate(unsigned currDay){
     vaxWaning_neg = 0;
     vday = -1;
     for(int i = 0;i < 4; i++){
-	preExposureAtVaccination[i] = false;
+	preExposureAtVaccination[i] = 0;
 	exposedCount[i] = 0;
     }
 }
@@ -421,14 +433,9 @@ void Human::setSeroStatusAtVaccination(){
   if(getPreviousInfections() > 0){
     seroStatusAtVaccination = true;
   }
-  for(int i = 0; i < 4;i++){
-      if(immunity_perm[i+1]){
-	  preExposureAtVaccination[i] = true;
-      }
-  }
 }
 
-bool Human::getPreExposureAtVaccination(unsigned sero){
+int Human::getPreExposureAtVaccination(unsigned sero){
     return preExposureAtVaccination[sero];
 }
 

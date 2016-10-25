@@ -69,7 +69,7 @@ void Surveillance::initialize_human_surveillance(Human * h, int currDay){
 	tempRecord.symptoms[i] = -1;
 	tempRecord.hosp[i] = -1;
 	tempRecord.numExp[i] = 0;
-	tempRecord.previousExposure[i] = h->getPreExposureAtVaccination(i);
+	tempRecord.previousExposure[i] = 0;
 	tempRecord.pcr.push_back("NA");
 	tempRecord.pcrDay[i] = -1;
 	tempRecord.primary.push_back("NA");
@@ -102,7 +102,7 @@ int Surveillance::update_human_surveillance(Human * h, int currDay, RandomNumGen
 		recordsDatabase.find(id)->second.primary[serotype] = (h->infection->isPrimary()) ? "primary" : "secondary";
 		
 		if(h->getReportSymptoms()){
-		    if(currDay > recordsDatabase.find(id)->second.onset[serotype] + 0 && currDay <= recordsDatabase.find(id)->second.onset[serotype] + 20){
+		    if(currDay > recordsDatabase.find(id)->second.onset[serotype] + 2 && currDay <= recordsDatabase.find(id)->second.onset[serotype] + 7){
 			if(recordsDatabase.find(id)->second.TTR[h->infection->getInfectionType() - 1] == -1){
 			    if(rGen->getEventProbability() < reportTodayProb){
 				pcr_result = this->PCR_test(h,currDay,rGen);
@@ -164,6 +164,7 @@ void Surveillance::finalize_human_surveillance(Human *h, int currDay){
     for(unsigned i = 0; i < 4; i++){
 	recordsDatabase.find(id)->second.numExp[i] = h->getExposedCount(i);
 	recordsDatabase.find(id)->second.firstExp += h->getExposedCount(i);
+	recordsDatabase.find(id)->second.previousExposure[i] = h->getPreExposureAtVaccination(i);
     }
 }
 
@@ -243,10 +244,9 @@ void Surveillance::printRecords(std::string file, int currDay){
 		//		onset = std::to_string((*it).second.onset[i]); 
 		hosp = ((*it).second.hosp[i] == 1) ? "hospitalized" : "mild";
 	    }
-	    std::string preExposure = (*it).second.previousExposure[i] == true ? "POSITIVE" : "NEGATIVE";
 	    std::string ttr = (*it).second.TTR[i] >= 0 ? std::to_string((*it).second.TTR[i]) : "NA";
 	    std::string pcr_day = (*it).second.pcrDay[i] >= 0 ? std::to_string((*it).second.pcrDay[i]) : "NA";
-	    outSurveillance << preExposure << "," << onset << "," << sympt << "," << hosp << "," << pcr_day << ","<< (*it).second.pcr[i].c_str() << "," << (*it).second.primary[i] << "," << (*it).second.TTL[i] << "," << ttr;
+	    outSurveillance << (*it).second.previousExposure[i] << "," << onset << "," << sympt << "," << hosp << "," << pcr_day << ","<< (*it).second.pcr[i].c_str() << "," << (*it).second.primary[i] << "," << (*it).second.TTL[i] << "," << ttr;
 	    outSurveillance << "," << (*it).second.numExp[i] << ",";
 	}
 	std::string ttr = (*it).second.firstTTR >= 0 ? std::to_string((*it).second.firstTTR) : "NA";

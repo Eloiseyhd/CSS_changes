@@ -33,7 +33,7 @@ class Surveillance {
 	int houseMemNum;
 	double onset[4];
 	bool seroStatusAtVaccination;
-	bool previousExposure[4];
+	int previousExposure[4];
 	std::string trialArm;
 	std::vector<std::string> primary;
 	std::vector<std::string> pcr;

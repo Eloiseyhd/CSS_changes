@@ -39,6 +39,7 @@ private:
     int vaccineDosesReceived;
     int lastDayContactedByTrial;
     int exposedCount[4];
+    int preExposureAtVaccination[4];
 
     double attractiveness;
     double bodySize;
@@ -54,7 +55,6 @@ private:
     bool immunity_temp;
     bool infected;
     bool seroStatusAtVaccination;
-    bool preExposureAtVaccination[4];
     bool symptomatic;
     bool vaccineImmunity;
     bool vaccinated;
@@ -136,6 +136,7 @@ public:
     int getLastContactByTrial(){return lastDayContactedByTrial;}
     int getTrialEnrollmentDay(){return trialDay;}
     int getExposedCount(unsigned sero){return exposedCount[sero];}
+    int getPreExposureAtVaccination(unsigned);
 
     bool isHospitalized(){return hospitalized;}
     bool isImmune(unsigned) const;
@@ -145,7 +146,6 @@ public:
     bool isSymptomatic(){return symptomatic;}
     bool isVaccinated(){return vaccinated;}
     bool getSeroStatusAtVaccination(){return seroStatusAtVaccination;}
-    bool getPreExposureAtVaccination(unsigned);
     bool isEnrolledInTrial(){return enrolledInTrial;}
     bool isFullyVaccinated(){return vaccineComplete;}
     bool getReportSymptoms(){return reportSymptoms;}
