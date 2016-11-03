@@ -24,6 +24,7 @@ private:
     char gender;
 
     int bday;
+    int dday;
     int houseMemNum;
     int trajDay;
     int recent_dis;
@@ -65,6 +66,7 @@ private:
     Vaccine * vaccineProfile;
 
     std::string houseID;
+    std::string personID;
     std::string trialArm;
     std::map<unsigned,bool> immunity_perm;
     std::unique_ptr<std::vector<std::vector<std::pair<std::string,double>>>> trajectories;
@@ -75,10 +77,14 @@ public:
     std::unique_ptr<Infection> infection;
 
     Human(std::string,int,int,char,std::unique_ptr<std::vector<std::vector<std::pair<std::string,double>>>>&,RandomNumGenerator&,unsigned,std::vector<double>);
+    Human(std::string,int,char,int,int, RandomNumGenerator&);
     Human();
     Human(const Human& orig);
     virtual ~Human();
 
+    void setTrajectories(std::unique_ptr<std::vector<std::vector<std::pair<std::string,double>>>>&);
+    void initializeHuman(unsigned,std::vector<double>, RandomNumGenerator&);
+    
     void checkRecovered(unsigned);
     void setAgeTrialEnrollment(int age_){tAge = age_;}
     void enrollInTrial(int, std::string);
@@ -122,6 +128,8 @@ public:
     unsigned getVaxImmStartDay() const;
 
     int getAgeDays(unsigned) const;
+    int getBirthday()const {return bday;}
+    int getDeathday()const {return dday;}
     int getHouseMemNum() const;
     int getPreviousInfections();
     int getRecentType(){return last_serotype;}
@@ -152,6 +160,7 @@ public:
 
     std::string getCurrentLoc(double);
     std::string getHouseID() const;
+    std::string getPersonID() const;
     std::string getTrialArm(){return trialArm;}
     std::set<std::string> getLocsVisited();
     std::vector<std::pair<std::string,double>> const& getTrajectory(unsigned) const;
@@ -164,3 +173,4 @@ public:
 };
 
 #endif	/* HUMAN_H */
+

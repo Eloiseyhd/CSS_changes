@@ -71,15 +71,17 @@ Human * Mosquito::whoBite(
 
     double attractivenessSum = 0;
     std::map<Human *,double,Human::sortid>::iterator mapItr = humanMap.begin();
-    for(; mapItr != humanMap.end(); mapItr++)
+    for(; mapItr != humanMap.end(); mapItr++){
         attractivenessSum += mapItr->second;
+	//	printf("attractiveness of %s is %f\n", mapItr->first->getPersonID().c_str(), mapItr->second);
+    }
 
     double biteWho = rGen->getEventProbability() * attractivenessSum;
     attractivenessSum = 0;
     for(mapItr = humanMap.begin(); attractivenessSum < biteWho; mapItr++)
         attractivenessSum += mapItr->second;
     mapItr--;
-
+    //    return &(*humanMap.begin()->first);
     return &(*mapItr->first); 
 }
 
@@ -96,7 +98,7 @@ bool Mosquito::infectingBite(
 {
     Human * humBite = whoBite(time, locNow, rGen);
     if(humBite != NULL){
-        if(humBite->infection != nullptr){
+	if(humBite->infection != nullptr){
             humBite->infection->setInfectiousnessHuman(currentDay);
             if(rGenInf->getEventProbability() < humBite->infection->getInfectiousness()){
 		//                double sday = double(currentDay) + rGenInf->getMozLatencyDays(mozEIP);

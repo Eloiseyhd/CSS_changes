@@ -3,7 +3,58 @@
 
 using namespace std;
 
-
+Human::Human(string hID,
+	     int hMemID,
+	     char gen,
+	     int birthYear,
+	     int deathYear,
+	     RandomNumGenerator& rGen)
+{
+    houseID = hID;
+    houseMemNum = hMemID;
+    personID = hID + std::to_string(hMemID);
+    gender = gen;
+    bday = birthYear * 365 + rGen.getRandomNum(365);
+    if(deathYear >= 0){
+	dday = deathYear * 365 + rGen.getRandomNum(365);
+	if(dday <= bday){
+	    dday = bday + 1;
+	}
+    }else{
+	dday = -1;
+    }
+    infection.reset(nullptr);
+    vaccinated = false;
+    vaccineProfile = NULL;
+    resetRecent();
+    cohort = 0;
+    tAge = 0;
+    vday = -1;
+    trialDay = 0;
+    vaxWaning_pos = 0;
+    vaxWaning_neg = 0;
+    vaccineComplete = false;
+    enrolledInTrial = false;
+    seroStatusAtVaccination = false;
+    for(int i = 0;i < 4; i++){
+	preExposureAtVaccination[i] = 0;
+	exposedCount[i] = 0;
+    }
+    
+    infected = false;
+    symptomatic = false;
+    hospitalized = false;
+    vaccineImmunity = false;
+    reportSymptoms = false;
+    vaccineDosesReceived = 0;
+    lastDayContactedByTrial = 0;
+    selfReportProb = 0.0;
+    immunity_temp = false;
+    trajectories.reset(nullptr);
+    for(int i = 1; i < 5; i++){
+	setImmunityPerm(i,false);
+    }
+}
 
 Human::Human(
     string hID,
@@ -17,6 +68,7 @@ Human::Human(
 {
     houseID = hID;
     houseMemNum = hMemID;
+    personID = hID + std::to_string(hMemID);
     bday = currDay - 365 * age - rGen.getRandomNum(365);
     gender = gen;
     initiateBodySize(currDay,rGen);
@@ -68,7 +120,26 @@ Human::Human(
     }
 }
 
+void Human::initializeHuman(unsigned currDay, std::vector<double> FOI, RandomNumGenerator& rGen){
+    initiateBodySize(currDay,rGen);
+    updateAttractiveness(currDay);
+    immunity_temp = false;
+    if(currDay == 0){
+	// Set the initial conditions for the immune profile by serotype
+	for(int i = 1; i < 5; i++){
+	    setImmunityPerm(i, rGen.getHumanSeropositivity(FOI[i - 1], double(currDay - bday)));
+	}
+    }
+}
 
+void Human::setTrajectories(unique_ptr<vector<vector<pair<string, double >> >> &paths){
+    if(!trajectories){
+	trajectories = move(paths);
+	trajDay = 0;
+    }else{
+	printf("Trajectories for %s already set\n", personID.c_str());
+    }
+}
 
 void Human::checkRecovered(unsigned currDay){
     if(infection->getEndDay() <= currDay){
@@ -142,7 +213,9 @@ string Human::getHouseID() const {
     return houseID;
 }
 
-
+string Human::getPersonID() const{
+    return personID;
+}
 
 int Human::getHouseMemNum() const {
     return houseMemNum;
@@ -228,11 +301,6 @@ void Human::infect(
 	    RRInf = 1 - (1 - vaccineProfile->getRRInf(getPreviousInfections() > 0)) * wan_ ;
 	    RRDis = 1 - (1 - vaccineProfile->getRRDis(getPreviousInfections() > 0)) * wan_;
 	    RRHosp = 1 - (1 - vaccineProfile->getRRHosp(getPreviousInfections() > 0)) * wan_;
-	    /*
-	    if(vday == 15){
-		printf("ID %s-%d day %d vday %d RRInf %.4f RRDis %.4f RRHosp %.4f\n", houseID.c_str(), houseMemNum,currentDay, vday, RRInf, RRDis, RRHosp);
-		}*/
-	    //   printf("ID %s-%d day %d vday %d RRInf %.4f RRDis %.4f RRHosp %.4f\n", houseID.c_str(), houseMemNum,currentDay, vday, RRInf, RRDis, RRHosp);
 	}
     }
     
@@ -242,17 +310,7 @@ void Human::infect(
     }
 
     exposedCount[infectionType - 1]++;
-    /*    std::string id = this->getHouseID() + std::to_string(this->getHouseMemNum());
-    if(id == "BGD15410"){
-	printf("Trying to infect %s RRinf %.4f vax protection %.4f vax mode %s\n", id.c_str(), RRInf, vax_protection, vaccineProfile->getMode().c_str());
-	}*/
-    /*    if(vaccinated){
-	printf("In the process of infection  RRinf %.4f vax protection %.4f vax advancement %d previous %d -> %d serotype %d\n",  RRInf, vax_protection, vaxAdvancement, getPreviousInfections(), pre infectionType);
-	}*/
     if(rGen->getEventProbability() < RRInf * vax_protection){
-	/*	if(id == "BGD15410"){
-	    printf("In the process of infection %s RRinf %.4f vax protection %.4f\n", id.c_str(), RRInf, vax_protection);
-	    }*/
     	infected = true;
     	recent_inf = infectionType;
     	recent_dis = 0;
@@ -263,7 +321,7 @@ void Human::infect(
     	    if(rGen->getEventProbability() < (*disRates)[0] * RRDis){
 		recent_dis = infectionType;
 		symptomatic = true;
-		if(rGen->getEventProbability() < (*hospRates)[0]){
+		if(rGen->getEventProbability() < (*hospRates)[0] * RRHosp){
 		    recent_hosp = infectionType;
 		    hospitalized = true;
 		}

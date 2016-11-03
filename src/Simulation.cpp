@@ -49,7 +49,8 @@ string Simulation::readInputs() {
 	readVaccinationGroupsFile();
     }
     readLocationFile(locationFile);
-    readHumanFile(trajectoryFile);
+    readBirthsFile(birthsFile);
+    readTrajectoryFile(trajectoryFile);
     return simName;
 }
 
@@ -100,7 +101,6 @@ void Simulation::humanDynamics() {
     int diff, age;
     bool vaxd = false;
     int cohort = 0;
-
     if(currentDay >= vaccineDay){
         cohort = floor(double(currentDay - vaccineDay) / 365.0) + 1;
     }
@@ -109,7 +109,9 @@ void Simulation::humanDynamics() {
     ForceOfImportation = (year - 1) < annualForceOfImportation.size() ? annualForceOfImportation[year - 1] : annualForceOfImportation.back();
     int susceptibles[4] = {0,0,0,0};
     int infectious[4] = {0,0,0,0};
+    // Newborns !!!
 
+    
     for(auto it = humans.begin(); it != humans.end(); ++it){
         // daily mortality for humans by age
         if(rGen.getEventProbability() < (deathRate * it->second->getAgeDays(currentDay))){
@@ -126,22 +128,6 @@ void Simulation::humanDynamics() {
 
         // update infection status if necessary
         if(it->second->infection != nullptr){
-	    if(it->second->infection->getEndDay() == currentDay){
-		/*		
-				printf("Infectious, %d, %d, %s\n", it->second->infection->getStartDay(), it->second->infection->getEndDay(), it->second->getHouseID().c_str());
-		
-		if(locations.find(it->second->getHouseID()) != locations.end()){
-		    Location * loctemp = locations.find(it->second->getHouseID())->second.get();
-		    printf("Recovered, %d, %d, %u, %s, %f, %f\n", it->second->infection->getStartDay(), currentDay, 1, it->second->getHouseID().c_str(), loctemp->getLocX(),loctemp->getLocY());
-		    //		printf("Recovered, %d, %d, %u, %s, %f, %f\n", it->second->infection->getStartDay(), currentDay, it->second->infection->getInfectionType(), loctemp->getLocID().substr(0,3).c_str(),loctemp->getLocX(), loctemp->getLocY());
-		}else{
-		    printf("Can't find %s\n",it->second->getHouseID().c_str());
-		}
-		*/
-		if(locations.find(it->second->getHouseID()) == locations.end()){
-		    printf("HouseID: %s not found\n", it->second->getHouseID().c_str());
-		}
-	    }
             it->second->checkRecovered(currentDay);
 	}
 
@@ -210,23 +196,14 @@ void Simulation::humanDynamics() {
     		}
     	    }
     	}
-            
-	outputReport.updateReport(currentDay,(it->second).get());
-           
+	outputReport.updateReport(currentDay,(it->second).get(), locations[it->second->getHouseID()].get());           
     }
-    /*
-    if(currentDay == 0){
-	for(int i = 0; i < 4; i++){
-	    printf("Serotype %d Susceptibles %d Immune %d Proportion %f\n", i+1,susceptibles[i], infectious[i], (double) susceptibles[i] / (double) humans.size());
-	}
-	}*/
 }
 
 
 void Simulation::mosquitoDynamics(){
     double biteTime, dieTime;
     bool biteTaken;
-
     generateMosquitoes();
     // Read entomological parameters that depend on temperature
     // If there are not enough values, take the last one
@@ -234,10 +211,7 @@ void Simulation::mosquitoDynamics(){
     double mozDeath = currentDay < mozDailyDeathRate.size() ? mozDailyDeathRate[currentDay] : mozDailyDeathRate.back();
     double mozFBiteRate = currentDay < firstBiteRate.size() ? firstBiteRate[currentDay] : firstBiteRate.back();
     double mozSBiteRate = currentDay < secondBiteRate.size() ? secondBiteRate[currentDay] : secondBiteRate.back();
-
     for(auto it = mosquitoes.begin(); it != mosquitoes.end();){
-	outputReport.updateMosquitoReport(currentDay,(it->second).get());
-
 	if(it->second->infection != nullptr){
 	    if(it->second->infection->getStartDay() < 0 && rGenInf.getEventProbability() < rGenInf.getMozLatencyRate(mozEIP)){
 		//            if(currentDay == it->second->infection->getStartDay())
@@ -290,7 +264,6 @@ void Simulation::mosquitoDynamics(){
 	   
 	    biteTime = it->second->getBiteStartDay() - double(currentDay);
 	    
-	    
 	    if(!biteTaken){
 		//		printf("Bite not taken trying to move day %d\n", currentDay);
                 string newLoc = locations.find(it->first)->second->getRandomCloseLoc(rGen);
@@ -303,7 +276,6 @@ void Simulation::mosquitoDynamics(){
                 }
             }
         }
-
         if(dieTime < 1.0){
             auto it_temp = it;
 	    lifeMoz += currentDay - it->second->getBirthDay();
@@ -312,7 +284,9 @@ void Simulation::mosquitoDynamics(){
             mosquitoes.erase(it_temp);
             continue;
         }
-
+	//update report for mosquitoes
+	outputReport.updateMosquitoReport(currentDay,(it->second).get(), locations[it->second->getLocationID()].get());
+	
         // let the mosquito move if that happens today 
     	double moveProb = rGen.getEventProbability();
         if(moveProb < mozMoveProbability){
@@ -340,11 +314,6 @@ void Simulation::generateMosquitoes(){
     int mozCount = 0;
     double mozFBiteRate = currentDay < firstBiteRate.size() ? firstBiteRate[currentDay] : firstBiteRate.back();
     double seasFactor = currentDay < dailyEmergenceFactor.size() ? dailyEmergenceFactor[currentDay] : dailyEmergenceFactor.back();
-
-    //CHANGE THIS!!!!! is only temporal to create more mosquitoes, because late epidemics are not being produced
-    if(currentDay > 1460){
-	seasFactor = seasFactor * 2;
-    }
 
     for(auto& x : locations){
         mozCount = rGen.getMozEmerge(x.second->getEmergenceRate(), seasFactor * emergeFactor);
@@ -441,6 +410,8 @@ void Simulation::readSimControlFile(string line) {
     locationFile = line;
     getline(infile, line, ',');
     trajectoryFile = line;
+    getline(infile, line, ',');
+    birthsFile = line;
     getline(infile, line, ',');
     deathRate = strtod(line.c_str(), NULL);    
     getline(infile, line, ',');
@@ -814,6 +785,118 @@ std::string Simulation::parseString(std::string line){
     size_t last_ = line.find_last_not_of(" \t#");
     return line.substr(first_,(last_ - first_ + 1));
 }
+
+void Simulation::readBirthsFile(string bFile){
+    if(bFile.length() == 0){
+	cout << "Incorrect births file\n";
+	exit(1);
+    }
+    ifstream infile(bFile);
+    if(!infile.good()){
+	cout << "births file is empty: " << bFile.c_str() << "\n";
+        exit(1);
+    }
+    string line, houseID;
+    int bday,dday;
+    unsigned hMemID;
+    char gen;
+    
+    while (getline(infile, line, ',')) {
+	houseID = line;
+	getline(infile, line, ',');
+	hMemID = strtol(line.c_str(), NULL, 10);
+        getline(infile, line, ',');
+	gen = line[0];
+        getline(infile, line, ',');
+	bday = strtol(line.c_str(), NULL, 10);
+	getline(infile, line, '\n');
+	dday = strtol(line.c_str(), NULL, 10);
+	if(locations.find(houseID) != locations.end()){
+	    unique_ptr<Human> h(new Human(houseID, hMemID, gen, bday, dday, rGen));
+	    if(total_humans_by_id.find(h->getPersonID()) == total_humans_by_id.end()){
+		total_humans_by_id.insert(make_pair(h->getPersonID(), move(h)));
+	    }else{
+		//		printf("Human is repeated %s\n", h->getPersonID().c_str());
+	    }
+	}else{
+	    printf("HouseID: %s not found\n", houseID.c_str());
+	}
+    }
+    infile.close();
+    /*    for(auto it = total_humans_by_id.begin(); it != total_humans_by_id.end(); ++it){
+	printf("humans by id %s -> house %s\n", it->first.c_str(),it->second->getHouseID().c_str() );
+	}*/
+}
+
+void Simulation::readTrajectoryFile(string trajFile){
+    if(trajFile.length() == 0){
+        exit(1);
+    }
+    printf("reading %s file with trajectories\n", trajFile.c_str());
+    string line, houseID, personID;
+    unsigned hMemID;
+
+    ifstream infile(trajFile);
+    if(!infile.good()){
+        exit(1);
+    }
+    while(getline(infile, line, ',')){
+        unique_ptr < vector < vector < pair<string, double >> >> trajectories(new vector < vector < pair<string, double >> >());
+
+        for(int i = 0; i < 5; i++){
+            houseID = line;
+            getline(infile, line, ',');
+            hMemID = strtol(line.c_str(), NULL, 10);
+	    personID =houseID + std::to_string(hMemID);
+		
+            vector<pair<string,double>> path;
+            getline(infile, line);
+            stringstream ss;
+            ss << line;
+            while(getline(ss, line, ',')){
+                string hID = line;
+                getline(ss, line, ',');
+                double timeSpent = strtod(line.c_str(), NULL);
+                path.push_back(make_pair(hID, timeSpent));
+            }
+            trajectories->push_back(move(path));
+            if(i < 4){
+                getline(infile, line, ',');
+            }
+        }
+	if(locations.find(houseID) != locations.end()){
+	    auto tmpIt = total_humans_by_id.find(personID);
+	    if( tmpIt != total_humans_by_id.end()){
+		unique_ptr<Human> h = move(tmpIt->second);
+		total_humans_by_id.erase(tmpIt);
+		h->setTrajectories(trajectories);
+		if(h->getBirthday() < 0){
+		    std::set<std::string> locsVisited = h->getLocsVisited();
+		    for(std::set<std::string>::iterator itrSet = locsVisited.begin(); itrSet != locsVisited.end(); itrSet++){
+			if(locations.find(*itrSet) != locations.end()){
+			    locations.find(*itrSet)->second->addHuman(h.get());
+			}
+		    }
+		    h->initializeHuman(currentDay, InitialConditionsFOI,rGen);
+		    humans.insert(make_pair(houseID, move(h)));
+		}else{
+		    future_humans.insert(make_pair(h->getBirthday(),move(h)));
+		}
+	    }
+	}
+
+
+        while (infile.peek() == '\n'){
+            infile.ignore(1, '\n');            
+        }
+    }
+    infile.close();
+    /*    for(auto itHum = humans.begin(); itHum != humans.end(); itHum++){
+	printf("Human %s attractiveness %f\n", itHum->second->getPersonID().c_str(), itHum->second->getAttractiveness());
+	}*/
+    printf("Trajectories have finished successfully\n");
+}
+
 void Simulation::readHumanFile(string humanFile) {
     if(humanFile.length() == 0){
         exit(1);

@@ -16,6 +16,7 @@ Report::Report(){
     reportAges = false;
     reportGroups = false;
     reportFOI = false;
+    reportSpatial = false;
 
     printCohortPop = false;
     printAgesPop = false;
@@ -24,6 +25,8 @@ Report::Report(){
     printGroupsAgeFirst = false;
     printGroupsTotalAges = false;
 
+    spatialMosquitoes = false;
+    
     groupsMaxIndex = 0;
     cohortMaxIndex = 0;
     ageMaxIndex = 0;
@@ -40,7 +43,8 @@ Report::Report(){
     ageStats.clear();
 
     parameters.clear();
-
+    spatialData.clear();
+    
     for(int i = 0;i < 5;i++){
 	cohortEvents[i] = 0;
 	groupsEvents[i] = 0;
@@ -58,6 +62,7 @@ Report::Report(){
 	cohortReportPeriod[i] = 0;
 	ageReportPeriod[i] = 0;
 	foiReportPeriod[i] = 0;
+	spatialReportPeriod[i] = 0;
     }
     
     for(int i = 0; i < 4; i++){
@@ -113,6 +118,7 @@ void Report::setupReport(string file, string outputPath_, string simName_) {
     this->readParameter("age_report_period","period",ageReportPeriod);
     this->readParameter("foi_report_period","period",foiReportPeriod);
     this->readParameter("foi_serotypes","serotypes",foiTypes);
+    this->readParameter("spatial_report_period", "period", spatialReportPeriod);
 
     this->readParameter("groups_ages","ages",&groupsAges);
     this->readParameter("cohort_ages","ages",&cohortAges);
@@ -126,6 +132,16 @@ void Report::setupReport(string file, string outputPath_, string simName_) {
     reportCohort = this->readParameter("cohort_print", reportCohort);
     reportAges = this->readParameter("age_print", reportAges);
     reportFOI = this->readParameter("foi_print", reportFOI);
+    reportSpatial = this->readParameter("spatial_print", reportSpatial);
+    spatialMosquitoes = this->readParameter("spatial_mosquitoes", spatialMosquitoes);
+
+    if(reportSpatial == true){
+	std::string outputSpatialFile = outputPath_ + "/" + simName_ + "_spatial.csv";
+	outSpatial.open(outputSpatialFile);
+	if (!outSpatial.good()) {
+	    exit(1);
+	}
+    }
 
     if(reportFOI == true){
 	std::string outputFOIFile = outputPath_ + "/" + simName_ + "_foi.csv";
@@ -134,7 +150,6 @@ void Report::setupReport(string file, string outputPath_, string simName_) {
 	    exit(1);
 	}
     }
-
     if(reportGroups == true){
 	outputGroupsFile = outputPath_ + "/" + simName_ + "_pop.csv";
 	outGroups.open(outputGroupsFile);
@@ -333,7 +348,7 @@ void Report::parseEvents(std::string line, int * Events_, int len){
     }
 }
 
-void Report::updateMosquitoReport(int currDay, Mosquito * m){
+void Report::updateMosquitoReport(int currDay, Mosquito * m, Location * locNow){
     if(reportFOI == true){
 	if(currDay >= foiReportPeriod[0] && currDay <= foiReportPeriod[2] && (currDay - foiReportPeriod[0]) % foiReportPeriod[1] == 0){
 	    if(m->infection == nullptr){
@@ -351,8 +366,22 @@ void Report::updateMosquitoReport(int currDay, Mosquito * m){
 	    }
 	}
     }
+    if(reportSpatial == true && spatialMosquitoes == true){
+	if(currDay >= spatialReportPeriod[0] && currDay <= spatialReportPeriod[2] && (currDay - spatialReportPeriod[0]) % spatialReportPeriod[1] == 0){
+	    if(m->infection != nullptr){
+		unsigned sero = m->infection->getInfectionType();
+		if(m->infection->getInfectiousness() > 0.0){
+		    if(currDay == m->infection->getStartDay()){
+			string tmp_str = std::to_string(locNow->getLocX()) + "," + std::to_string(locNow->getLocY()) + "," + std::to_string(currDay) + "," + std::to_string(sero);
+			spatialData.push_back(tmp_str);
+		    }
+		}
+	    }
+	}
+    }
 }
-void Report::updateReport(int currDay, Human * h){
+
+void Report::updateReport(int currDay, Human * h, Location * locNow){
     int reportNum = 0;
     if(reportGroups == true){
        	if(currDay >= groupsReportPeriod[0] && currDay <= groupsReportPeriod[2] && (currDay - groupsReportPeriod[0]) % groupsReportPeriod[1] == 0){
@@ -376,6 +405,11 @@ void Report::updateReport(int currDay, Human * h){
 	if(currDay >= foiReportPeriod[0] && currDay <= foiReportPeriod[2] && (currDay - foiReportPeriod[0]) % foiReportPeriod[1] == 0){
 	    updateFOIReport(currDay, h);
 	    reportNum++;
+	}
+    }
+    if(reportSpatial == true && spatialMosquitoes == false){
+	if(currDay >= spatialReportPeriod[0] && currDay <= spatialReportPeriod[2] && (currDay - spatialReportPeriod[0]) % spatialReportPeriod[1] == 0){
+	    updateSpatialReport(currDay, h, locNow);
 	}
     }
     if(reportNum > 0){
@@ -408,7 +442,12 @@ void Report::printReport(int currDay){
 	    resetFOIStats();
 	}
     }
-
+    if(reportSpatial == true){
+	if(currDay >= spatialReportPeriod[0] && currDay <= spatialReportPeriod[2] && (currDay - spatialReportPeriod[0]) % spatialReportPeriod[1] == 0){
+	    printSpatialReport(currDay);
+	    resetSpatialStats();
+	}
+    }
 }
 
 void Report::updateFOIReport(int currDay, Human * h){
@@ -423,6 +462,16 @@ void Report::updateFOIReport(int currDay, Human * h){
 	// If h isn't infected then check for immunity to all the serotypes
 	for(unsigned i = 0; i < 4; i++){
 	    susceptibles[i] +=  h->isImmune(i + 1) ? 0 : 1;
+	}
+    }
+}
+
+void Report::updateSpatialReport(int currDay, Human * h, Location * locNow){
+    if(h->infection != nullptr){
+	unsigned sero = h->infection->getInfectionType();
+	if(currDay == h->infection->getStartDay()){
+	    string tmp_str = std::to_string(locNow->getLocX()) + "," + std::to_string(locNow->getLocY()) + "," + std::to_string(currDay) + "," + std::to_string(sero);
+	    spatialData.push_back(tmp_str);
 	}
     }
 }
@@ -1097,6 +1146,14 @@ int Report::getGroup(int age_, std::vector<rangeStruct> groups_temp){
     return -1;
 }
 
+void Report::printSpatialReport(int currDay){
+    if(!spatialData.empty()){
+	for(auto it = spatialData.begin(); it != spatialData.end(); ++it){
+	    outSpatial << (*it) << "\n";
+	}
+    }
+}
+
 void Report::printFOIReport(int currDay){
     std::vector<string> foi_values; string outstring;
     foi_values.clear();
@@ -1344,6 +1401,9 @@ void Report::printHeaders(){
     if(reportFOI == true){
 	printFOIHeader();
     }
+    if(reportSpatial == true){
+	printSpatialHeader();
+    }
 }
 
 void Report::join(const vector<std::string>& v, char c, string& s) {
@@ -1360,6 +1420,23 @@ void Report::join(const vector<std::string>& v, char c, string& s) {
     }
 
 }
+
+void Report::printSpatialHeader(){
+    std::vector<string> headers; string outstring;
+    headers.clear();
+    headers.push_back("Xcoor,Ycoor");
+    if(spatialMosquitoes == true){
+	headers.push_back("start_inf_mosquito");
+    }else{
+	headers.push_back("start_inf_human");
+    }
+    headers.push_back("serotype");
+    if(!headers.empty()){
+	Report::join(headers,',',outstring);
+	outSpatial << outstring;
+    }
+}
+
 void Report::printFOIHeader(){
     std::vector<string> headers; string outstring;
     headers.clear();
@@ -1624,8 +1701,13 @@ void Report::resetReports(){
     if(reportFOI == true){
 	resetFOIStats();
     }
+    if(reportSpatial == true){
+	resetSpatialStats();
+    }
 }
-
+void Report::resetSpatialStats(){
+    spatialData.clear();
+}
 void Report::resetFOIStats(){
     for(int i = 0; i < 4; i++){
 	newInfections[i] = 0;
@@ -1737,6 +1819,7 @@ void Report::finalizeReport(){
     outAges.close();
     outGroups.close();
     outFOI.close();
+    outSpatial.close();
 }
 
 

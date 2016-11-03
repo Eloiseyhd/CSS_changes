@@ -42,12 +42,14 @@ class Report {
     std::ofstream outAges;
     std::ofstream outGroups;
     std::ofstream outFOI;
-
+    std::ofstream outSpatial;
+    
     bool reportCohort;
     bool reportAges;
     bool reportGroups;
     bool reportFOI;
-
+    bool reportSpatial;
+    
     bool printCohortPop;
     bool printAgesPop;
     bool printGroupsPop;
@@ -91,6 +93,10 @@ class Report {
     int mozExposed[4];
     int mozInfectious[4];
 
+    int spatialReportPeriod[3];
+    bool spatialMosquitoes;
+    std::vector<std::string> spatialData;
+	
     void parseEvents(std::string line, int *, int);
     void parseGroupsAges(std::string line, std::vector<rangeStruct> *);
     rangeStruct parseDiscreteAges(std::string);
@@ -114,7 +120,7 @@ public:
     virtual ~Report();
 
     void setupReport(std::string, std::string, std::string);
-    void updateReport(int, Human *);
+    void updateReport(int, Human *, Location *);
     void join(const std::vector<string>&,char, std::string &);
     void printReport(int);
     void printHeaders();
@@ -122,20 +128,24 @@ public:
     void printCohortHeader();
     void printAgesHeader();
     void printFOIHeader();
+    void printSpatialHeader();
     void printGroupsReport(int);
     void printCohortReport(int);
     void printAgesReport(int);
     void printFOIReport(int);
+    void printSpatialReport(int);
     void updateCohortReport(int, Human *);
     void updateGroupsReport(int, Human *);
     void updateAgesReport(int, Human *);
     void updateFOIReport(int, Human *);
-    void updateMosquitoReport(int, Mosquito *);
+    void updateSpatialReport(int, Human *, Location *);
+    void updateMosquitoReport(int, Mosquito *, Location *);
     void resetReports();
     void resetGroupStats();
     void resetCohortStats();
     void resetAgeStats();
     void resetFOIStats();
+    void resetSpatialStats();
     void finalizeReport();
 
 };

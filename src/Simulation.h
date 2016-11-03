@@ -5,6 +5,7 @@
 #include <set>
 #include <memory>
 #include <fstream>
+#include <queue>
 #include "Location.h"
 #include "Mosquito.h"
 #include "RandomNumGenerator.h"
@@ -22,7 +23,9 @@ public:
     Simulation();
     Simulation(const Simulation& orig);
     std::string readInputs();
+    void readTrajectoryFile(std::string);
     void readHumanFile(std::string);
+    void readBirthsFile(std::string);
     void readInitialInfectionsFile(std::string);
     void readSimControlFile(std::string);
     void readLocationFile(std::string);
@@ -53,8 +56,6 @@ private:
     void parseVector(std::string line, std::vector<int> *);
 
     std::map <std::string,std::unique_ptr<Location>> locations;
-    std::multimap<std::string,std::unique_ptr<Mosquito>> mosquitoes;
-    std::multimap<std::string,std::unique_ptr<Human>> humans;
     std::map<unsigned,double> VE_pos;
     std::map<unsigned,double> VE_neg;
     std::map<unsigned,double> halflife;
@@ -62,10 +63,15 @@ private:
     std::map<unsigned,double> hospRates;
     std::map<int,int> ageGroups;
     std::map<unsigned, Vaccine> vaccines;
+    std::multimap<std::string,std::unique_ptr<Mosquito>> mosquitoes;
+    std::multimap<std::string,std::unique_ptr<Human>> humans;
+    std::multimap<int,std::unique_ptr<Human>> future_humans;
+    std::map<std::string, std::unique_ptr<Human>> total_humans_by_id;
 
     unsigned currentDay;
     unsigned numDays;
     std::string trajectoryFile;
+    std::string birthsFile;
     std::string configLine;
     std::string locationFile;
     std::string vaccineProfilesFile;
