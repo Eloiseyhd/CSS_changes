@@ -81,7 +81,6 @@ Human * Mosquito::whoBite(
     for(mapItr = humanMap.begin(); attractivenessSum < biteWho; mapItr++)
         attractivenessSum += mapItr->second;
     mapItr--;
-    //    return &(*humanMap.begin()->first);
     return &(*mapItr->first); 
 }
 

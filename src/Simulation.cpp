@@ -110,8 +110,23 @@ void Simulation::humanDynamics() {
     int susceptibles[4] = {0,0,0,0};
     int infectious[4] = {0,0,0,0};
     // Newborns !!!
+    auto newbornsRange = future_humans.equal_range(currentDay);
+    for (auto it = newbornsRange.first; it != newbornsRange.second;){
+	printf("Human %s is born in day %d\n", it->second->getPersonID().c_str(), currentDay);
+	unique_ptr<Human> h = move(it->second);
+	it = future_humans.erase(it);
+	if(locations.find(h->getHouseID()) != locations.end()){
+	    std::set<std::string> locsVisited = h->getLocsVisited();
+	    for(std::set<std::string>::iterator itrSet = locsVisited.begin(); itrSet != locsVisited.end(); itrSet++){
+		if(locations.find(*itrSet) != locations.end()){
+		    locations.find(*itrSet)->second->addHuman(h.get());
+		}
+	    }
+	    h->initializeHuman(currentDay, InitialConditionsFOI,rGen);
+	    humans.insert(make_pair(h->getHouseID(), move(h)));
+	}
+    }
 
-    
     for(auto it = humans.begin(); it != humans.end(); ++it){
         // daily mortality for humans by age
         if(rGen.getEventProbability() < (deathRate * it->second->getAgeDays(currentDay))){
@@ -894,6 +909,7 @@ void Simulation::readTrajectoryFile(string trajFile){
     /*    for(auto itHum = humans.begin(); itHum != humans.end(); itHum++){
 	printf("Human %s attractiveness %f\n", itHum->second->getPersonID().c_str(), itHum->second->getAttractiveness());
 	}*/
+    total_humans_by_id.clear();
     printf("Trajectories have finished successfully\n");
 }
 
