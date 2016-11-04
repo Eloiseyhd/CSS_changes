@@ -109,12 +109,15 @@ void Simulation::humanDynamics() {
     ForceOfImportation = (year - 1) < annualForceOfImportation.size() ? annualForceOfImportation[year - 1] : annualForceOfImportation.back();
     int susceptibles[4] = {0,0,0,0};
     int infectious[4] = {0,0,0,0};
+
     // Newborns !!!
     auto newbornsRange = future_humans.equal_range(currentDay);
     for (auto it = newbornsRange.first; it != newbornsRange.second;){
 	printf("Human %s is born in day %d\n", it->second->getPersonID().c_str(), currentDay);
 	unique_ptr<Human> h = move(it->second);
-	it = future_humans.erase(it);
+	auto tmpit = it;
+	++it;
+	future_humans.erase(tmpit);
 	if(locations.find(h->getHouseID()) != locations.end()){
 	    std::set<std::string> locsVisited = h->getLocsVisited();
 	    for(std::set<std::string>::iterator itrSet = locsVisited.begin(); itrSet != locsVisited.end(); itrSet++){
@@ -127,16 +130,35 @@ void Simulation::humanDynamics() {
 	}
     }
 
-    for(auto it = humans.begin(); it != humans.end(); ++it){
+    //update alive humans
+    for(auto it = humans.begin(); it != humans.end();){
+	if(it->second->isDead()){
+	    ++it;
+	    continue;
+	}
         // daily mortality for humans by age
         if(rGen.getEventProbability() < (deathRate * it->second->getAgeDays(currentDay))){
 	    if(vaccinationStrategy == "random_trial" && (it->second).get()->isEnrolledInTrial() == true){
+		printf("Human %s removed from trial\n", it->second->getPersonID().c_str());
 		recruitmentTrial.removeParticipant((it->second).get(),currentDay);
 	    }
-            it->second->reincarnate(currentDay);
+	    std::set<std::string> locsVisited = it->second->getLocsVisited();
+	    for(std::set<std::string>::iterator itrSet = locsVisited.begin(); itrSet != locsVisited.end(); itrSet++){
+		if(locations.find(*itrSet) != locations.end()){
+		    locations.find(*itrSet)->second->removeHuman((it->second).get());
+		}
+	    }
+
+	    printf("Human is dead %s\n", it->second->getPersonID().c_str());
+	    it->second->kill();
+	    //   auto tmpit = it;
+	    ++it;
+	    //	    Human * h = tmpit->second.get();
+	    //	    h = nullptr;
+	    //	    humans.erase(tmpit);
 	    humanDeaths++;
+	    continue;
 	}
-	
         // update temporary cross-immunity status if necessary
         if(currentDay == it->second->getImmEndDay())
             it->second->setImmunityTemp(false);
@@ -172,6 +194,7 @@ void Simulation::humanDynamics() {
 	//update vaccine immunity if necessary
 	if(it->second->isVaccinated()){
 	    it->second->updateVaccineEfficacy(currentDay);
+	    //	    it->second->getVaccine()->printVaccine();
 	}
 
 
@@ -185,7 +208,7 @@ void Simulation::humanDynamics() {
 		//one-time vaccination by age groups in the trial
     		if(checkAgeToVaccinate(age)){
     		    if(rGenInf.getEventProbability() < vaccineCoverage){
-			it->second->vaccinateWithProfile(currentDay, &rGenInf, &(vaccines.at(vaccineID)));
+			it->second->vaccinateWithProfile(currentDay, &rGenInf, vaccines.at(vaccineID));
     		    }
     		}
     	    }
@@ -197,7 +220,7 @@ void Simulation::humanDynamics() {
 		    it->second->setSeroStatusAtVaccination();
 		    it->second->setCohort(cohort);
     		    if(rGenInf.getEventProbability() < vaccineCoverage){
-			it->second->vaccinateWithProfile(currentDay, &rGenInf, &(vaccines.at(vaccineID)));
+			it->second->vaccinateWithProfile(currentDay, &rGenInf, vaccines.at(vaccineID));
     		    }
     		}
     	    }    
@@ -207,11 +230,12 @@ void Simulation::humanDynamics() {
     	if(catchupFlag == true && vaccineDay == currentDay && vaccinationStrategy == "routine"){
     	    if(age > vaccineAge * 365 && age < 18 * 365){
     		if(rGenInf.getEventProbability() < vaccineCoverage){
-		    it->second->vaccinateWithProfile(currentDay, &rGenInf, &(vaccines.at(vaccineID)));
+		    it->second->vaccinateWithProfile(currentDay, &rGenInf, vaccines.at(vaccineID));
     		}
     	    }
     	}
-	outputReport.updateReport(currentDay,(it->second).get(), locations[it->second->getHouseID()].get());           
+	outputReport.updateReport(currentDay,(it->second).get(), locations[it->second->getHouseID()].get());
+	++it;
     }
 }
 
@@ -431,7 +455,6 @@ void Simulation::readSimControlFile(string line) {
     deathRate = strtod(line.c_str(), NULL);    
     getline(infile, line, ',');
     std::string annualFoiFile = line;
-    //    ForceOfImportation = strtod(line.c_str(),NULL);
     getline(infile, line, ',');
     std::string foiFile = line;
     getline(infile, line, ',');
@@ -448,8 +471,6 @@ void Simulation::readSimControlFile(string line) {
     readInitialFOI(foiFile);
     readAnnualFOI(annualFoiFile);
 
-    //    mlife = strtod(line.c_str(), NULL);
-    //    mbite = strtod(line.c_str(), NULL);
 }
 
 void Simulation::readInitialFOI(string fileIn){
@@ -741,6 +762,7 @@ void Simulation::readVaccineProfilesFile(){
 		}
 	    }
 	    vaccines.insert(make_pair(i,vaxTemp));
+	    vaxTemp.printVaccine();
 	}
 	for(unsigned j = 0;j < vaccines.size(); j++){
 	    vaccines.at(j).printVaccine();
@@ -880,8 +902,10 @@ void Simulation::readTrajectoryFile(string trajFile){
             }
         }
 	if(locations.find(houseID) != locations.end()){
-	    auto tmpIt = total_humans_by_id.find(personID);
-	    if( tmpIt != total_humans_by_id.end()){
+	    auto it = total_humans_by_id.find(personID);
+	    if( it != total_humans_by_id.end()){
+		auto tmpIt = it;
+		++it;
 		unique_ptr<Human> h = move(tmpIt->second);
 		total_humans_by_id.erase(tmpIt);
 		h->setTrajectories(trajectories);
@@ -911,67 +935,6 @@ void Simulation::readTrajectoryFile(string trajFile){
 	}*/
     total_humans_by_id.clear();
     printf("Trajectories have finished successfully\n");
-}
-
-void Simulation::readHumanFile(string humanFile) {
-    if(humanFile.length() == 0){
-        exit(1);
-    }
-    string line, houseID;
-    int age;
-    unsigned hMemID;
-    char gen;
-
-    ifstream infile(humanFile);
-    if(!infile.good()){
-        exit(1);
-    }
-    while(getline(infile, line, ',')){
-        unique_ptr < vector < vector < pair<string, double >> >> trajectories(new vector < vector < pair<string, double >> >());
-
-        for(int i = 0; i < 5; i++){
-            houseID = line;
-            getline(infile, line, ',');
-            hMemID = strtol(line.c_str(), NULL, 10);
-            getline(infile, line, ',');
-            gen = line[0];
-            getline(infile, line, ',');
-            age = strtol(line.c_str(), NULL, 10);
-
-            vector<pair<string,double>> path;
-            getline(infile, line);
-            stringstream ss;
-            ss << line;
-            while(getline(ss, line, ',')){
-                string hID = line;
-                getline(ss, line, ',');
-                double timeSpent = strtod(line.c_str(), NULL);
-                path.push_back(make_pair(hID, timeSpent));
-            }
-            trajectories->push_back(move(path));
-            if(i < 4){
-                getline(infile, line, ',');
-            }
-        }
-	if(locations.find(houseID) == locations.end()){
-	    //	    printf("Location not found House ID: %s age %d \n", houseID.c_str(), age);
-	}else{
-	    unique_ptr<Human> h(new Human(houseID, hMemID, age, gen, trajectories, rGen, currentDay, InitialConditionsFOI));
-	    std::set<std::string> locsVisited = h->getLocsVisited();
-	    for(std::set<std::string>::iterator itrSet = locsVisited.begin(); itrSet != locsVisited.end(); itrSet++){
-		if(locations.find(*itrSet) != locations.end()){
-		    locations.find(*itrSet)->second->addHuman(h.get());
-		}	       
-	    }
-	    humans.insert(make_pair(houseID, move(h)));
-	}
-
-
-        while (infile.peek() == '\n'){
-            infile.ignore(1, '\n');            
-        }
-    }
-    infile.close();
 }
 
 void Simulation::readVaccinationGroupsFile(){

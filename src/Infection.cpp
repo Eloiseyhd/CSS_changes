@@ -82,6 +82,7 @@ Infection::Infection(const Infection& orig) {
     infType = orig.infType;
     primary = orig.primary;
     symptomatic = orig.symptomatic;
+    IIP = orig.IIP;
 }
 
 Infection::~Infection() {

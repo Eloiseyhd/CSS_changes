@@ -69,6 +69,12 @@ void Location::addHuman(Human * h) {
   humans.insert(h);
 }
 
+void Location::removeHuman(Human * h){
+    auto it = humans.find(h);
+    if(it != humans.end()){
+	humans.erase(it);
+    }
+}
 
 Location::Location() {
 }

@@ -25,6 +25,7 @@ private:
 public:
     std::string getRandomCloseLoc(RandomNumGenerator&);
     void addHuman(Human *);
+    void removeHuman(Human *);
     std::set<Human *,Human::sortid>* getHumans(){return &humans;}
     void addCloseLoc(std::string);
     double getDistanceFromLoc(Location &) const;

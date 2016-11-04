@@ -14,8 +14,8 @@
 
 class Vaccine {
 
-private:
-    unsigned vaccineID;
+ private:
+    int vaccineID;
     int doses;
     double waning;
     double protection;
@@ -44,6 +44,7 @@ public:
     Vaccine();
     virtual ~Vaccine();
 
+    void init();
     void setID(unsigned id){vaccineID = id;}
     void setMode(std::string m){mode = m;}
     void setName(std::string n){name = n;}
@@ -66,7 +67,7 @@ public:
     std::string getMode(){return mode;}
 
     int getDoses(){return doses;}
-    int getNextDoseDay(int, int);
+    int getNextDoseTime(int, int);
 
     double getPropInf(){return propInf;}
     double getVaccineProtection(){return protection;}

@@ -52,6 +52,7 @@ private:
     double vaccineProtection;
     double selfReportProb;
 
+    bool dead;
     bool hospitalized;
     bool immunity_temp;
     bool infected;
@@ -63,35 +64,30 @@ private:
     bool enrolledInTrial;    
     bool reportSymptoms;
 
-    Vaccine * vaccineProfile;
+    Vaccine vaccineProfile;
 
     std::string houseID;
     std::string personID;
     std::string trialArm;
     std::map<unsigned,bool> immunity_perm;
     std::unique_ptr<std::vector<std::vector<std::pair<std::string,double>>>> trajectories;
-    std::map<unsigned,double> * veneg;
-    std::map<unsigned,double> * vepos;
-
 public:
     std::unique_ptr<Infection> infection;
-
     Human(std::string,int,int,char,std::unique_ptr<std::vector<std::vector<std::pair<std::string,double>>>>&,RandomNumGenerator&,unsigned,std::vector<double>);
     Human(std::string,int,char,int,int, RandomNumGenerator&);
     Human();
-    Human(const Human& orig);
+    //    Human(const Human &orig);
     virtual ~Human();
 
     void setTrajectories(std::unique_ptr<std::vector<std::vector<std::pair<std::string,double>>>>&);
     void initializeHuman(unsigned,std::vector<double>, RandomNumGenerator&);
-    
+    void kill(){dead = true;}
     void checkRecovered(unsigned);
     void setAgeTrialEnrollment(int age_){tAge = age_;}
     void enrollInTrial(int, std::string);
     void setSelfReportProb(double prob_){selfReportProb = prob_;}
     void infect(int, unsigned, RandomNumGenerator *, std::map<unsigned,double> *, std::map<unsigned,double> *);
     void initiateBodySize(unsigned,RandomNumGenerator&);
-    void reincarnate(unsigned);
     void resetRecent();
     void setCohort(int c_){cohort = c_;}
     void setImmStartDay(unsigned);
@@ -111,7 +107,7 @@ public:
     void vaccinate(int);
     void vaccinateAdvanceMode(int, RandomNumGenerator&);
     void vaccinateGSKMode(int, RandomNumGenerator&);
-    void vaccinateWithProfile(int, RandomNumGenerator *, Vaccine *);
+    void vaccinateWithProfile(int, RandomNumGenerator *, Vaccine);
     void updateVaccineEfficacy(int);
     void boostVaccine(int, RandomNumGenerator *);
     void unenrollTrial(){enrolledInTrial = false;}
@@ -126,7 +122,8 @@ public:
     unsigned getImmStartDay() const;
     unsigned getVaxImmEndDay() const;
     unsigned getVaxImmStartDay() const;
-
+    bool isDead(){return dead;}
+    Vaccine * getVaccine(){return &vaccineProfile;}
     int getAgeDays(unsigned) const;
     int getBirthday()const {return bday;}
     int getDeathday()const {return dday;}

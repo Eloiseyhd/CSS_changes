@@ -52,7 +52,7 @@ class Recruitment {
     void parseAges(std::string line, std::vector<groupStruct> *);
     void parseVector(std::string line, std::vector<double> *);
     void enrollTodayParticipants(int, RandomNumGenerator *);
-
+    void enrollArmParticipants(std::vector<Human *> *, std::vector<Human *> *, std::string, int, int, int, int, int,unsigned, RandomNumGenerator *);
     std::string parseString(std::string);
     std::vector<std::string> getParamsLine(std::string);
     std::map<unsigned, Vaccine> vaccinesPtr;

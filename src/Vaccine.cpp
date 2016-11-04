@@ -34,7 +34,38 @@ Vaccine::Vaccine(){
     relative_schedule.clear();
 }
 
-int Vaccine::getNextDoseDay(int vday, int received){
+void Vaccine::init(){
+    vaccineID = -1;
+    mode = "none";
+    name = "none";
+    waning = 0.0;
+    protection = 0.0;
+    propInf = 0.0;
+    normdev = 0.0;
+    seroposVE = 0.0;
+    seronegVE = 0.0;
+    seroposWaning = 0.0;
+    seronegWaning = 0.0;
+    RRInf_seropos = 1.0;
+    RRInf_seroneg = 1.0;
+    RRDis_seropos = 1.0;
+    RRDis_seroneg = 1.0;
+    RRHosp_seropos = 1.0;
+    RRHosp_seroneg = 1.0;
+    for(unsigned k = 0; k < 3; k++){
+	VE_pos.insert(make_pair(k,0.0));
+	VE_neg.insert(make_pair(k,0.0));
+    }
+    total_VE = 0.0;
+    doses = 1;
+    relative_schedule.clear();
+}
+
+int Vaccine::getNextDoseTime(int vday, int received){
+    if(relative_schedule.size() == 0){
+	printf("Relative schedule is empty id: %d\n",vaccineID);
+	return vday;
+    }
     if(received < doses){
 	return (relative_schedule[received] + vday);
     }else{
@@ -52,7 +83,7 @@ double Vaccine::getRR(double prevInf, double ageDays){
 }
 
 void Vaccine::printVaccine(){
-    printf("Vaccine ID: %u Name: %s Mode: %s Waning %.2f Protection %.2f Efficacy %.2f PropInf %.2f NormDev %.2f Doses %d\n",vaccineID, name.c_str(), mode.c_str(), waning,protection,total_VE,
+    printf("Vaccine ID: %d Name: %s Mode: %s Waning %.2f Protection %.2f Efficacy %.2f PropInf %.2f NormDev %.2f Doses %d\n",vaccineID, name.c_str(), mode.c_str(), waning,protection,total_VE,
 	   propInf, normdev, doses);
     printf("VE seropos: %.2f VE seroneg %.2f Waning seropos %.2f Waning seroneg %.2f\n",seroposVE,seronegVE,seroposWaning,seronegWaning);
     if(mode == "GSK"){

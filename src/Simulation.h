@@ -24,7 +24,6 @@ public:
     Simulation(const Simulation& orig);
     std::string readInputs();
     void readTrajectoryFile(std::string);
-    void readHumanFile(std::string);
     void readBirthsFile(std::string);
     void readInitialInfectionsFile(std::string);
     void readSimControlFile(std::string);
