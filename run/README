@@ -1,0 +1,4 @@
+## Instructions
+* Check for broken symlinks
+* Download files to `../input/` as needed
+* Run with `./DengueSim SimControl_1.csv`
