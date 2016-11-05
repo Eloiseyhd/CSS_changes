@@ -3,6 +3,7 @@ CC = g++
 CFLAGS = -O3 -O2 -pthread -std=c++11 -g
 SRCDIR = src
 OBJDIR = obj
+RUNDIR = run
 TARGET = DengueSim
 #INCDIR = include
 #VPATH = $(SRCDIR) $(INCDIR)
@@ -26,15 +27,19 @@ _OBJ = main.o Simulation.o  Human.o Location.o Mosquito.o RandomNumGenerator.o I
 # This is for the paper branch that doesn't have recruitment nor surveillance ---! 
 #_OBJ = main.o Simulation.o  Human.o Location.o Mosquito.o RandomNumGenerator.o Infection.o Report.o
 
+
+BIN = $(RUNDIR)/$(TARGET)
+
 OBJ = $(patsubst %,$(OBJDIR)/%,$(_OBJ))
 
-all: $(TARGET)
+all: $(BIN)
 	
-DengueSim: $(OBJ)
-	$(CC) $(OBJ) $(CFLAGS) -o $(TARGET)
+$(BIN): $(OBJ)
+	$(CC) $(OBJ) $(CFLAGS) -o $(BIN)
 	
 $(OBJDIR)/%.o: $(SRCDIR)/%.cpp
 	$(CC) -c $(CFLAGS) -o $@ $<
 
 clean : 
 	rm $(OBJ)
+	rm $(BIN)
