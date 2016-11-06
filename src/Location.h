@@ -20,13 +20,13 @@ private:
     bool infectedVisitor;
     std::string locType;
     std::unique_ptr<std::vector<std::string>> closeLocs;
-    std::set<Human *,Human::sortid> humans;
+    std::set<sp_human_t,Human::sortid> humans;
 
 public:
     std::string getRandomCloseLoc(RandomNumGenerator&);
-    void addHuman(Human *);
-    void removeHuman(Human *);
-    std::set<Human *,Human::sortid>* getHumans(){return &humans;}
+    void addHuman(sp_human_t);
+    void removeHuman(sp_human_t);
+    std::set<sp_human_t,Human::sortid> & getHumans(){return humans;}
     void addCloseLoc(std::string);
     double getDistanceFromLoc(Location &) const;
     double getLocX() const;
@@ -40,7 +40,7 @@ public:
     Location(std::string, std::string, std::string, double, double, double);
     Location();
     Location(const Location& orig);
-    virtual ~Location();
+    //virtual ~Location();
     void updateInfectedVisitor();
 
 private:

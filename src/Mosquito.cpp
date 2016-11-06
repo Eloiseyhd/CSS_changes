@@ -51,18 +51,18 @@ bool Mosquito::takeBite(
 
 
 
-Human * Mosquito::whoBite(
+sp_human_t Mosquito::whoBite(
     double time,
     Location * locNow,
     RandomNumGenerator * rGen)
 {
-    std::map<Human *,double,Human::sortid> humanMap;
-    std::set<Human *,Human::sortid>* humans = locNow->getHumans();
-    std::set<Human *,Human::sortid>::iterator itrHum = humans->begin();
-    for(; itrHum != humans->end(); itrHum++){
-        std::string currentLoc = (*itrHum)->getCurrentLoc(time);
+    std::map<sp_human_t,double,Human::sortid> humanMap;
+    // loop through set of 
+    // (shared pointers to) humans at this place
+    for(auto sphum :locNow->getHumans() ){
+        const std::string & currentLoc = sphum->getCurrentLoc(time);
         if(currentLoc == locationID){
-            humanMap.insert(std::pair<Human *,double>(*itrHum,(*itrHum)->getAttractiveness()));
+            humanMap.insert(make_pair(sphum,sphum->getAttractiveness()));
         }
     }
 
@@ -70,18 +70,23 @@ Human * Mosquito::whoBite(
         return NULL;
 
     double attractivenessSum = 0;
-    std::map<Human *,double,Human::sortid>::iterator mapItr = humanMap.begin();
-    for(; mapItr != humanMap.end(); mapItr++){
-        attractivenessSum += mapItr->second;
-	//	printf("attractiveness of %s is %f\n", mapItr->first->getPersonID().c_str(), mapItr->second);
+    // for each map element
+    for(auto & hum : humanMap) {
+        attractivenessSum += hum.second;
+	//	printf("attractiveness of %s is %f\n", hum.first->getPersonID().c_str(), hum.second);
     }
 
     double biteWho = rGen->getEventProbability() * attractivenessSum;
+    // find human based on cum attractiveness? 
     attractivenessSum = 0;
-    for(mapItr = humanMap.begin(); attractivenessSum < biteWho; mapItr++)
+    // need mapItr at this scope
+    auto mapItr = humanMap.begin();
+    for(; attractivenessSum < biteWho; mapItr++) {
         attractivenessSum += mapItr->second;
+    }
+    // back up one?
     mapItr--;
-    return &(*mapItr->first); 
+    return mapItr->first; 
 }
 
 
@@ -95,8 +100,8 @@ bool Mosquito::infectingBite(
     int numDays, 
     double mozEIP)
 {
-    Human * humBite = whoBite(time, locNow, rGen);
-    if(humBite != NULL){
+    sp_human_t humBite = whoBite(time, locNow, rGen);
+    if(humBite != nullptr){
 	if(humBite->infection != nullptr){
             humBite->infection->setInfectiousnessHuman(currentDay);
             if(rGenInf->getEventProbability() < humBite->infection->getInfectiousness()){
@@ -105,7 +110,8 @@ bool Mosquito::infectingBite(
 		/*                infection.reset(new Infection(
 				  round(sday), eday, 0.0, humBite->infection->getInfectionType(), 0, 0, 0.0));*/
                 infection.reset(new Infection(
-                    -1, eday, 0.0, humBite->infection->getInfectionType(), 0, 0, 0.0));
+                    -1, eday, 0.0, humBite->infection->getInfectionType(), 0, 0, 0.0
+                ));
             }
         }
 	nbites++;
@@ -114,8 +120,6 @@ bool Mosquito::infectingBite(
         return false;
     }
 }
-
-
 
 bool Mosquito::infectiousBite(
     double time,
@@ -128,8 +132,8 @@ bool Mosquito::infectiousBite(
     int numDays,
     std::ofstream * out)
 {
-    Human * humBite = whoBite(time, locNow, rGen);
-    if(humBite != NULL){
+    sp_human_t humBite = whoBite(time, locNow, rGen);
+    if(humBite != nullptr){
         if(infection != nullptr && humBite->infection == nullptr && !humBite->isImmune(infection->getInfectionType())){
             if(rGenInf->getEventProbability() < infection->getInfectiousness()){
                 humBite->infect(currentDay, infection->getInfectionType(), rGenInf, disRates, hospRates);
@@ -153,17 +157,11 @@ Mosquito::Mosquito(double dd, double bsd, string loc) {
     bday = 0;
 }
 
-
-
 Mosquito::Mosquito() {
 }
-
-
 
 Mosquito::Mosquito(const Mosquito& orig) {
 }
 
-
-
-Mosquito::~Mosquito() {
-}
+//Mosquito::~Mosquito() {
+//}

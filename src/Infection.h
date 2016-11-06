@@ -20,7 +20,7 @@ public:
     Infection(unsigned, unsigned, double, unsigned, bool, bool, double);
     Infection();
     Infection(const Infection& orig);
-    virtual ~Infection();
+    //virtual ~Infection();
 private:
     int startDay;
     int endDay;

@@ -109,7 +109,7 @@ int main(int argc, char** argv) {
       if (string(argv[1]) != "-d") {
 	exit(1);
       }
-      Simulation sim;
+      //Simulation sim;
     }
     return 0;
 }

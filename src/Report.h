@@ -117,7 +117,7 @@ public:
     Report(std::string);
     Report();
     Report(const Report& orig);
-    virtual ~Report();
+    //virtual ~Report();
 
     void setupReport(std::string, std::string, std::string);
     void updateReport(int, Human *, Location *);

@@ -141,5 +141,5 @@ RandomNumGenerator::RandomNumGenerator() {
 RandomNumGenerator::RandomNumGenerator(const RandomNumGenerator& orig) {
 }
 
-RandomNumGenerator::~RandomNumGenerator() {
-}
+//RandomNumGenerator::~RandomNumGenerator() {
+//}

@@ -9,6 +9,7 @@
 #include "Infection.h"
 #include "Location.h"
 #include "RandomNumGenerator.h"
+#include "Human.h"
 
 class Mosquito {
 public:
@@ -21,13 +22,13 @@ public:
     double getBiteStartDay();
     double getNumBites(){return nbites;}
     bool takeBite(double,Location *,RandomNumGenerator *, RandomNumGenerator *,std::map<unsigned,double> *,std::map<unsigned,double> *,int,int,std::ofstream *, double);
-    Human * whoBite(double,Location *,RandomNumGenerator *);
+    sp_human_t whoBite(double,Location *,RandomNumGenerator *);
     bool infectingBite(double,Location *,RandomNumGenerator *,RandomNumGenerator *,int,int, double);
     bool infectiousBite(double,Location *,RandomNumGenerator *,RandomNumGenerator *,std::map<unsigned,double> *,std::map<unsigned,double> *,int,int,std::ofstream *);
     Mosquito(double, double, std::string);
     Mosquito();
     Mosquito(const Mosquito& orig);
-    virtual ~Mosquito();
+    //virtual ~Mosquito();
     std::unique_ptr<Infection> infection;
 private:
     std::string locationID;

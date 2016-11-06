@@ -3,7 +3,7 @@
 #include <iostream>
 #include <cmath>
 
-using namespace std;
+//using namespace std;
 
 string Location::getLocID() const {
     return locID;
@@ -65,25 +65,23 @@ void Location::addCloseLoc(string loc) {
     closeLocs->push_back(loc);
 }
 
-void Location::addHuman(Human * h) {
-  humans.insert(h);
+void Location::addHuman(sp_human_t h) {
+    humans.insert(h);
 }
 
-void Location::removeHuman(Human * h){
-    auto it = humans.find(h);
-    if(it != humans.end()){
-	humans.erase(it);
-    }
+void Location::removeHuman(sp_human_t h){
+    // erase requires no check
+    humans.erase(h);
 }
 
-Location::Location() {
-}
+//Location::Location() {
+//}
 
-Location::Location(const Location& orig) {
-}
+//Location::Location(const Location& orig) {
+//}
 
-Location::~Location() {
-}
+//Location::~Location() {
+//}
 
 
 

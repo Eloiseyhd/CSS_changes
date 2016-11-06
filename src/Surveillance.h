@@ -43,7 +43,7 @@ class Surveillance {
  public:
     Surveillance();
     Surveillance(const Surveillance& orig);
-    virtual ~Surveillance();
+    //virtual ~Surveillance();
 
     int update_human_surveillance(Human *, int, RandomNumGenerator *);
 

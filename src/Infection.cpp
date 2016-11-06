@@ -85,6 +85,6 @@ Infection::Infection(const Infection& orig) {
     IIP = orig.IIP;
 }
 
-Infection::~Infection() {
-}
+//Infection::~Infection() {
+//}
 

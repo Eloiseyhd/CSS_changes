@@ -6,13 +6,16 @@
 #include <memory>
 #include <fstream>
 #include <queue>
+#include <stdexcept>
+// 
+#include "defines.h"
 #include "Location.h"
 #include "Mosquito.h"
 #include "RandomNumGenerator.h"
 #include "Report.h"
 #include "Vaccine.h"
 #include "Recruitment.h"
-
+#include "Human.h"
 
 class Simulation {
 public:
@@ -20,8 +23,8 @@ public:
     RandomNumGenerator rGenInf;
 
     Simulation(std::string);
-    Simulation();
-    Simulation(const Simulation& orig);
+    Simulation() = delete;
+    Simulation(const Simulation& orig) = delete;
     std::string readInputs();
     void readTrajectoryFile(std::string);
     void readBirthsFile(std::string);
@@ -46,7 +49,7 @@ public:
     void updatePop();
     void selectEligibleTrialParticipants();
     bool checkAgeToVaccinate(int age_);
-    virtual ~Simulation();
+    //virtual ~Simulation();
 private:
     std::vector<std::string>getParamsLine(std::string);
     int parseInteger(std::string);
@@ -63,9 +66,9 @@ private:
     std::map<int,int> ageGroups;
     std::map<unsigned, Vaccine> vaccines;
     std::multimap<std::string,std::unique_ptr<Mosquito>> mosquitoes;
-    std::multimap<std::string,std::unique_ptr<Human>> humans;
-    std::multimap<int,std::unique_ptr<Human>> future_humans;
-    std::map<std::string, std::unique_ptr<Human>> total_humans_by_id;
+    std::multimap<std::string,sp_human_t> humans;
+    std::multimap<int,sp_human_t> future_humans;
+    std::map<std::string, sp_human_t> total_humans_by_id;
 
     unsigned currentDay;
     unsigned numDays;

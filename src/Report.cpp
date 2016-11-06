@@ -288,7 +288,6 @@ void Report::parseGroupsAges(std::string line, std::vector<rangeStruct> * ages_t
     stringstream linetemp;
     string line2;
     linetemp.clear();
-    int count =0;
     linetemp << line;
     ages_temp->clear();
     while(getline(linetemp,line2,';')){
@@ -312,7 +311,6 @@ Report::rangeStruct Report::parseDiscreteAges(std::string line){
     stringstream linetemp;
     string line2;
     linetemp.clear();
-    int count =0;
     linetemp << line;
     rangeStruct rangeTemp;
     getline(linetemp,line2,',');
@@ -1824,7 +1822,6 @@ void Report::finalizeReport(){
 
 
 
-Report::~Report() {
-
-}
+//Report::~Report() {
+//}
 

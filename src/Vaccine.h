@@ -42,7 +42,7 @@ class Vaccine {
 
 public:
     Vaccine();
-    virtual ~Vaccine();
+    //virtual ~Vaccine();
 
     void init();
     void setID(unsigned id){vaccineID = id;}

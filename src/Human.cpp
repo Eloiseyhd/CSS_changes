@@ -1,8 +1,6 @@
 #include "Human.h"
 #include <sstream>
 
-using namespace std;
-
 Human::Human(string hID,
 	     int hMemID,
 	     char gen,
@@ -69,9 +67,9 @@ void Human::initializeHuman(unsigned currDay, std::vector<double> FOI, RandomNum
     }
 }
 
-void Human::setTrajectories(unique_ptr<vector<vector<pair<string, double >> >> &paths){
+void Human::setTrajectories(unique_ptr<traject_t> & paths){
     if(!trajectories){
-	trajectories = move(paths);
+	trajectories = std::move(paths);
 	trajDay = 0;
     }else{
 	printf("Trajectories for %s already set\n", personID.c_str());
@@ -107,14 +105,15 @@ double Human::getBodySize() const {
 
 
 
-std::string Human::getCurrentLoc(double time){
-    std::vector<std::pair<std::string,double>>::iterator itrLoc = (*trajectories)[trajDay].begin();
+const std::string & Human::getCurrentLoc(double time){
+    const auto & today = (*trajectories)[trajDay];
+    auto itrLoc = today.begin();
 
-    for(double runSum = 0; runSum < time && itrLoc != (*trajectories)[trajDay].end(); itrLoc++){
+    for(double runSum = 0; runSum < time && itrLoc != today.end(); itrLoc++){
         runSum += itrLoc->second;
     }
-    if((*trajectories)[trajDay].size() == 1){
-        itrLoc = (*trajectories)[trajDay].begin();
+    if(today.size() == 1){
+        itrLoc = today.begin();
     } else {
         itrLoc--;
     }
@@ -144,11 +143,11 @@ unsigned Human::getVaxImmEndDay() const {
     return vaxImmEndDay;
 }
 
-string Human::getHouseID() const {
+const string & Human::getHouseID() const {
     return houseID;
 }
 
-string Human::getPersonID() const{
+const string & Human::getPersonID() const{
     return personID;
 }
 
@@ -156,20 +155,14 @@ int Human::getHouseMemNum() const {
     return houseMemNum;
 }
 
-
-
-std::set<std::string> Human::getLocsVisited(){
-    std::set<std::string> locsVisited;
-
-    int numTrajs = trajectories->size();
-    std::vector<std::pair<std::string,double>>::iterator itr;
-
-    for(int i = 0; i < numTrajs; i++){
-        for(itr = trajectories->at(i).begin(); itr != trajectories->at(i).end(); itr++){
-            locsVisited.insert(itr->first);
+const std::set<std::string> & Human::getLocsVisited(){
+    locsVisited.clear();
+    for(auto & the_traj : (*trajectories)){
+        for(auto & place : the_traj) {
+            // set.insert includes check
+            locsVisited.insert(place.first);
         }
     }
-
     return locsVisited;
 }
 
@@ -190,13 +183,9 @@ int Human::getPreviousInfections(){
     return previnf;
 }
 
-
-
-std::vector<std::pair<std::string, double >> const& Human::getTrajectory(unsigned i) const {
-    return (*trajectories.get())[i];
-}
-
-
+//traject_t const& Human::getTrajectory(unsigned i) const {
+ //   return (*trajectories.get())[i];
+//}
 
 void Human::infect(
     int currentDay,
@@ -362,7 +351,7 @@ void Human::setVaxImmStartDay(unsigned d){
 
 void Human::setImmunityPerm(unsigned serotype, bool status) {
     immunity_perm.erase(serotype);
-    immunity_perm.insert(make_pair(serotype,status));
+    immunity_perm.insert(std::make_pair(serotype,status));
 }
 
 void Human::setImmunityTemp(bool status) {
@@ -410,7 +399,7 @@ void Human::updateBodySize(unsigned currDay){
 
 void Human::updateImmunityPerm(unsigned serotype, bool status) {
     immunity_perm.erase(serotype);
-    immunity_perm.insert(make_pair(serotype,status));
+    immunity_perm.insert(std::make_pair(serotype,status));
 }
 
 
@@ -534,16 +523,12 @@ void Human::updateVaccineEfficacy(int currDay){
 	}*/
 }
 
-Human::Human() {
-}
-
-
+//Human::Human() {
+//}
 
 //Human::Human(const Human& orig) {
     //}
 
-
-
-Human::~Human() {
-}
+//Human::~Human() {
+//}
 

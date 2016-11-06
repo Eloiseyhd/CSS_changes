@@ -47,7 +47,7 @@ void Surveillance::initialize_human_surveillance(Human * h, int currDay){
     h->setContactByTrial(currDay + firstContactDelay);
     h->setSeroStatusAtVaccination();
     h->setSelfReportProb(selfReportProb);
-    std::string id = h->getHouseID() + std::to_string(h->getHouseMemNum());
+    std::string id(h->getPersonID());
     hRecord tempRecord;
     tempRecord.ageDaysAtVaccination = h->getAgeTrialEnrollment();
     tempRecord.seroStatusAtVaccination = h->getSeroStatusAtVaccination();
@@ -79,7 +79,7 @@ void Surveillance::initialize_human_surveillance(Human * h, int currDay){
 
 int Surveillance::update_human_surveillance(Human * h, int currDay, RandomNumGenerator * rGen){
     int pcr_result = -1;
-    std::string id = h->getHouseID() + std::to_string(h->getHouseMemNum());
+    std::string id(h->getPersonID());
     //    printf("update surveillance %s day %d\n", id.c_str(), currDay);
     if(recordsDatabase.find(id) != recordsDatabase.end() && h->isEnrolledInTrial()){
 	if( ( currDay - recordsDatabase.find(id)->second.enrollmentDay ) >= 30){
@@ -158,7 +158,7 @@ int Surveillance::update_human_surveillance(Human * h, int currDay, RandomNumGen
 }
 
 void Surveillance::finalize_human_surveillance(Human *h, int currDay){
-    std::string id = h->getHouseID() + std::to_string(h->getHouseMemNum());
+    std::string id(h->getPersonID());
     recordsDatabase.find(id)->second.dropoutDay = currDay;
     recordsDatabase.find(id)->second.firstExp = 0;
     for(unsigned i = 0; i < 4; i++){
@@ -169,7 +169,7 @@ void Surveillance::finalize_human_surveillance(Human *h, int currDay){
 }
 
 void Surveillance::contactPerson(Human * h, int currDay, RandomNumGenerator * rGen){
-    std::string id = h->getHouseID() + std::to_string(h->getHouseMemNum());
+    std::string id(h->getPersonID());
     if(h->infection != NULL){
 	int serotype =  h->infection->getInfectionType() -1;
 	if(recordsDatabase.find(id)->second.TTR[serotype] == -1){
@@ -182,7 +182,7 @@ void Surveillance::contactPerson(Human * h, int currDay, RandomNumGenerator * rG
 }
 
 int Surveillance::PCR_test(Human * h, int currDay, RandomNumGenerator * rGen){
-    std::string id = h->getHouseID() + std::to_string(h->getHouseMemNum());
+    std::string id(h->getPersonID());
     int pcr_result = -1;
     double sensitivity = 0.0;
     if(h->infection != NULL){
@@ -323,6 +323,6 @@ void Surveillance::join(const vector<std::string>& v, char c, string& s) {
 	}
     }
 }
-Surveillance::~Surveillance() {
 
-}
+//Surveillance::~Surveillance() {
+//}

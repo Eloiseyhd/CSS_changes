@@ -3,9 +3,16 @@
 
 #include <random>
 #include <map>
+#include <sstream>
+#include <iostream>
+#include <algorithm>
 
 class RandomNumGenerator {
 public:
+    template <class RandIt> 
+    void shuffle(RandIt & obj) {
+        std::shuffle(obj.begin(), obj.end(), gen); 
+    }
     unsigned getMozEmerge(double);
     unsigned getMozEmerge(double, double);
     unsigned getHumanTrajectory();
@@ -34,7 +41,20 @@ public:
     RandomNumGenerator(unsigned, unsigned, double, double, double, std::map<unsigned,double>);
     RandomNumGenerator();
     RandomNumGenerator(const RandomNumGenerator& orig);
-    virtual ~RandomNumGenerator();
+    //virtual ~RandomNumGenerator();
+    
+    void showAllState() {
+        std::cout << gen << std::endl;
+    }
+    // print RNG state (first nchar of ostream)
+    void showState(unsigned nchar, const std::string prefix="## ") {
+        char buff[nchar];
+        std::stringstream the_state;
+        the_state << gen;
+        the_state.read(buff,nchar);
+        std::cout << prefix << buff << std::endl;
+    };
+
 private:
     unsigned seed;
     std::mt19937 gen;

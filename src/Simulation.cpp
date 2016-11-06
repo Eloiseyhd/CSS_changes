@@ -4,12 +4,15 @@
 #include <utility>
 #include <cstdlib>
 #include <vector>
+#include <list>
 #include <algorithm>
+#include <utility>
 #include <sstream>
 #include "Simulation.h"
 
-using namespace std;
-
+using std::string;
+using std::vector;
+using std::list;
 
 void Simulation::simulate() {
     simEngine();
@@ -60,6 +63,9 @@ void Simulation::simEngine() {
     deathMoz = 0;
     lifeMoz = 0;
     while(currentDay < numDays){
+        //std::cout << "# day " << humans.size() << " " << mosquitoes.size() << std::endl;
+        //rGen.showAllState();
+        //rGen.showState(32, "# rng ");
 	humanDeaths = 0;
         if(ceil(double(currentDay + 1) / 365.0) != ceil(double(currentDay) / 365.0)){
             year++;
@@ -98,8 +104,7 @@ void Simulation::updatePop(){
 
 
 void Simulation::humanDynamics() {
-    int diff, age;
-    bool vaxd = false;
+    int age;
     int cohort = 0;
     if(currentDay >= vaccineDay){
         cohort = floor(double(currentDay - vaccineDay) / 365.0) + 1;
@@ -107,70 +112,81 @@ void Simulation::humanDynamics() {
     std::map<unsigned,double>ForceOfImportation;
     ForceOfImportation.clear();
     ForceOfImportation = (year - 1) < annualForceOfImportation.size() ? annualForceOfImportation[year - 1] : annualForceOfImportation.back();
-    int susceptibles[4] = {0,0,0,0};
-    int infectious[4] = {0,0,0,0};
+    int susceptibles[N_SERO] = {0,0,0,0};
+    int infectious[N_SERO] = {0,0,0,0};
 
     // Newborns !!!
     auto newbornsRange = future_humans.equal_range(currentDay);
-    for (auto it = newbornsRange.first; it != newbornsRange.second;){
-	printf("Human %s is born in day %d\n", it->second->getPersonID().c_str(), currentDay);
-	unique_ptr<Human> h = move(it->second);
-	auto tmpit = it;
-	++it;
-	future_humans.erase(tmpit);
-	if(locations.find(h->getHouseID()) != locations.end()){
-	    std::set<std::string> locsVisited = h->getLocsVisited();
-	    for(std::set<std::string>::iterator itrSet = locsVisited.begin(); itrSet != locsVisited.end(); itrSet++){
-		if(locations.find(*itrSet) != locations.end()){
-		    locations.find(*itrSet)->second->addHuman(h.get());
-		}
-	    }
-	    h->initializeHuman(currentDay, InitialConditionsFOI,rGen);
-	    humans.insert(make_pair(h->getHouseID(), move(h)));
-	}
+    // walk through today's births
+    // add to humans, locations
+    for (auto it = newbornsRange.first; it != newbornsRange.second; it++){
+        printf("Human %s is born in day %d\n", it->second->getPersonID().c_str(), currentDay);
+        // copy-construct shared pointer to human
+        sp_human_t h = it->second;
+        // what is this condition for? 
+        // Is it a problem if HouseID is *not* found?
+        // I.e., throw?
+        if(locations.find(h->getHouseID()) != locations.end()){
+            for(const auto & loc_str : h->getLocsVisited()){
+                // set.insert already performs check for presence
+                auto the_loc = locations.find(loc_str);
+                // error??
+                if (the_loc != locations.end() ) {
+                    the_loc->second->addHuman(h);
+                }
+            }
+            h->initializeHuman(currentDay, InitialConditionsFOI,rGen);
+            // deep copy of string ref
+            // unnecessary?
+            std::string loc_copy(h->getHouseID());
+            humans.insert(make_pair(loc_copy, h));
+        }
     }
+    // finally, delete range
+    future_humans.erase(newbornsRange.first, newbornsRange.second);
 
+    
     //update alive humans
-    for(auto it = humans.begin(); it != humans.end();){
-	if(it->second->isDead()){
-	    ++it;
-	    continue;
-	}
+    for(auto & phum : humans) {
+        // check logic!! increment moved to loop
+        if(phum.second->isDead()){
+            // skip this person
+            continue;
+        }
         // daily mortality for humans by age
-        if(rGen.getEventProbability() < (deathRate * it->second->getAgeDays(currentDay))){
-	    if(vaccinationStrategy == "random_trial" && (it->second).get()->isEnrolledInTrial() == true){
-		printf("Human %s removed from trial\n", it->second->getPersonID().c_str());
-		recruitmentTrial.removeParticipant((it->second).get(),currentDay);
+        if(rGen.getEventProbability() < (deathRate * phum.second->getAgeDays(currentDay))){
+	    if(vaccinationStrategy == "random_trial" && phum.second->isEnrolledInTrial() == true){
+                printf("Human %s removed from trial\n", phum.second->getPersonID().c_str());
+                recruitmentTrial.removeParticipant(phum.second.get(),currentDay);
 	    }
-	    std::set<std::string> locsVisited = it->second->getLocsVisited();
-	    for(std::set<std::string>::iterator itrSet = locsVisited.begin(); itrSet != locsVisited.end(); itrSet++){
-		if(locations.find(*itrSet) != locations.end()){
-		    locations.find(*itrSet)->second->removeHuman((it->second).get());
-		}
+            // name of each location 
+	    for(const auto & loc_str : phum.second->getLocsVisited() ){
+                // please check logic
+                // grab iterator to map element
+                auto loc_it = locations.find(loc_str);
+                // error??
+                if (loc_it != locations.end() ) {
+                    // reemove human from the location pointed to 
+                    loc_it->second->removeHuman(phum.second);
+                }
 	    }
-
-	    printf("Human is dead %s\n", it->second->getPersonID().c_str());
-	    it->second->kill();
-	    //   auto tmpit = it;
-	    ++it;
-	    //	    Human * h = tmpit->second.get();
-	    //	    h = nullptr;
-	    //	    humans.erase(tmpit);
+	    printf("Human is dead %s\n", phum.second->getPersonID().c_str());
+	    phum.second->kill();
 	    humanDeaths++;
 	    continue;
 	}
         // update temporary cross-immunity status if necessary
-        if(currentDay == it->second->getImmEndDay())
-            it->second->setImmunityTemp(false);
+        if(currentDay == phum.second->getImmEndDay())
+            phum.second->setImmunityTemp(false);
 
         // update infection status if necessary
-        if(it->second->infection != nullptr){
-            it->second->checkRecovered(currentDay);
+        if(phum.second->infection != nullptr){
+            phum.second->checkRecovered(currentDay);
 	}
 
 	if(currentDay == 0){
-	    for(int i = 0; i< 4; i++){
-		if(!it->second->isImmune(i+1)){
+	    for(int i = 0; i< N_SERO; i++){
+		if(!phum.second->isImmune(i+1)){
 		    susceptibles[i]++;
 		}else{
 		    infectious[i]++;
@@ -178,37 +194,37 @@ void Simulation::humanDynamics() {
 	    }
 	}
         // select movement trajectory for the day
-        (it->second)->setTrajDay(rGen.getRandomNum(5));
+        phum.second->setTrajDay(rGen.getRandomNum(N_TRAJECTORY));
 
         // simulate possible imported infection
 	//	if(currentDay - (year - 1) * 365 < 50){
-	for(unsigned serotype = 1; serotype <= 4; serotype++){
+	for(unsigned serotype = 1; serotype <= N_SERO; serotype++){
 	    if(rGen.getEventProbability() < ForceOfImportation.at(serotype)){
-		if(!it->second->isImmune(serotype)){
-		    it->second->infect(currentDay, serotype, &rGenInf, &disRates, &hospRates);                
+		if(!phum.second->isImmune(serotype)){
+		    phum.second->infect(currentDay, serotype, &rGenInf, &disRates, &hospRates);                
 		}
 	    }
 	}
 	    //	}
 
 	//update vaccine immunity if necessary
-	if(it->second->isVaccinated()){
-	    it->second->updateVaccineEfficacy(currentDay);
-	    //	    it->second->getVaccine()->printVaccine();
+	if(phum.second->isVaccinated()){
+	    phum.second->updateVaccineEfficacy(currentDay);
+	    //	    phum.second->getVaccine()->printVaccine();
 	}
 
 
     	// Routine vaccination: first record the cohorts depending on the vaccination strategy, then vaccinate. 
-    	age = it->second->getAgeDays(currentDay);
+    	age = phum.second->getAgeDays(currentDay);
 	if(vaccinationStrategy == "sanofi_trial"){
 	    if(currentDay == vaccineDay){
-		it->second->setAgeTrialEnrollment(age);
-		it->second->setSeroStatusAtVaccination();
-		it->second->setCohort(cohort);
+		phum.second->setAgeTrialEnrollment(age);
+		phum.second->setSeroStatusAtVaccination();
+		phum.second->setCohort(cohort);
 		//one-time vaccination by age groups in the trial
     		if(checkAgeToVaccinate(age)){
     		    if(rGenInf.getEventProbability() < vaccineCoverage){
-			it->second->vaccinateWithProfile(currentDay, &rGenInf, vaccines.at(vaccineID));
+			phum.second->vaccinateWithProfile(currentDay, &rGenInf, vaccines.at(vaccineID));
     		    }
     		}
     	    }
@@ -216,11 +232,11 @@ void Simulation::humanDynamics() {
     	    if(currentDay >= vaccineDay){
     		// routine vaccination by age
 		if(age == vaccineAge * 365){
-		    it->second->setAgeTrialEnrollment(age);
-		    it->second->setSeroStatusAtVaccination();
-		    it->second->setCohort(cohort);
+		    phum.second->setAgeTrialEnrollment(age);
+		    phum.second->setSeroStatusAtVaccination();
+		    phum.second->setCohort(cohort);
     		    if(rGenInf.getEventProbability() < vaccineCoverage){
-			it->second->vaccinateWithProfile(currentDay, &rGenInf, vaccines.at(vaccineID));
+			phum.second->vaccinateWithProfile(currentDay, &rGenInf, vaccines.at(vaccineID));
     		    }
     		}
     	    }    
@@ -230,15 +246,13 @@ void Simulation::humanDynamics() {
     	if(catchupFlag == true && vaccineDay == currentDay && vaccinationStrategy == "routine"){
     	    if(age > vaccineAge * 365 && age < 18 * 365){
     		if(rGenInf.getEventProbability() < vaccineCoverage){
-		    it->second->vaccinateWithProfile(currentDay, &rGenInf, vaccines.at(vaccineID));
+		    phum.second->vaccinateWithProfile(currentDay, &rGenInf, vaccines.at(vaccineID));
     		}
     	    }
     	}
-	outputReport.updateReport(currentDay,(it->second).get(), locations[it->second->getHouseID()].get());
-	++it;
+	outputReport.updateReport(currentDay,(phum.second).get(), locations[phum.second->getHouseID()].get());
     }
 }
-
 
 void Simulation::mosquitoDynamics(){
     double biteTime, dieTime;
@@ -382,17 +396,18 @@ void Simulation::setLocNeighborhood(double dist){
 }
 
 void Simulation::selectEligibleTrialParticipants(){
-    for(auto it = humans.begin(); it != humans.end(); ++it){
-	recruitmentTrial.addPossibleParticipant((it->second).get(),currentDay);
+    for(auto & hum : humans) {
+	recruitmentTrial.addPossibleParticipant(hum.second.get(),currentDay);
     }
     //    printf("In total %lu participants are eligible out of %lu\n",recruitmentTrial.getEligibleParticipantsSize(),humans.size());
-    recruitmentTrial.shuffleEligibleParticipants();
+    recruitmentTrial.shuffleEligibleParticipants(rGen);
 }
 
 void Simulation::readAegyptiFile(string file){
     ifstream infile(file);
     if (!infile.good()) {
-        exit(1);
+        //exit(1);
+        throw std::runtime_error("In Simulation.cpp, something missing");
     }
     std::string line;
     getline(infile,line);
@@ -421,7 +436,8 @@ void Simulation::readAegyptiFile(string file){
 	}
     }
     if(firstBiteRate.empty() || secondBiteRate.empty() || mozDailyDeathRate.empty() || meanDailyEIP.empty() || dailyEmergenceFactor.empty()){
-	exit(1);
+        throw std::runtime_error("In Simulation.cpp, something missing");
+	//exit(1);
     }
     infile.close();
 }
@@ -475,33 +491,37 @@ void Simulation::readSimControlFile(string line) {
 
 void Simulation::readInitialFOI(string fileIn){
     if(fileIn.length() == 0){
-	exit(1);
+        throw std::runtime_error("In Simulation.cpp, something missing");
+	//exit(1);
     }
     ifstream infile(fileIn);
     string line;
     if(!infile.good()){
-	exit(1);
+        throw std::runtime_error("In Simulation.cpp, something missing");
+	//exit(1);
     }
     getline(infile, line);
-    for(int i = 0; i < 4; i++){
+    for(int i = 0; i < N_SERO; i++){
 	getline(infile, line, ',');
 	double foiTemp = strtod(line.c_str(),NULL);
 	InitialConditionsFOI.push_back(foiTemp);
     }
-    if(InitialConditionsFOI.size() != 4){
-	printf("InitialConditionsFOI not set\n");
-	exit(1);
+    if(InitialConditionsFOI.size() != N_SERO){
+	throw std::runtime_error("InitialConditionsFOI not set\n");
+	//exit(1);
     }
 }
 
 void Simulation::readAnnualFOI(string fileIn){
     if(fileIn.length() == 0){
-	exit(1);
+        throw std::runtime_error("In Simulation.cpp, something missing");
+	//exit(1);
     }
     ifstream infile(fileIn);
     string line;
     if(!infile.good()){
-	exit(1);
+        throw std::runtime_error("In Simulation.cpp, something missing");
+	//exit(1);
     }
     getline(infile, line);
     while (getline(infile, line, ',')) {
@@ -521,21 +541,23 @@ void Simulation::readAnnualFOI(string fileIn){
 	annualForceOfImportation.push_back(map_temp);
     }
     if(annualForceOfImportation.size() == 0){
-	printf("ForceOfImportation not set\n");
-	exit(1);
+	throw std::runtime_error("ForceOfImportation not set\n");
+	//exit(1);
     }
 }
 
 void Simulation::readLocationFile(string locFile) {
     if (locFile.length() == 0) {
-        exit(1);
+        throw std::runtime_error("In Simulation.cpp, something missing");
+        //exit(1);
     }
     string line, locID, locType, nID;
     double x, y, mozzes;
 
     ifstream infile(locFile);
    if (!infile.good()) {
-        exit(1);
+        throw std::runtime_error("In Simulation.cpp, something missing");
+        //exit(1);
     }
     getline(infile, line);
     while (getline(infile, line, ',')) {
@@ -571,7 +593,8 @@ void Simulation::readLocationFile(string locFile) {
 
 void Simulation::readDiseaseRatesFile(){
     if(diseaseRatesFile.length() == 0){
-        exit(1);
+        throw std::runtime_error("In Simulation.cpp, something missing");
+        //exit(1);
     }
     string line;
     unsigned par = 0;
@@ -580,7 +603,8 @@ void Simulation::readDiseaseRatesFile(){
 
     ifstream infile(diseaseRatesFile);
     if(!infile.good()){
-        exit(1);
+        throw std::runtime_error("In Simulation.cpp, something missing");
+        //exit(1);
     }
     while(getline(infile, line, ',')){
         parDis = strtod(line.c_str(), NULL);
@@ -598,12 +622,14 @@ void Simulation::readDiseaseRatesFile(){
 void Simulation::readVaccineSettingsFile(){
     vaccinationStrategy = "none";
     if(vaccineSettingsFile.length() == 0){
-        exit(1);
+        throw std::runtime_error("In Simulation.cpp, something missing");
+        //exit(1);
     }
     string line;
     ifstream infile(vaccineSettingsFile);
     if(!infile.good()){
-        exit(1);
+        //exit(1);
+        throw std::runtime_error("In Simulation.cpp, something missing");
     }
     printf("Reading vaccine settings file %s\n", vaccineSettingsFile.c_str());
     while(getline(infile,line,'\n')){
@@ -650,13 +676,15 @@ void Simulation::readVaccineProfilesFile(){
     printf("file = %s\n", vaccineProfilesFile.c_str());
     
     if(vaccineProfilesFile.length() == 0){
-        exit(1);
+        //exit(1);
+        throw std::runtime_error("In Simulation.cpp, something missing");
     }
     vaccines.clear();
     string line;
     ifstream infile(vaccineProfilesFile);
     if(!infile.good()){
-        exit(1);
+        //exit(1);
+        throw std::runtime_error("In Simulation.cpp, something missing");
     }
     int numVaccines = 0;
     // First find the number of vaccines
@@ -768,8 +796,10 @@ void Simulation::readVaccineProfilesFile(){
 	    vaccines.at(j).printVaccine();
 	}
     }else{
-	printf("There are no vaccines to read in %s\n",vaccineProfilesFile.c_str());
-	exit(1);
+        string msg("There are no vaccines to read in ");
+        msg += vaccineProfilesFile;
+	throw std::runtime_error(msg);
+	//exit(1);
     }
     infile.close();
 }
@@ -813,8 +843,8 @@ void Simulation::parseVector(std::string line, std::vector<int> * vector_temp){
     }
 
     if(vector_temp->empty()){
-	printf("Parsevector Vector_temp is empty\n");
-		exit(1);
+	throw std::runtime_error("Parsevector Vector_temp is empty\n");
+        //exit(1);
     }
 }
 std::string Simulation::parseString(std::string line){
@@ -825,13 +855,14 @@ std::string Simulation::parseString(std::string line){
 
 void Simulation::readBirthsFile(string bFile){
     if(bFile.length() == 0){
-	cout << "Incorrect births file\n";
-	exit(1);
+	throw std::runtime_error("Incorrect births file\n");
+	//exit(1);
     }
     ifstream infile(bFile);
     if(!infile.good()){
 	cout << "births file is empty: " << bFile.c_str() << "\n";
-        exit(1);
+        throw std::runtime_error("In Simulation.cpp, something missing");
+        //exit(1);
     }
     string line, houseID;
     int bday,dday;
@@ -848,15 +879,17 @@ void Simulation::readBirthsFile(string bFile){
 	bday = strtol(line.c_str(), NULL, 10);
 	getline(infile, line, '\n');
 	dday = strtol(line.c_str(), NULL, 10);
-	if(locations.find(houseID) != locations.end()){
-	    unique_ptr<Human> h(new Human(houseID, hMemID, gen, bday, dday, rGen));
-	    if(total_humans_by_id.find(h->getPersonID()) == total_humans_by_id.end()){
-		total_humans_by_id.insert(make_pair(h->getPersonID(), move(h)));
-	    }else{
-		//		printf("Human is repeated %s\n", h->getPersonID().c_str());
-	    }
-	}else{
+        // should this be an error condition?
+	if(locations.find(houseID) == locations.end()){
 	    printf("HouseID: %s not found\n", houseID.c_str());
+        } else {
+	    sp_human_t h(new Human(houseID, hMemID, gen, bday, dday, rGen));
+	    //if(total_humans_by_id.find(h->getPersonID()) == total_humans_by_id.end()){
+	    // map.insert checks, only inserts if none present
+            total_humans_by_id.insert(make_pair(h->getPersonID(), h));
+	    //}else{
+		//		printf("Human is repeated %s\n", h->getPersonID().c_str());
+	    //}
 	}
     }
     infile.close();
@@ -867,7 +900,8 @@ void Simulation::readBirthsFile(string bFile){
 
 void Simulation::readTrajectoryFile(string trajFile){
     if(trajFile.length() == 0){
-        exit(1);
+        //exit(1);
+        throw std::runtime_error("In Simulation.cpp, something missing");
     }
     printf("reading %s file with trajectories\n", trajFile.c_str());
     string line, houseID, personID;
@@ -875,18 +909,17 @@ void Simulation::readTrajectoryFile(string trajFile){
 
     ifstream infile(trajFile);
     if(!infile.good()){
-        exit(1);
+        throw std::runtime_error("In Simulation.cpp, something missing");
+        //exit(1);
     }
     while(getline(infile, line, ',')){
-        unique_ptr < vector < vector < pair<string, double >> >> trajectories(new vector < vector < pair<string, double >> >());
-
-        for(int i = 0; i < 5; i++){
+        unique_ptr<traject_t> ptrajectories(new traject_t);
+        for(int itraj = 0; itraj < N_TRAJECTORY; itraj++){
             houseID = line;
             getline(infile, line, ',');
             hMemID = strtol(line.c_str(), NULL, 10);
 	    personID =houseID + std::to_string(hMemID);
-		
-            vector<pair<string,double>> path;
+            vpath_t path;
             getline(infile, line);
             stringstream ss;
             ss << line;
@@ -894,36 +927,41 @@ void Simulation::readTrajectoryFile(string trajFile){
                 string hID = line;
                 getline(ss, line, ',');
                 double timeSpent = strtod(line.c_str(), NULL);
-                path.push_back(make_pair(hID, timeSpent));
+                path.push_back(std::make_pair(hID, timeSpent));
             }
-            trajectories->push_back(move(path));
-            if(i < 4){
+            // directly insert path
+            (*ptrajectories)[itraj] = move(path);
+            if(itraj < N_TRAJECTORY-1){
                 getline(infile, line, ',');
             }
         }
-	if(locations.find(houseID) != locations.end()){
-	    auto it = total_humans_by_id.find(personID);
-	    if( it != total_humans_by_id.end()){
-		auto tmpIt = it;
-		++it;
-		unique_ptr<Human> h = move(tmpIt->second);
-		total_humans_by_id.erase(tmpIt);
-		h->setTrajectories(trajectories);
+	if(locations.find(houseID) == locations.end()){
+            //error condition?
+        } else {
+	    auto ithum = total_humans_by_id.find(personID);
+	    if( ithum != total_humans_by_id.end()){
+		//auto tmpIt = ithum;
+		//++ithum;
+		sp_human_t h = ithum->second;
+                // set
+		h->setTrajectories(ptrajectories);
 		if(h->getBirthday() < 0){
-		    std::set<std::string> locsVisited = h->getLocsVisited();
-		    for(std::set<std::string>::iterator itrSet = locsVisited.begin(); itrSet != locsVisited.end(); itrSet++){
-			if(locations.find(*itrSet) != locations.end()){
-			    locations.find(*itrSet)->second->addHuman(h.get());
+		    for(const auto & loc_str : h->getLocsVisited()) {
+                        auto itloc = locations.find(loc_str);
+			if( itloc != locations.end()){
+			    itloc->second->addHuman(h);
 			}
 		    }
 		    h->initializeHuman(currentDay, InitialConditionsFOI,rGen);
-		    humans.insert(make_pair(houseID, move(h)));
+		    humans.insert(make_pair(houseID, h));
 		}else{
-		    future_humans.insert(make_pair(h->getBirthday(),move(h)));
+		    future_humans.insert(make_pair(h->getBirthday(),h));
 		}
+                // cleanup at end
+                // necessary? shouldn't each person be unique?
+		total_humans_by_id.erase(ithum);
 	    }
 	}
-
 
         while (infile.peek() == '\n'){
             infile.ignore(1, '\n');            
@@ -939,14 +977,16 @@ void Simulation::readTrajectoryFile(string trajFile){
 
 void Simulation::readVaccinationGroupsFile(){
     if (vaccinationGroupsFile.length() == 0) {
-	exit(1);
+	//exit(1);
+        throw std::runtime_error("In Simulation.cpp, something missing");
     }
     string line;
     int maxAge;
     int minAge;
     ifstream infile(vaccinationGroupsFile);
     if(!infile.good()){
-	exit(1);
+	//exit(1);
+        throw std::runtime_error("In Simulation.cpp, something missing");
     }
     while(getline(infile, line, ',')){
         minAge = strtol(line.c_str(), NULL, 10);
@@ -959,10 +999,10 @@ void Simulation::readVaccinationGroupsFile(){
 
 
 bool Simulation::checkAgeToVaccinate(int age_){
-    std::map<int,int>::iterator itAge = ageGroups.begin();
-    for(; itAge != ageGroups.end(); itAge++){
+    //std::map<int,int> & the_age
+    for(const auto & the_age : ageGroups) {
 	//      for(int k = (*itAge).first; k <= (*itAge).second; k++){
-	if(age_ >= (*itAge).first * 365 && age_ <= (*itAge).second * 365){
+	if(age_ >= the_age.first * 365 && age_ <= the_age.second * 365){
 	    return true;
 	}
     }
@@ -975,13 +1015,13 @@ Simulation::Simulation(string line) {
     configLine = line;
 }
 
-Simulation::Simulation() {
-}
+//Simulation::Simulation() {
+//}
 
 
 
-Simulation::Simulation(const Simulation & orig) {
-}
+//Simulation::Simulation(const Simulation & orig) {
+//}
 
-Simulation::~Simulation() {
-}
+//Simulation::~Simulation() {
+//}

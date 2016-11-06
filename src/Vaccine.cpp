@@ -186,7 +186,6 @@ double Vaccine::getRRHosp(bool seroposIn){
     }    
 }
 
-Vaccine::~Vaccine() {
-
-}
+//Vaccine::~Vaccine() {
+//}
 

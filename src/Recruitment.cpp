@@ -8,6 +8,7 @@
 #include <sstream>
 #include "Surveillance.h"
 #include "Recruitment.h"
+#include "Human.h"
 
 using namespace std;
 
@@ -150,11 +151,11 @@ void Recruitment::enrollTodayParticipants(int currDay, RandomNumGenerator * rGen
 	exit(1);
     }
     for(int i = 0; i < ageGroups.size(); i ++){
-	printf("Enroll participants day %d group %d\n", currDay, i);
+	printf("Enroll participants day %d group %d, (%d eligible).\n", currDay, i, ageGroups[i].eligible.size() );
 	//Vaccine enrollment
 	enrollArmParticipants(&ageGroups[i].vaccine, &ageGroups[i].eligible, "vaccine", currDay,vaccineSampleSize,dailyVaccineRecruitmentRate,ageGroups[i].min, ageGroups[i].max,vaccineProfile, rGen);
 	enrollArmParticipants(&ageGroups[i].placebo, &ageGroups[i].eligible, "placebo", currDay,placeboSampleSize,dailyPlaceboRecruitmentRate,ageGroups[i].min, ageGroups[i].max,placeboProfile, rGen);
-	printf("vaccine and placebo participants successfully enrolled at day %d\n", currDay);
+	printf("%d vaccine and %d placebo participants successfully enrolled at day %d\n", ageGroups[i].vaccine.size(), ageGroups[i].placebo.size(), currDay);
     }
 }
 
@@ -169,10 +170,10 @@ void Recruitment::enrollArmParticipants(
 					unsigned vProfile,
 					RandomNumGenerator * rGen)
 {
-    printf("Enroll participants today %d %s\n", currDay, arm_str.c_str());
+    printf("Enroll participants today %d %s, (eligible %d)\n", currDay, arm_str.c_str(), eligible_vector->size());
     int j = 0;
     while(!eligible_vector->empty() && j < rec_rate && arm->size() < sample_size){
-	if(eligible_vector->back() == NULL){
+	if(eligible_vector->back() == nullptr){
 	    printf("Found a dead participant in enrollment day %d\n", currDay);
 	    eligible_vector->pop_back();
 	    continue;
@@ -192,7 +193,7 @@ void Recruitment::enrollArmParticipants(
 		arm->push_back(eligible_vector->back());
 		trialSurveillance.initialize_human_surveillance(arm->back(), currDay);
 		arm->back()->vaccinateWithProfile(currDay, rGen, vaccinesPtr.at(vProfile));		   
-		j++;
+                j++;
 	    }
 	    eligible_vector->pop_back();
 	}
@@ -286,7 +287,7 @@ std::vector<std::string> Recruitment::getParamsLine(std::string line_){
     return params;
 }
 
-void Recruitment::addPossibleParticipant(Human * h,int currDay){
+void Recruitment::addPossibleParticipant(Human * h, int currDay){
     // First verify that the age is in some group
     int group_ = getPossibleAgeGroup(h->getAgeDays(currDay),ageGroups,recruitmentTimeFrame);
     if(group_ < 0){
@@ -298,7 +299,7 @@ void Recruitment::addPossibleParticipant(Human * h,int currDay){
     }
 }
 
-void Recruitment::shuffleEligibleParticipants(){
+void Recruitment::shuffleEligibleParticipants(RandomNumGenerator & refGen){
     for(int i = 0;i < ageGroups.size(); i++){
 	if(ageGroups[i].eligible.size() >= vaccineSampleSize + placeboSampleSize){
 	    // First make sure eligible participants have not died
@@ -312,7 +313,8 @@ void Recruitment::shuffleEligibleParticipants(){
 		    ++it;
 		}
 	    }
-	    std::random_shuffle(ageGroups[i].eligible.begin(),ageGroups[i].eligible.end());
+            // rGen really should be a member (reference)
+	    refGen.shuffle(ageGroups[i].eligible);
 	}else{
 	    printf("%lu is less than the sample size sum %d for age group %d\n",ageGroups[i].eligible.size(), vaccineSampleSize + placeboSampleSize, i);
 	    exit(1);
@@ -376,7 +378,6 @@ void Recruitment::parseAges(std::string line, std::vector<groupStruct> * ages_te
     stringstream linetemp;
     string line2;
     linetemp.clear();
-    int count =0;
     linetemp << line;
     ages_temp->clear();
     while(getline(linetemp,line2,';')){
@@ -416,7 +417,6 @@ void Recruitment::parseVector(std::string line, std::vector<double> * vector_tem
     }
 }
 
-Recruitment::~Recruitment() {
-
-}
+//Recruitment::~Recruitment() {
+//}
 

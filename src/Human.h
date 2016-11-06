@@ -9,9 +9,25 @@
 #include <utility>
 #include <memory>
 #include <cmath>
+//
+#include "defines.h"
 #include "Infection.h"
 #include "Vaccine.h"
 #include "RandomNumGenerator.h"
+
+using std::pair;
+using std::string;
+using std::vector;
+using std::unique_ptr;
+
+class Human;
+// type alias, used in containers of humans
+// e.g. Location.h and Simulation.h
+using sp_human_t = std::shared_ptr<Human>;
+// used to contruct trajectories
+using path_t = pair<string,double>;  
+using vpath_t = vector<path_t>;
+using traject_t = std::array<vpath_t, N_TRAJECTORY >;
 
 class Human {
 private:
@@ -70,16 +86,18 @@ private:
     std::string personID;
     std::string trialArm;
     std::map<unsigned,bool> immunity_perm;
-    std::unique_ptr<std::vector<std::vector<std::pair<std::string,double>>>> trajectories;
+    std::unique_ptr<traject_t> trajectories;
+    // return by reference
+    std::set<std::string> locsVisited;
 public:
     std::unique_ptr<Infection> infection;
-    Human(std::string,int,int,char,std::unique_ptr<std::vector<std::vector<std::pair<std::string,double>>>>&,RandomNumGenerator&,unsigned,std::vector<double>);
+    //Human(std::string,int,int,char,std::unique_ptr<std::vector<std::vector<std::pair<std::string,double>>>>&,RandomNumGenerator&,unsigned,std::vector<double>);
     Human(std::string,int,char,int,int, RandomNumGenerator&);
     Human();
     //    Human(const Human &orig);
-    virtual ~Human();
+    //virtual ~Human();
 
-    void setTrajectories(std::unique_ptr<std::vector<std::vector<std::pair<std::string,double>>>>&);
+    void setTrajectories(std::unique_ptr<traject_t> &);
     void initializeHuman(unsigned,std::vector<double>, RandomNumGenerator&);
     void kill(){dead = true;}
     void checkRecovered(unsigned);
@@ -155,19 +173,18 @@ public:
     bool isFullyVaccinated(){return vaccineComplete;}
     bool getReportSymptoms(){return reportSymptoms;}
 
-    std::string getCurrentLoc(double);
-    std::string getHouseID() const;
-    std::string getPersonID() const;
+    const std::string & getCurrentLoc(double);
+    const std::string & getHouseID() const;
+    const std::string & getPersonID() const;
     std::string getTrialArm(){return trialArm;}
-    std::set<std::string> getLocsVisited();
-    std::vector<std::pair<std::string,double>> const& getTrajectory(unsigned) const;
+    const std::set<std::string> & getLocsVisited();
+    //traject_t const& getTrajectory(unsigned) const;
 
     struct sortid{
-        bool operator() (const Human *a, const Human *b)const{
-            return b->getHouseID() + std::to_string(b->getHouseMemNum()) > a->getHouseID() + std::to_string(a->getHouseMemNum());
+        bool operator() (const sp_human_t a, const sp_human_t b)const{
+            return b->getPersonID() > a->getPersonID();
         }
     };
 };
 
 #endif	/* HUMAN_H */
-

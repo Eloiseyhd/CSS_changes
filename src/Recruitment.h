@@ -13,15 +13,16 @@
 #include "RandomNumGenerator.h"
 #include "Vaccine.h"
 #include "Surveillance.h"
+#include "Human.h"
 
 
 class Recruitment {
     struct groupStruct{
-	int min;
-	int max;
-	std::vector<Human *> placebo;
-	std::vector<Human *> vaccine;
-	std::vector<Human *> eligible;
+        int min;
+        int max;
+        std::vector<Human *> placebo;
+        std::vector<Human *> vaccine;
+        std::vector<Human *> eligible;
     };
 
  private:
@@ -62,13 +63,13 @@ class Recruitment {
     Recruitment(std::string);
     Recruitment();
     Recruitment(const Recruitment& orig);
-    virtual ~Recruitment();
+    //virtual ~Recruitment();
 
     void update(int, RandomNumGenerator *);
     void updateArm(unsigned, std::vector<Human *> *, int, RandomNumGenerator *);
     void setupRecruitment(std::string, std::map<unsigned,Vaccine>, std::string, std::string);
     void addPossibleParticipant(Human *, int);
-    void shuffleEligibleParticipants();
+    void shuffleEligibleParticipants(RandomNumGenerator & refGen);
     void updateParticipants(int, RandomNumGenerator *);
     void finalizeTrial(int);
     void removeParticipant(Human *, int);
