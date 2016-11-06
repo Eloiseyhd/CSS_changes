@@ -52,6 +52,9 @@ void Recruitment::update(int currDay, RandomNumGenerator * rGen){
 void Recruitment::removeParticipant(Human * h, int currDay){
     trialSurveillance.finalize_human_surveillance(h, currDay);
     h->unenrollTrial();
+    // erase(tmpit) in updateArm accomplishes the same thing??
+    // this linear scan is really expensive
+    /*
     string arm_ = h->getTrialArm();
     vector<Human *> * arm_v;
     int i = getAgeGroup(h->getAgeTrialEnrollment(),ageGroups);
@@ -74,8 +77,7 @@ void Recruitment::removeParticipant(Human * h, int currDay){
 	printf("SOMETHING IS VERY STRANGE in removeparticipant\n");
 	exit(1);
     }
-
-    
+    */
 }
 
 void Recruitment::finalizeTrial(int currDay){
@@ -107,10 +109,11 @@ void Recruitment::updateArm(unsigned vaxID, vector<Human *> * arm, int currDay, 
 			}else{
 			    int pcr = trialSurveillance.update_human_surveillance((*it),currDay, rGen);
 			    if(pcr >= 0){
+                                printf("PERSON %s removed from trial for real\n", (*it)->getPersonID().c_str());
 				removeParticipant(*it,currDay);
-				auto tmpit = it;
+				//auto tmpit = it;
+				//arm->erase(tmpit);
 				++it;
-				arm->erase(tmpit);
 			    }else{
 				if((*it)->isFullyVaccinated() == false && (*it)->getNextDoseDay() == currDay){
 				    printf("human boosting %s\n", (*it)->getPersonID().c_str());
@@ -149,11 +152,11 @@ void Recruitment::enrollTodayParticipants(int currDay, RandomNumGenerator * rGen
 	exit(1);
     }
     for(int i = 0; i < ageGroups.size(); i ++){
-	printf("Enroll participants day %d group %d, (%d eligible).\n", currDay, i, ageGroups[i].eligible.size() );
+	printf("Enroll participants day %d group %d, (eligible %zu).\n", currDay, i, ageGroups[i].eligible.size() );
 	//Vaccine enrollment
 	enrollArmParticipants(&ageGroups[i].vaccine, &ageGroups[i].eligible, "vaccine", currDay,vaccineSampleSize,dailyVaccineRecruitmentRate,ageGroups[i].min, ageGroups[i].max,vaccineProfile, rGen);
 	enrollArmParticipants(&ageGroups[i].placebo, &ageGroups[i].eligible, "placebo", currDay,placeboSampleSize,dailyPlaceboRecruitmentRate,ageGroups[i].min, ageGroups[i].max,placeboProfile, rGen);
-	printf("%d vaccine and %d placebo participants successfully enrolled at day %d\n", ageGroups[i].vaccine.size(), ageGroups[i].placebo.size(), currDay);
+	printf("%zu vaccine and %zu placebo participants successfully enrolled at day %d\n", ageGroups[i].vaccine.size(), ageGroups[i].placebo.size(), currDay);
     }
 }
 
@@ -168,7 +171,7 @@ void Recruitment::enrollArmParticipants(
 					unsigned vProfile,
 					RandomNumGenerator * rGen)
 {
-    printf("Enroll participants today %d %s, (eligible %d)\n", currDay, arm_str.c_str(), eligible_vector->size());
+    printf("Enroll participants today %d %s, (eligible %zu)\n", currDay, arm_str.c_str(), eligible_vector->size());
     int j = 0;
     while(!eligible_vector->empty() && j < rec_rate && arm->size() < sample_size){
 	if(eligible_vector->back() == nullptr){
@@ -191,7 +194,7 @@ void Recruitment::enrollArmParticipants(
 		arm->push_back(eligible_vector->back());
 		trialSurveillance.initialize_human_surveillance(arm->back(), currDay);
 		arm->back()->vaccinateWithProfile(currDay, rGen, vaccinesPtr.at(vProfile));		   
-                j++;
+		j++;
 	    }
 	    eligible_vector->pop_back();
 	}

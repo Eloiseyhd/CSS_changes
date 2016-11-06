@@ -1201,6 +1201,7 @@ void Report::printAgesReport(int currDay){
 			inc_ = 1;
 			sum_ = 2;
 		    }
+            // ?? CHECK j = j = j
 		    for(int j = 0;j < 2 * inc_;j = j = j + inc_){
 			for(int k = 0; k <= discreteAges.max - discreteAges.min; k++){
 			    if(printAgesPop == true){
@@ -1274,6 +1275,7 @@ void Report::printGroupsReport(int currDay){
 			inc_ = 1;
 			sum_ = 2;
 		    }
+            // ?? CHECK j = j = j
 		    for(int j = 0;j < 2 * inc_;j = j = j + inc_){
 			for(int k = 0; k < groupsAges.size(); k++){
 			    if(printGroupsPop == true){
@@ -1351,6 +1353,7 @@ void Report::printCohortReport(int currDay){
 			inc_ = 1;
 			sum_ = 2;
 		    }
+            // ?? CHECK j = j = j
 		    for(int j = 0;j < 2 * inc_;j = j = j + inc_){
 			for(int k = 0; k < cohortAges.size(); k++){
 			    if(printCohortPop == true){
