@@ -68,7 +68,7 @@ class Recruitment {
     void updateArm(unsigned, std::vector<Human *> *, int, RandomNumGenerator *);
     void setupRecruitment(std::string, std::map<unsigned,Vaccine>, std::string, std::string);
     void addPossibleParticipant(Human *, int);
-    void shuffleEligibleParticipants();
+    void shuffleEligibleParticipants(RandomNumGenerator & refGen);
     void updateParticipants(int, RandomNumGenerator *);
     void finalizeTrial(int);
     void removeParticipant(Human *, int);

@@ -60,6 +60,8 @@ void Simulation::simEngine() {
     deathMoz = 0;
     lifeMoz = 0;
     while(currentDay < numDays){
+        //std::cout << "# day " << humans.size() << " " << mosquitoes.size() << std::endl;
+        //rGen.showState(48, "# Daily RNG state excerpt: ");
 	humanDeaths = 0;
         if(ceil(double(currentDay + 1) / 365.0) != ceil(double(currentDay) / 365.0)){
             year++;
@@ -386,7 +388,7 @@ void Simulation::selectEligibleTrialParticipants(){
 	recruitmentTrial.addPossibleParticipant((it->second).get(),currentDay);
     }
     //    printf("In total %lu participants are eligible out of %lu\n",recruitmentTrial.getEligibleParticipantsSize(),humans.size());
-    recruitmentTrial.shuffleEligibleParticipants();
+    recruitmentTrial.shuffleEligibleParticipants(rGen);
 }
 
 void Simulation::readAegyptiFile(string file){
