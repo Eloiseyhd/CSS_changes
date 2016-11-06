@@ -5,7 +5,6 @@
 #include <cstdlib>
 #include <string>
 
-using namespace std;
 
 Vaccine::Vaccine(){
     vaccineID = -1;
@@ -26,8 +25,8 @@ Vaccine::Vaccine(){
     RRHosp_seropos = 1.0;
     RRHosp_seroneg = 1.0;
     for(unsigned k = 0; k < 3; k++){
-	VE_pos.insert(make_pair(k,0.0));
-	VE_neg.insert(make_pair(k,0.0));
+	VE_pos.insert(std::make_pair(k,0.0));
+	VE_neg.insert(std::make_pair(k,0.0));
     }
     total_VE = 0.0;
     doses = 1;
@@ -53,8 +52,8 @@ void Vaccine::init(){
     RRHosp_seropos = 1.0;
     RRHosp_seroneg = 1.0;
     for(unsigned k = 0; k < 3; k++){
-	VE_pos.insert(make_pair(k,0.0));
-	VE_neg.insert(make_pair(k,0.0));
+	VE_pos.insert(std::make_pair(k,0.0));
+	VE_neg.insert(std::make_pair(k,0.0));
     }
     total_VE = 0.0;
     doses = 1;
@@ -100,7 +99,7 @@ void Vaccine::printVaccine(){
     printf("\n");
 }
 
-void Vaccine::setRelativeSchedule(std::vector<int> rs){
+void Vaccine::setRelativeSchedule(vector<int> rs){
     relative_schedule = rs;
     if(relative_schedule.size() > 0){
 	doses = relative_schedule.size();

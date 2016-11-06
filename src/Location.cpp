@@ -3,8 +3,6 @@
 #include <iostream>
 #include <cmath>
 
-//using namespace std;
-
 string Location::getLocID() const {
     return locID;
 }
@@ -70,7 +68,7 @@ void Location::addHuman(sp_human_t h) {
 }
 
 void Location::removeHuman(sp_human_t h){
-    // erase requires no check
+    // set.erase(val) requires no check
     humans.erase(h);
 }
 

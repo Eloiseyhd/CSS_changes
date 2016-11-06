@@ -10,9 +10,7 @@
 #include <sstream>
 #include "Simulation.h"
 
-using std::string;
-using std::vector;
-using std::list;
+using std::runtime_error;
 
 void Simulation::simulate() {
     simEngine();
@@ -108,7 +106,7 @@ void Simulation::humanDynamics() {
     if(currentDay >= vaccineDay){
         cohort = floor(double(currentDay - vaccineDay) / 365.0) + 1;
     }
-    std::map<unsigned,double>ForceOfImportation;
+    map<unsigned,double>ForceOfImportation;
     ForceOfImportation.clear();
     ForceOfImportation = (year - 1) < annualForceOfImportation.size() ? annualForceOfImportation[year - 1] : annualForceOfImportation.back();
     int susceptibles[N_SERO] = {0,0,0,0};
@@ -137,7 +135,7 @@ void Simulation::humanDynamics() {
             h->initializeHuman(currentDay, InitialConditionsFOI,rGen);
             // deep copy of string ref
             // unnecessary?
-            std::string loc_copy(h->getHouseID());
+            string loc_copy(h->getHouseID());
             humans.insert(make_pair(loc_copy, h));
         }
     }
@@ -406,9 +404,9 @@ void Simulation::readAegyptiFile(string file){
     ifstream infile(file);
     if (!infile.good()) {
         //exit(1);
-        throw std::runtime_error("In Simulation.cpp, something missing");
+        throw runtime_error("In Simulation.cpp, something missing");
     }
-    std::string line;
+    string line;
     getline(infile,line);
     firstBiteRate.clear();
     secondBiteRate.clear();
@@ -435,14 +433,14 @@ void Simulation::readAegyptiFile(string file){
 	}
     }
     if(firstBiteRate.empty() || secondBiteRate.empty() || mozDailyDeathRate.empty() || meanDailyEIP.empty() || dailyEmergenceFactor.empty()){
-        throw std::runtime_error("In Simulation.cpp, something missing");
+        throw runtime_error("In Simulation.cpp, something missing");
 	//exit(1);
     }
     infile.close();
 }
 
 void Simulation::readSimControlFile(string line) {
-    stringstream infile;
+    std::stringstream infile;
     infile << line;
     getline(infile, line, ',');
     simName = line;
@@ -469,9 +467,9 @@ void Simulation::readSimControlFile(string line) {
     getline(infile, line, ',');
     deathRate = strtod(line.c_str(), NULL);    
     getline(infile, line, ',');
-    std::string annualFoiFile = line;
+    string annualFoiFile = line;
     getline(infile, line, ',');
-    std::string foiFile = line;
+    string foiFile = line;
     getline(infile, line, ',');
     huImm = strtol(line.c_str(), NULL, 10);
     getline(infile, line, ',');
@@ -490,13 +488,13 @@ void Simulation::readSimControlFile(string line) {
 
 void Simulation::readInitialFOI(string fileIn){
     if(fileIn.length() == 0){
-        throw std::runtime_error("In Simulation.cpp, something missing");
+        throw runtime_error("In Simulation.cpp, something missing");
 	//exit(1);
     }
     ifstream infile(fileIn);
     string line;
     if(!infile.good()){
-        throw std::runtime_error("In Simulation.cpp, something missing");
+        throw runtime_error("In Simulation.cpp, something missing");
 	//exit(1);
     }
     getline(infile, line);
@@ -506,20 +504,20 @@ void Simulation::readInitialFOI(string fileIn){
 	InitialConditionsFOI.push_back(foiTemp);
     }
     if(InitialConditionsFOI.size() != N_SERO){
-	throw std::runtime_error("InitialConditionsFOI not set\n");
+	throw runtime_error("InitialConditionsFOI not set\n");
 	//exit(1);
     }
 }
 
 void Simulation::readAnnualFOI(string fileIn){
     if(fileIn.length() == 0){
-        throw std::runtime_error("In Simulation.cpp, something missing");
+        throw runtime_error("In Simulation.cpp, something missing");
 	//exit(1);
     }
     ifstream infile(fileIn);
     string line;
     if(!infile.good()){
-        throw std::runtime_error("In Simulation.cpp, something missing");
+        throw runtime_error("In Simulation.cpp, something missing");
 	//exit(1);
     }
     getline(infile, line);
@@ -531,7 +529,7 @@ void Simulation::readAnnualFOI(string fileIn){
 	double d3 = strtod(line.c_str(), NULL);
         getline(infile, line, '\n');
 	double d4 = strtod(line.c_str(), NULL);
-	std::map<unsigned,double> map_temp;
+	map<unsigned,double> map_temp;
 	map_temp.clear();
 	map_temp.insert(make_pair(1, d1));
 	map_temp.insert(make_pair(2, d2));
@@ -540,14 +538,14 @@ void Simulation::readAnnualFOI(string fileIn){
 	annualForceOfImportation.push_back(map_temp);
     }
     if(annualForceOfImportation.size() == 0){
-	throw std::runtime_error("ForceOfImportation not set\n");
+	throw runtime_error("ForceOfImportation not set\n");
 	//exit(1);
     }
 }
 
 void Simulation::readLocationFile(string locFile) {
     if (locFile.length() == 0) {
-        throw std::runtime_error("In Simulation.cpp, something missing");
+        throw runtime_error("In Simulation.cpp, something missing");
         //exit(1);
     }
     string line, locID, locType, nID;
@@ -555,7 +553,7 @@ void Simulation::readLocationFile(string locFile) {
 
     ifstream infile(locFile);
    if (!infile.good()) {
-        throw std::runtime_error("In Simulation.cpp, something missing");
+        throw runtime_error("In Simulation.cpp, something missing");
         //exit(1);
     }
     getline(infile, line);
@@ -592,7 +590,7 @@ void Simulation::readLocationFile(string locFile) {
 
 void Simulation::readDiseaseRatesFile(){
     if(diseaseRatesFile.length() == 0){
-        throw std::runtime_error("In Simulation.cpp, something missing");
+        throw runtime_error("In Simulation.cpp, something missing");
         //exit(1);
     }
     string line;
@@ -602,7 +600,7 @@ void Simulation::readDiseaseRatesFile(){
 
     ifstream infile(diseaseRatesFile);
     if(!infile.good()){
-        throw std::runtime_error("In Simulation.cpp, something missing");
+        throw runtime_error("In Simulation.cpp, something missing");
         //exit(1);
     }
     while(getline(infile, line, ',')){
@@ -621,19 +619,19 @@ void Simulation::readDiseaseRatesFile(){
 void Simulation::readVaccineSettingsFile(){
     vaccinationStrategy = "none";
     if(vaccineSettingsFile.length() == 0){
-        throw std::runtime_error("In Simulation.cpp, something missing");
+        throw runtime_error("In Simulation.cpp, something missing");
         //exit(1);
     }
     string line;
     ifstream infile(vaccineSettingsFile);
     if(!infile.good()){
         //exit(1);
-        throw std::runtime_error("In Simulation.cpp, something missing");
+        throw runtime_error("In Simulation.cpp, something missing");
     }
     printf("Reading vaccine settings file %s\n", vaccineSettingsFile.c_str());
     while(getline(infile,line,'\n')){
 	string line2,line3;
-	std::vector<std::string>param_line = getParamsLine(line);
+	vector<string>param_line = getParamsLine(line);
 	line2 = param_line[0];
 	line3 = param_line[1];
 	if(line2 == "vaccination_strategy"){
@@ -676,21 +674,21 @@ void Simulation::readVaccineProfilesFile(){
     
     if(vaccineProfilesFile.length() == 0){
         //exit(1);
-        throw std::runtime_error("In Simulation.cpp, something missing");
+        throw runtime_error("In Simulation.cpp, something missing");
     }
     vaccines.clear();
     string line;
     ifstream infile(vaccineProfilesFile);
     if(!infile.good()){
         //exit(1);
-        throw std::runtime_error("In Simulation.cpp, something missing");
+        throw runtime_error("In Simulation.cpp, something missing");
     }
     int numVaccines = 0;
     // First find the number of vaccines
     printf("reading vaccine profiles %s\n", vaccineProfilesFile.c_str());
     while(getline(infile,line,'\n')){
 	string line2,line3;
-	std::vector<std::string>param_line = getParamsLine(line);
+	vector<string>param_line = getParamsLine(line);
 	line2 = param_line[0];
 	line3 = param_line[1];
 	if(line2 == "vaccine_ids"){
@@ -708,10 +706,10 @@ void Simulation::readVaccineProfilesFile(){
 	    vaxTemp.setID(i);
 	    while(getline(infile,line,'\n')){
 		string line2,line3;
-		std::vector<std::string>param_line = getParamsLine(line);
+		vector<string>param_line = getParamsLine(line);
 		line2 = param_line[0];
 		line3 = param_line[1];
-		std::string s_id = std::to_string(i);
+		string s_id = std::to_string(i);
 		if(line2 == "vaccine_mode_" + s_id){
 		    vaxTemp.setMode(this->parseString(line3));
 		}
@@ -782,7 +780,7 @@ void Simulation::readVaccineProfilesFile(){
 		    vaxTemp.setNormdev(this->parseDouble(line3));
 		}
 		if(line2 == "vaccine_schedule_" + s_id){
-		    std::vector<int> rSchedule;
+		    vector<int> rSchedule;
 		    this->parseVector(line3, &(rSchedule));
 		    vaxTemp.setRelativeSchedule(rSchedule);
 		    rSchedule.clear();
@@ -797,14 +795,14 @@ void Simulation::readVaccineProfilesFile(){
     }else{
         string msg("There are no vaccines to read in ");
         msg += vaccineProfilesFile;
-	throw std::runtime_error(msg);
+	throw runtime_error(msg);
 	//exit(1);
     }
     infile.close();
 }
 
-std::vector<std::string> Simulation::getParamsLine(std::string line_){
-    stringstream linetemp;
+vector<string> Simulation::getParamsLine(string line_){
+    std::stringstream linetemp;
     string line2_,line3_;
     linetemp.clear();
     linetemp << line_;
@@ -813,22 +811,22 @@ std::vector<std::string> Simulation::getParamsLine(std::string line_){
     linetemp.clear();
     linetemp << line2_;
     getline(linetemp,line2_,' ');
-    std::vector<std::string> params;
+    vector<string> params;
     params.push_back(line2_);
     params.push_back(line3_);
     return params;
 }
 
-int Simulation::parseInteger(std::string line){
+int Simulation::parseInteger(string line){
     return strtol(line.c_str(), NULL, 10);
 }
 
-double Simulation::parseDouble(std::string line){
+double Simulation::parseDouble(string line){
     return strtod(line.c_str(), NULL);
 }
 
-void Simulation::parseVector(std::string line, std::vector<int> * vector_temp){
-    stringstream linetemp;
+void Simulation::parseVector(string line, vector<int> * vector_temp){
+    std::stringstream linetemp;
     string line2;
     linetemp.clear();
     linetemp << line;
@@ -842,11 +840,11 @@ void Simulation::parseVector(std::string line, std::vector<int> * vector_temp){
     }
 
     if(vector_temp->empty()){
-	throw std::runtime_error("Parsevector Vector_temp is empty\n");
+	throw runtime_error("Parsevector Vector_temp is empty\n");
         //exit(1);
     }
 }
-std::string Simulation::parseString(std::string line){
+string Simulation::parseString(string line){
     size_t first_ = line.find_first_not_of(" \t#");
     size_t last_ = line.find_last_not_of(" \t#");
     return line.substr(first_,(last_ - first_ + 1));
@@ -854,13 +852,13 @@ std::string Simulation::parseString(std::string line){
 
 void Simulation::readBirthsFile(string bFile){
     if(bFile.length() == 0){
-	throw std::runtime_error("Incorrect births file\n");
+	throw runtime_error("Incorrect births file\n");
 	//exit(1);
     }
     ifstream infile(bFile);
     if(!infile.good()){
-	cout << "births file is empty: " << bFile.c_str() << "\n";
-        throw std::runtime_error("In Simulation.cpp, something missing");
+	std::cout << "births file is empty: " << bFile.c_str() << "\n";
+        throw runtime_error("In Simulation.cpp, something missing");
         //exit(1);
     }
     string line, houseID;
@@ -900,7 +898,7 @@ void Simulation::readBirthsFile(string bFile){
 void Simulation::readTrajectoryFile(string trajFile){
     if(trajFile.length() == 0){
         //exit(1);
-        throw std::runtime_error("In Simulation.cpp, something missing");
+        throw runtime_error("In Simulation.cpp, something missing");
     }
     printf("reading %s file with trajectories\n", trajFile.c_str());
     string line, houseID, personID;
@@ -908,7 +906,7 @@ void Simulation::readTrajectoryFile(string trajFile){
 
     ifstream infile(trajFile);
     if(!infile.good()){
-        throw std::runtime_error("In Simulation.cpp, something missing");
+        throw runtime_error("In Simulation.cpp, something missing");
         //exit(1);
     }
     while(getline(infile, line, ',')){
@@ -920,13 +918,13 @@ void Simulation::readTrajectoryFile(string trajFile){
 	    personID =houseID + std::to_string(hMemID);
             vpath_t path;
             getline(infile, line);
-            stringstream ss;
+            std::stringstream ss;
             ss << line;
             while(getline(ss, line, ',')){
                 string hID = line;
                 getline(ss, line, ',');
                 double timeSpent = strtod(line.c_str(), NULL);
-                path.push_back(std::make_pair(hID, timeSpent));
+                path.push_back(make_pair(hID, timeSpent));
             }
             // directly insert path
             (*ptrajectories)[itraj] = move(path);
@@ -977,7 +975,7 @@ void Simulation::readTrajectoryFile(string trajFile){
 void Simulation::readVaccinationGroupsFile(){
     if (vaccinationGroupsFile.length() == 0) {
 	//exit(1);
-        throw std::runtime_error("In Simulation.cpp, something missing");
+        throw runtime_error("In Simulation.cpp, something missing");
     }
     string line;
     int maxAge;
@@ -985,7 +983,7 @@ void Simulation::readVaccinationGroupsFile(){
     ifstream infile(vaccinationGroupsFile);
     if(!infile.good()){
 	//exit(1);
-        throw std::runtime_error("In Simulation.cpp, something missing");
+        throw runtime_error("In Simulation.cpp, something missing");
     }
     while(getline(infile, line, ',')){
         minAge = strtol(line.c_str(), NULL, 10);
@@ -998,7 +996,7 @@ void Simulation::readVaccinationGroupsFile(){
 
 
 bool Simulation::checkAgeToVaccinate(int age_){
-    //std::map<int,int> & the_age
+    //map<int,int> & the_age
     for(const auto & the_age : ageGroups) {
 	//      for(int k = (*itAge).first; k <= (*itAge).second; k++){
 	if(age_ >= the_age.first * 365 && age_ <= the_age.second * 365){

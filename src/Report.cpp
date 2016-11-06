@@ -8,8 +8,7 @@
 #include <sstream>
 #include "Report.h"
 
-using namespace std;
-
+using std::stringstream;
 
 Report::Report(){
     reportCohort = false;
@@ -98,7 +97,7 @@ void Report::setupReport(string file, string outputPath_, string simName_) {
 	exit(1);
     }
     string line;
-    ifstream infile(file);
+    std::ifstream infile(file);
     if(!infile.good()){
 	exit(1);
     }
@@ -136,7 +135,7 @@ void Report::setupReport(string file, string outputPath_, string simName_) {
     spatialMosquitoes = this->readParameter("spatial_mosquitoes", spatialMosquitoes);
 
     if(reportSpatial == true){
-	std::string outputSpatialFile = outputPath_ + "/" + simName_ + "_spatial.csv";
+	string outputSpatialFile = outputPath_ + "/" + simName_ + "_spatial.csv";
 	outSpatial.open(outputSpatialFile);
 	if (!outSpatial.good()) {
 	    exit(1);
@@ -144,7 +143,7 @@ void Report::setupReport(string file, string outputPath_, string simName_) {
     }
 
     if(reportFOI == true){
-	std::string outputFOIFile = outputPath_ + "/" + simName_ + "_foi.csv";
+	string outputFOIFile = outputPath_ + "/" + simName_ + "_foi.csv";
 	outFOI.open(outputFOIFile);
 	if (!outFOI.good()) {
 	    exit(1);
@@ -177,8 +176,8 @@ void Report::setupReport(string file, string outputPath_, string simName_) {
     printHeaders();
 }
 
-void Report::readParameter(std::string param_name,std::string param_type, std::vector<rangeStruct> * values_){
-   std::map<std::string, std::string>::iterator it;
+void Report::readParameter(string param_name,string param_type, vector<rangeStruct> * values_){
+   map<string, string>::iterator it;
     it = parameters.find(param_name);
     if(it != parameters.end()){
 	if(param_type == "ages"){
@@ -189,8 +188,8 @@ void Report::readParameter(std::string param_name,std::string param_type, std::v
     }
 }
 
-Report::rangeStruct Report::readParameter(std::string param_name,std::string param_type, rangeStruct vtemp){
-   std::map<std::string, std::string>::iterator it;
+Report::rangeStruct Report::readParameter(string param_name,string param_type, rangeStruct vtemp){
+   map<string, string>::iterator it;
    rangeStruct values_ = vtemp;
     it = parameters.find(param_name);
     if(it != parameters.end()){
@@ -201,8 +200,8 @@ Report::rangeStruct Report::readParameter(std::string param_name,std::string par
     return values_;
 }
 
-bool Report::readParameter(std::string param_name, bool vtemp){
-    std::map<std::string, std::string>::iterator it;
+bool Report::readParameter(string param_name, bool vtemp){
+    map<string, string>::iterator it;
     bool values_ = vtemp;
     it = parameters.find(param_name);
     if(it != parameters.end()){
@@ -211,8 +210,8 @@ bool Report::readParameter(std::string param_name, bool vtemp){
     return values_;
 }
 
-void Report::readParameter(std::string param_name, std::string param_type, int * values_){
-    std::map<std::string, std::string>::iterator it;
+void Report::readParameter(string param_name, string param_type, int * values_){
+    map<string, string>::iterator it;
     it = parameters.find(param_name);
     if(it != parameters.end()){
 	if(param_type == "events"){
@@ -230,7 +229,7 @@ void Report::readParameter(std::string param_name, std::string param_type, int *
     }
 }
 
-void Report::addParameter(std::string line){
+void Report::addParameter(string line){
     if(line.size() > 0 && line[0] != '#' && line[0] != ' '){
 	string param_name, param_value;
 	size_t pos_equal = line.find_first_of('=');
@@ -257,12 +256,12 @@ void Report::addParameter(std::string line){
     }
 }
 
-bool Report::parseBoolean(std::string line){
-    bool flag_temp = (stoi(line.c_str(), NULL, 10) == 0 ? false : true);
+bool Report::parseBoolean(string line){
+    bool flag_temp = (std::stoi(line.c_str(), NULL, 10) == 0 ? false : true);
     return flag_temp;
 }
 
-void Report::parsePeriod(std::string line, int * period_temp){
+void Report::parsePeriod(string line, int * period_temp){
     stringstream linetemp;
     string line2;
     linetemp.clear();
@@ -284,7 +283,7 @@ void Report::parsePeriod(std::string line, int * period_temp){
     }
 }
 
-void Report::parseGroupsAges(std::string line, std::vector<rangeStruct> * ages_temp){
+void Report::parseGroupsAges(string line, vector<rangeStruct> * ages_temp){
     stringstream linetemp;
     string line2;
     linetemp.clear();
@@ -307,7 +306,7 @@ void Report::parseGroupsAges(std::string line, std::vector<rangeStruct> * ages_t
     }
 }
 
-Report::rangeStruct Report::parseDiscreteAges(std::string line){
+Report::rangeStruct Report::parseDiscreteAges(string line){
     stringstream linetemp;
     string line2;
     linetemp.clear();
@@ -324,7 +323,7 @@ Report::rangeStruct Report::parseDiscreteAges(std::string line){
     }
 }
 
-void Report::parseEvents(std::string line, int * Events_, int len){
+void Report::parseEvents(string line, int * Events_, int len){
 
     stringstream linetemp;
     string line2;
@@ -1132,8 +1131,8 @@ void Report::updateCohortReport(int currDay, Human * h){
 
 
 
-int Report::getGroup(int age_, std::vector<rangeStruct> groups_temp){
-    std::vector<rangeStruct>::iterator itAge = groups_temp.begin();
+int Report::getGroup(int age_, vector<rangeStruct> groups_temp){
+    vector<rangeStruct>::iterator itAge = groups_temp.begin();
     int count = 0;
     for(; itAge != groups_temp.end(); itAge++){
 	if((double )age_ / 365.0 >= (*itAge).min && (double) age_ / 365.0 < (*itAge).max){
@@ -1153,7 +1152,7 @@ void Report::printSpatialReport(int currDay){
 }
 
 void Report::printFOIReport(int currDay){
-    std::vector<string> foi_values; string outstring;
+    vector<string> foi_values; string outstring;
     foi_values.clear();
     for(int i = 0; i < 4; i++){
 	if(foiTypes[i]){
@@ -1404,11 +1403,11 @@ void Report::printHeaders(){
     }
 }
 
-void Report::join(const vector<std::string>& v, char c, string& s) {
+void Report::join(const vector<string>& v, char c, string& s) {
 
     s.clear();
 
-    for (vector<std::string>::const_iterator p = v.begin(); p != v.end(); ++p) {
+    for (vector<string>::const_iterator p = v.begin(); p != v.end(); ++p) {
 	s += *p;
 	if (p != v.end() - 1){
 	    s += c;
@@ -1420,7 +1419,7 @@ void Report::join(const vector<std::string>& v, char c, string& s) {
 }
 
 void Report::printSpatialHeader(){
-    std::vector<string> headers; string outstring;
+    vector<string> headers; string outstring;
     headers.clear();
     headers.push_back("Xcoor,Ycoor");
     if(spatialMosquitoes == true){
@@ -1436,7 +1435,7 @@ void Report::printSpatialHeader(){
 }
 
 void Report::printFOIHeader(){
-    std::vector<string> headers; string outstring;
+    vector<string> headers; string outstring;
     headers.clear();
     for(int i = 0; i < 4; i++){
 	if(foiTypes[i]){

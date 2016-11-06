@@ -14,7 +14,9 @@
 #include "RandomNumGenerator.h"
 #include "Human.h"
 
-using namespace std;
+using std::vector;
+using std::string;
+using std::map;
 
 class Surveillance {
     struct hRecord{
@@ -34,11 +36,11 @@ class Surveillance {
 	double onset[4];
 	bool seroStatusAtVaccination;
 	int previousExposure[4];
-	std::string trialArm;
-	std::vector<std::string> primary;
-	std::vector<std::string> pcr;
-	std::string firstPCR;
-	std::string houseID;
+	string trialArm;
+	vector<string> primary;
+	vector<string> pcr;
+	string firstPCR;
+	string houseID;
     };
  public:
     Surveillance();
@@ -49,8 +51,8 @@ class Surveillance {
 
     void initialize_human_surveillance(Human *, int);
     void finalize_human_surveillance(Human *, int);
-    void setup(std::string);
-    void printRecords(std::string, int);
+    void setup(string);
+    void printRecords(string, int);
 
  private:
     int contactFrequency;
@@ -58,17 +60,17 @@ class Surveillance {
     double selfReportProb;
     double reportTodayProb;
 
-    std::map<std::string, hRecord> recordsDatabase;
-    std::map<std::string, std::string> parameters;
+    map<string, hRecord> recordsDatabase;
+    map<string, string> parameters;
 
     void contactPerson(Human *, int, RandomNumGenerator *);
-    void addParameter(std::string);
-    void join(const vector<std::string>& , char , string& );
+    void addParameter(string);
+    void join(const vector<string>& , char , string& );
     int PCR_test(Human *, int, RandomNumGenerator *);
-    int parseInteger(std::string);
-    int readParameter(std::string, int );
-    double parseDouble(std::string);
-    double readParameter(std::string, double );
+    int parseInteger(string);
+    int readParameter(string, int );
+    double parseDouble(string);
+    double readParameter(string, double );
 };
 
 #endif	/* SURVEILLANCE_H */

@@ -3,78 +3,76 @@
 #include <cmath>
 #include <sstream>
 
-using namespace std;
-
 double RandomNumGenerator::getWaningTime(double wan) {
-    exponential_distribution<> d(1./wan);
+    std::exponential_distribution<> d(1./wan);
     return d(gen);
 }
 
 unsigned RandomNumGenerator::getMozEmerge(double mozMean) {    
-    poisson_distribution<> dis(emergeFactor * mozMean);
+    std::poisson_distribution<> dis(emergeFactor * mozMean);
     return dis(gen);
 }
 
 unsigned RandomNumGenerator::getMozEmerge(double mozMean, double seasonalFactor) {    
-    poisson_distribution<> dis( mozMean * seasonalFactor);
+    std::poisson_distribution<> dis( mozMean * seasonalFactor);
     return dis(gen);
 }
 
 double RandomNumGenerator::getMozLifeSpan() {    
-    exponential_distribution<> d(1./mozLife);
+    std::exponential_distribution<> d(1./mozLife);
     return d(gen);
 }
 
 double RandomNumGenerator::getMozDeathRate(double deathIn) {    
-    exponential_distribution<> d(deathIn);
+    std::exponential_distribution<> d(deathIn);
     return (1 / d(gen));
 }
 
 double RandomNumGenerator::getMozLifeSpan(double deathIn) {    
-    exponential_distribution<> d(deathIn);
+    std::exponential_distribution<> d(deathIn);
     return d(gen);
 }
 
 double RandomNumGenerator::getMozLatencyDays(double muIn) {
     //    lognormal_distribution<> d(1.648721, 0.451754);
-    lognormal_distribution<> d(muIn,0.451754);
+    std::lognormal_distribution<> d(muIn,0.451754);
     return d(gen);
 }
 
 double RandomNumGenerator::getMozLatencyRate(double muIn) {
     //    lognormal_distribution<> d(1.648721, 0.451754);
-    lognormal_distribution<> d(muIn,0.451754);
+    std::lognormal_distribution<> d(muIn,0.451754);
     double EIPrate = 1 / d(gen);
     return EIPrate;
 }
 
 double RandomNumGenerator::getMozRestDays() {
-    exponential_distribution<> d(mozRest);
+    std::exponential_distribution<> d(mozRest);
     return d(gen);
 }
 
 double RandomNumGenerator::getMozRestDays(double mozRestIn) {
-    exponential_distribution<> d(mozRestIn);
+    std::exponential_distribution<> d(mozRestIn);
     return d(gen);
 }
 
 unsigned RandomNumGenerator::getMozNextLoc(unsigned num) {
-    uniform_int_distribution<> dis(0, num-1);
+    std::uniform_int_distribution<> dis(0, num-1);
     return dis(gen);
 }
 
 unsigned RandomNumGenerator::getHumanTrajectory() {
-    uniform_int_distribution<> dis(0, 4);
+    std::uniform_int_distribution<> dis(0, 4);
     return dis(gen);
 }
 
 unsigned RandomNumGenerator::getHumanImmunity() {
-    exponential_distribution<> d(1./huImmunity);
+    std::exponential_distribution<> d(1./huImmunity);
     return ceil(d(gen));
 }
 
 unsigned RandomNumGenerator::getVaxHumanImmunity(unsigned immdays) {
-  exponential_distribution<> d(1./immdays);
+  std::exponential_distribution<> d(1./immdays);
   return ceil(d(gen));
 }
 
@@ -88,7 +86,7 @@ bool RandomNumGenerator::getHumanSeropositivity(double FOI, double age) {
 }
 
 unsigned RandomNumGenerator::getRandomNum(unsigned num) {
-    uniform_int_distribution<> dis(0, num-1);
+    std::uniform_int_distribution<> dis(0, num-1);
     return dis(gen);
 }
 
@@ -97,12 +95,12 @@ int RandomNumGenerator::getSelfReportDay(double IIP){
 }
 
 double RandomNumGenerator::getRandomNormal(){
-    normal_distribution<> d(0.0, 1.0);
+    std::normal_distribution<> d(0.0, 1.0);
     return d(gen);
 }
 
 double RandomNumGenerator::getEventProbability() {
-    uniform_real_distribution<> dis(0, 1);
+    std::uniform_real_distribution<> dis(0, 1);
     return dis(gen);
 }
 
@@ -112,7 +110,7 @@ void RandomNumGenerator::setSeed(unsigned s) {
 }
 
 string RandomNumGenerator::toString() const {
-    stringstream ss;
+    std::stringstream ss;
     ss <<" huImmunity:" << huImmunity;
     ss <<" emergeFactor:" << emergeFactor;
     ss <<" mozLife:" << mozLife;
@@ -120,11 +118,9 @@ string RandomNumGenerator::toString() const {
     return ss.str();
 }
 
-
-
 RandomNumGenerator::RandomNumGenerator(
     unsigned s, unsigned huImm, double efactor, double mlife,
-    double mbite, std::map<unsigned,double> hlife)
+    double mbite, map<unsigned,double> hlife)
 {
     seed = s;
     gen.seed(s);

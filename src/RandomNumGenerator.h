@@ -7,6 +7,9 @@
 #include <iostream>
 #include <algorithm>
 
+using std::string;
+using std::map;
+
 class RandomNumGenerator {
 public:
     template <class RandIt> 
@@ -37,8 +40,8 @@ public:
     int getSelfReportDay(double);
 
     void setSeed(unsigned);
-    std::string toString() const;
-    RandomNumGenerator(unsigned, unsigned, double, double, double, std::map<unsigned,double>);
+    string toString() const;
+    RandomNumGenerator(unsigned, unsigned, double, double, double, map<unsigned,double>);
     RandomNumGenerator();
     RandomNumGenerator(const RandomNumGenerator& orig);
     //virtual ~RandomNumGenerator();
@@ -49,7 +52,7 @@ public:
         std::cout << gen << std::endl;
     }
     // print RNG state summary (first nchar of full state)
-    void showState(unsigned nchar, const std::string prefix="## ") {
+    void showState(unsigned nchar, const string prefix="## ") {
         char buff[nchar];
         std::stringstream the_state;
         the_state << gen;
@@ -64,7 +67,7 @@ private:
     double emergeFactor;
     double mozLife;
     double mozRest;
-    std::map<unsigned,double> halflife;
+    map<unsigned,double> halflife;
 };
 
 #endif	/* RANDOMNUMGENERATOR_H */

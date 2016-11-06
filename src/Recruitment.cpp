@@ -10,8 +10,6 @@
 #include "Recruitment.h"
 #include "Human.h"
 
-using namespace std;
-
 Recruitment::Recruitment(){
     vaccineSampleSize = 0;
     placeboSampleSize = 0;
@@ -54,8 +52,8 @@ void Recruitment::update(int currDay, RandomNumGenerator * rGen){
 void Recruitment::removeParticipant(Human * h, int currDay){
     trialSurveillance.finalize_human_surveillance(h, currDay);
     h->unenrollTrial();
-    std::string arm_ = h->getTrialArm();
-    std::vector<Human *> * arm_v;
+    string arm_ = h->getTrialArm();
+    vector<Human *> * arm_v;
     int i = getAgeGroup(h->getAgeTrialEnrollment(),ageGroups);
     if(i >=0){
 	if(arm_ == "vaccine"){
@@ -92,11 +90,11 @@ void Recruitment::updateParticipants(int currDay, RandomNumGenerator * rGen){
     }
 }
 
-void Recruitment::updateArm(unsigned vaxID, std::vector<Human *> * arm, int currDay, RandomNumGenerator * rGen){
+void Recruitment::updateArm(unsigned vaxID, vector<Human *> * arm, int currDay, RandomNumGenerator * rGen){
     // boost vaccine, decide if dropout, remove death people from the list
     printf("Update Arm\n");
     if(vaccinesPtr.at(vaxID).getDoses() > 1){
-	std::vector<Human *>::iterator it;
+	vector<Human *>::iterator it;
 	for(it = arm->begin(); it != arm->end(); ){
 	    if((*it) != NULL){
 		if((*it)->isEnrolledInTrial() == true){
@@ -160,9 +158,9 @@ void Recruitment::enrollTodayParticipants(int currDay, RandomNumGenerator * rGen
 }
 
 void Recruitment::enrollArmParticipants(
-					std::vector<Human *> * arm,
-					std::vector<Human *> * eligible_vector,
-					std::string arm_str, int currDay,
+					vector<Human *> * arm,
+					vector<Human *> * eligible_vector,
+					string arm_str, int currDay,
 					int sample_size,
 					int rec_rate,
 					int min_,
@@ -184,7 +182,7 @@ void Recruitment::enrollArmParticipants(
 	}else if(temp_age < min_){
 	    Human * temp_h = eligible_vector->back();
 	    eligible_vector->pop_back();
-	    std::vector<Human *>::iterator it = eligible_vector->begin();
+	    vector<Human *>::iterator it = eligible_vector->begin();
 	    long unsigned pos = rGen->getRandomNum(eligible_vector->size());
 	    eligible_vector->insert(it+pos,temp_h);
 	}else{
@@ -200,7 +198,7 @@ void Recruitment::enrollArmParticipants(
     }
 }
 
-void Recruitment::setupRecruitment(std::string file, std::map<unsigned,Vaccine> vaccines_, std::string outputPath, std::string simName_){
+void Recruitment::setupRecruitment(string file, map<unsigned,Vaccine> vaccines_, string outputPath, string simName_){
     // Initialize vaccines profiles
     vaccinesPtr = vaccines_;
     if(vaccinesPtr.size() == 0){
@@ -216,7 +214,7 @@ void Recruitment::setupRecruitment(std::string file, std::map<unsigned,Vaccine> 
     outSurveillance = outputPath + "/" + simName_ + "_trial.csv";
 
     string line;
-    ifstream infile(file);
+    std::ifstream infile(file);
 
     if(!infile.good()){
 		exit(1);
@@ -225,7 +223,7 @@ void Recruitment::setupRecruitment(std::string file, std::map<unsigned,Vaccine> 
     // Read the trial recruitment parameters
     while(getline(infile,line,'\n')){
 	string line2,line3;
-	std::vector<std::string>param_line = getParamsLine(line);
+	vector<string>param_line = getParamsLine(line);
 	line2 = param_line[0];
 	line3 = param_line[1];
 	//	printf("Line2: -%s- Line3: -%s-\n",line2.c_str(),line3.c_str());
@@ -271,8 +269,8 @@ void Recruitment::setupRecruitment(std::string file, std::map<unsigned,Vaccine> 
     infile.close();
 }
 
-std::vector<std::string> Recruitment::getParamsLine(std::string line_){
-    stringstream linetemp;
+vector<string> Recruitment::getParamsLine(string line_){
+    std::stringstream linetemp;
     string line2_,line3_;
     linetemp.clear();
     linetemp << line_;
@@ -281,7 +279,7 @@ std::vector<std::string> Recruitment::getParamsLine(std::string line_){
     linetemp.clear();
     linetemp << line2_;
     getline(linetemp,line2_,' ');
-    std::vector<std::string> params;
+    vector<string> params;
     params.push_back(line2_);
     params.push_back(line3_);
     return params;
@@ -325,8 +323,8 @@ void Recruitment::shuffleEligibleParticipants(RandomNumGenerator & refGen){
     printf("Shuffle participants finished\n");
 }
 
-int Recruitment::getAgeGroup(int age_, std::vector<groupStruct> groups_temp){
-    std::vector<groupStruct>::iterator itAge = groups_temp.begin();
+int Recruitment::getAgeGroup(int age_, vector<groupStruct> groups_temp){
+    vector<groupStruct>::iterator itAge = groups_temp.begin();
     int count = 0;
     for(; itAge != groups_temp.end(); itAge++){
 	if((double )age_ / 365.0 >= (*itAge).min && (double) age_ / 365.0 < (*itAge).max){
@@ -337,11 +335,11 @@ int Recruitment::getAgeGroup(int age_, std::vector<groupStruct> groups_temp){
     return -1;
 }
 
-int Recruitment::getPossibleAgeGroup(int age_, std::vector<groupStruct> groups_temp, int time_temp){
+int Recruitment::getPossibleAgeGroup(int age_, vector<groupStruct> groups_temp, int time_temp){
     if(time_temp < 0){
 	time_temp = 0;
     }
-    std::vector<groupStruct>::iterator itAge = groups_temp.begin();
+    vector<groupStruct>::iterator itAge = groups_temp.begin();
     int count = 0;
     for(; itAge != groups_temp.end(); itAge++){
 	if((double ) (age_ + time_temp) / 365.0 >= (*itAge).min && (double) age_ / 365.0 < (*itAge).max){
@@ -360,28 +358,28 @@ long int Recruitment::getEligibleParticipantsSize(){
     return s;
 }
 
-int Recruitment::parseInteger(std::string line){
+int Recruitment::parseInteger(string line){
     return strtol(line.c_str(), NULL, 10);
 }
 
-double Recruitment::parseDouble(std::string line){
+double Recruitment::parseDouble(string line){
     return strtod(line.c_str(), NULL);
 }
 
-std::string Recruitment::parseString(std::string line){
+string Recruitment::parseString(string line){
     size_t first_ = line.find_first_not_of(' ');
     size_t last_ = line.find_last_not_of(' ');
     return line.substr(first_,(last_ - first_ + 1));
 }
 
-void Recruitment::parseAges(std::string line, std::vector<groupStruct> * ages_temp){
-    stringstream linetemp;
+void Recruitment::parseAges(string line, vector<groupStruct> * ages_temp){
+    std::stringstream linetemp;
     string line2;
     linetemp.clear();
     linetemp << line;
     ages_temp->clear();
     while(getline(linetemp,line2,';')){
-		stringstream lTemp; lTemp << line2;
+		std::stringstream lTemp; lTemp << line2;
 		string line3;
 		groupStruct rangeTemp;
 		rangeTemp.vaccine.clear();
@@ -400,8 +398,8 @@ void Recruitment::parseAges(std::string line, std::vector<groupStruct> * ages_te
 		exit(1);
     }
 }
-void Recruitment::parseVector(std::string line, std::vector<double> * vector_temp){
-    stringstream linetemp;
+void Recruitment::parseVector(string line, vector<double> * vector_temp){
+    std::stringstream linetemp;
     string line2;
     linetemp.clear();
     linetemp << line;

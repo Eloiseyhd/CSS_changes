@@ -12,6 +12,10 @@
 
 #include "RandomNumGenerator.h"
 
+using std::map;
+using std::vector;
+using std::string;
+
 class Vaccine {
 
  private:
@@ -33,12 +37,12 @@ class Vaccine {
     double RRHosp_seropos;
     double RRHosp_seroneg;
 
-    std::string mode;
-    std::string name;
+    string mode;
+    string name;
 
-    std::map<unsigned,double> VE_pos;
-    std::map<unsigned,double> VE_neg;
-    std::vector<int> relative_schedule;
+    map<unsigned,double> VE_pos;
+    map<unsigned,double> VE_neg;
+    vector<int> relative_schedule;
 
 public:
     Vaccine();
@@ -46,8 +50,8 @@ public:
 
     void init();
     void setID(unsigned id){vaccineID = id;}
-    void setMode(std::string m){mode = m;}
-    void setName(std::string n){name = n;}
+    void setMode(string m){mode = m;}
+    void setName(string n){name = n;}
     void setWaning(double w){waning = w;}
     void setWaning(bool seroposIn, double w);
     void setVaccineEfficacy(bool seroposIn, double w);
@@ -60,11 +64,11 @@ public:
     void addVE_neg(double v, unsigned a){VE_neg.at(a) = v;}
     void setPropInf(double p){this->propInf = p;}
     void setNormdev(double n){this->normdev = n;}
-    void setRelativeSchedule(std::vector<int>);
+    void setRelativeSchedule(vector<int>);
     void printVaccine();
 
     unsigned getVaccineID(){return vaccineID;}
-    std::string getMode(){return mode;}
+    string getMode(){return mode;}
 
     int getDoses(){return doses;}
     int getNextDoseTime(int, int);

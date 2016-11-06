@@ -1,8 +1,6 @@
 #include "Infection.h"
 #include <sstream>
 
-using namespace std;
-
 int Infection::getStartDay() const {
     return startDay;
 }
@@ -56,8 +54,8 @@ void Infection::setInfectiousnessHuman(int currentDay){
     }
 }
 
-string Infection::toString() const {
-    stringstream ss;
+std::string Infection::toString() const {
+    std::stringstream ss;
     ss << infType << " " << startDay <<" " << endDay << " " << infectiousness;
     return ss.str();
 }

@@ -10,34 +10,37 @@
 #include "RandomNumGenerator.h"
 #include "Human.h"
 
+using std::string;
+using std::vector;
+
 class Location {
 private:
-    std::string locID;
-    std::string neighborhoodID;
+    string locID;
+    string neighborhoodID;
     double xCor;
     double yCor;
     double emergenceRate;
     bool infectedVisitor;
-    std::string locType;
-    std::unique_ptr<std::vector<std::string>> closeLocs;
+    string locType;
+    std::unique_ptr<vector<string>> closeLocs;
     std::set<sp_human_t,Human::sortid> humans;
 
 public:
-    std::string getRandomCloseLoc(RandomNumGenerator&);
+    string getRandomCloseLoc(RandomNumGenerator&);
     void addHuman(sp_human_t);
     void removeHuman(sp_human_t);
     std::set<sp_human_t,Human::sortid> & getHumans(){return humans;}
-    void addCloseLoc(std::string);
+    void addCloseLoc(string);
     double getDistanceFromLoc(Location &) const;
     double getLocX() const;
     double getLocY() const;
     double getEmergenceRate() const;
     bool getInfectedVisitor(){return infectedVisitor;}
-    std::string getLocID() const;
-    std::string getLocType() const;
-    std::string getNeighID() const;
-    Location(std::string, std::string, double, double, double);
-    Location(std::string, std::string, std::string, double, double, double);
+    string getLocID() const;
+    string getLocType() const;
+    string getNeighID() const;
+    Location(string, string, double, double, double);
+    Location(string, string, string, double, double, double);
     Location();
     Location(const Location& orig);
     //virtual ~Location();

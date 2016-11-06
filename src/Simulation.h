@@ -17,27 +17,33 @@
 #include "Recruitment.h"
 #include "Human.h"
 
+
+using std::string;
+using std::vector;
+using std::ifstream;
+using std::make_pair;
+
 class Simulation {
 public:
     RandomNumGenerator rGen;
     RandomNumGenerator rGenInf;
 
-    Simulation(std::string);
+    Simulation(string);
     Simulation() = delete;
     Simulation(const Simulation& orig) = delete;
-    std::string readInputs();
-    void readTrajectoryFile(std::string);
-    void readBirthsFile(std::string);
-    void readInitialInfectionsFile(std::string);
-    void readSimControlFile(std::string);
-    void readLocationFile(std::string);
+    string readInputs();
+    void readTrajectoryFile(string);
+    void readBirthsFile(string);
+    void readInitialInfectionsFile(string);
+    void readSimControlFile(string);
+    void readLocationFile(string);
     void readDiseaseRatesFile();
     void readVaccineProfilesFile();
     void readVaccinationGroupsFile();
     void readVaccineSettingsFile();
-    void readAegyptiFile(std::string);
-    void readInitialFOI(std::string);
-    void readAnnualFOI(std::string);
+    void readAegyptiFile(string);
+    void readInitialFOI(string);
+    void readAnnualFOI(string);
     void setLocNeighborhood(double);
     void simEngine();
     void humanDynamics();
@@ -51,39 +57,39 @@ public:
     bool checkAgeToVaccinate(int age_);
     //virtual ~Simulation();
 private:
-    std::vector<std::string>getParamsLine(std::string);
-    int parseInteger(std::string);
-    std::string parseString(std::string);
-    double parseDouble(std::string);
-    void parseVector(std::string line, std::vector<int> *);
+    vector<string>getParamsLine(string);
+    int parseInteger(string);
+    string parseString(string);
+    double parseDouble(string);
+    void parseVector(string line, vector<int> *);
 
-    std::map <std::string,std::unique_ptr<Location>> locations;
-    std::map<unsigned,double> VE_pos;
-    std::map<unsigned,double> VE_neg;
-    std::map<unsigned,double> halflife;
-    std::map<unsigned,double> disRates;
-    std::map<unsigned,double> hospRates;
-    std::map<int,int> ageGroups;
-    std::map<unsigned, Vaccine> vaccines;
-    std::multimap<std::string,std::unique_ptr<Mosquito>> mosquitoes;
-    std::multimap<std::string,sp_human_t> humans;
+    map <string,std::unique_ptr<Location>> locations;
+    map<unsigned,double> VE_pos;
+    map<unsigned,double> VE_neg;
+    map<unsigned,double> halflife;
+    map<unsigned,double> disRates;
+    map<unsigned,double> hospRates;
+    map<int,int> ageGroups;
+    map<unsigned, Vaccine> vaccines;
+    std::multimap<string,std::unique_ptr<Mosquito>> mosquitoes;
+    std::multimap<string,sp_human_t> humans;
     std::multimap<int,sp_human_t> future_humans;
-    std::map<std::string, sp_human_t> total_humans_by_id;
+    map<string, sp_human_t> total_humans_by_id;
 
     unsigned currentDay;
     unsigned numDays;
-    std::string trajectoryFile;
-    std::string birthsFile;
-    std::string configLine;
-    std::string locationFile;
-    std::string vaccineProfilesFile;
-    std::string vaccineSettingsFile;
-    std::string trialSettingsFile;
-    std::string vaccinationStrategy;
-    std::string reportsFile;
-    std::string diseaseRatesFile;
-    std::string vaccinationGroupsFile;
-    std::string aegyptiRatesFile;
+    string trajectoryFile;
+    string birthsFile;
+    string configLine;
+    string locationFile;
+    string vaccineProfilesFile;
+    string vaccineSettingsFile;
+    string trialSettingsFile;
+    string vaccinationStrategy;
+    string reportsFile;
+    string diseaseRatesFile;
+    string vaccinationGroupsFile;
+    string aegyptiRatesFile;
 
     bool routineVaccination;
     bool catchupFlag;
@@ -95,13 +101,13 @@ private:
     double vaccineCoverage;
     Report outputReport;
     Recruitment recruitmentTrial;
-    std::string outputFile;
-    std::string outputPopFile;
-    std::string outputPrevacFile;
-    std::string simName;
+    string outputFile;
+    string outputPopFile;
+    string outputPrevacFile;
+    string simName;
     unsigned rSeed;
     unsigned rSeedInf;
-    std::string outputPath;
+    string outputPath;
     double deathRate;
     unsigned humanInfectionDays;
     unsigned huImm;
@@ -117,13 +123,13 @@ private:
     int deathMoz;
     int lifeMoz;
     int humanDeaths;
-    std::vector<double> meanDailyEIP;
-    std::vector<double> firstBiteRate;
-    std::vector<double> secondBiteRate;
-    std::vector<double> mozDailyDeathRate;
-    std::vector<double> dailyEmergenceFactor;
-    std::vector<double> InitialConditionsFOI;
-    std::vector<std::map<unsigned, double>> annualForceOfImportation;
+    vector<double> meanDailyEIP;
+    vector<double> firstBiteRate;
+    vector<double> secondBiteRate;
+    vector<double> mozDailyDeathRate;
+    vector<double> dailyEmergenceFactor;
+    vector<double> InitialConditionsFOI;
+    vector<map<unsigned, double>> annualForceOfImportation;
 
     std::ofstream out;
     std::ofstream outpop;

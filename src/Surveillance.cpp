@@ -8,7 +8,6 @@
 #include <sstream>
 #include "Surveillance.h"
 
-using namespace std;
 
 Surveillance::Surveillance(){
     contactFrequency = 0;
@@ -19,12 +18,12 @@ Surveillance::Surveillance(){
     parameters.clear();
 }
 
-void Surveillance::setup(std::string file){
+void Surveillance::setup(string file){
     if (file.length() == 0) {
 	exit(1);
     }
     string line;
-    ifstream infile(file);
+    std::ifstream infile(file);
     if(!infile.good()){
 	exit(1);
     }
@@ -47,7 +46,7 @@ void Surveillance::initialize_human_surveillance(Human * h, int currDay){
     h->setContactByTrial(currDay + firstContactDelay);
     h->setSeroStatusAtVaccination();
     h->setSelfReportProb(selfReportProb);
-    std::string id(h->getPersonID());
+    string id(h->getPersonID());
     hRecord tempRecord;
     tempRecord.ageDaysAtVaccination = h->getAgeTrialEnrollment();
     tempRecord.seroStatusAtVaccination = h->getSeroStatusAtVaccination();
@@ -79,7 +78,7 @@ void Surveillance::initialize_human_surveillance(Human * h, int currDay){
 
 int Surveillance::update_human_surveillance(Human * h, int currDay, RandomNumGenerator * rGen){
     int pcr_result = -1;
-    std::string id(h->getPersonID());
+    string id(h->getPersonID());
     //    printf("update surveillance %s day %d\n", id.c_str(), currDay);
     if(recordsDatabase.find(id) != recordsDatabase.end() && h->isEnrolledInTrial()){
 	if( ( currDay - recordsDatabase.find(id)->second.enrollmentDay ) >= 30){
@@ -158,7 +157,7 @@ int Surveillance::update_human_surveillance(Human * h, int currDay, RandomNumGen
 }
 
 void Surveillance::finalize_human_surveillance(Human *h, int currDay){
-    std::string id(h->getPersonID());
+    string id(h->getPersonID());
     recordsDatabase.find(id)->second.dropoutDay = currDay;
     recordsDatabase.find(id)->second.firstExp = 0;
     for(unsigned i = 0; i < 4; i++){
@@ -169,7 +168,7 @@ void Surveillance::finalize_human_surveillance(Human *h, int currDay){
 }
 
 void Surveillance::contactPerson(Human * h, int currDay, RandomNumGenerator * rGen){
-    std::string id(h->getPersonID());
+    string id(h->getPersonID());
     if(h->infection != NULL){
 	int serotype =  h->infection->getInfectionType() -1;
 	if(recordsDatabase.find(id)->second.TTR[serotype] == -1){
@@ -182,7 +181,7 @@ void Surveillance::contactPerson(Human * h, int currDay, RandomNumGenerator * rG
 }
 
 int Surveillance::PCR_test(Human * h, int currDay, RandomNumGenerator * rGen){
-    std::string id(h->getPersonID());
+    string id(h->getPersonID());
     int pcr_result = -1;
     double sensitivity = 0.0;
     if(h->infection != NULL){
@@ -208,7 +207,7 @@ int Surveillance::PCR_test(Human * h, int currDay, RandomNumGenerator * rGen){
 }
 
 
-void Surveillance::printRecords(std::string file, int currDay){
+void Surveillance::printRecords(string file, int currDay){
     if (file.length() == 0) {
 	exit(1);
     }
@@ -217,11 +216,11 @@ void Surveillance::printRecords(std::string file, int currDay){
     if (!outSurveillance.good()) {
 	exit(1);
     }
-    std::vector<std::string> headers; std::string outstring;
+    vector<string> headers; string outstring;
 
     headers.push_back("ID,Age,Arm,Serostatus,Enrollment_day,Last_day");
     for(unsigned i = 0; i < 4; i++){
-	std::string nn = std::to_string(i + 1);;
+	string nn = std::to_string(i + 1);;
 	headers.push_back("previous_exposure_"+ nn + ",onset_" + nn + ",symptoms_" + nn + ",severity_" + nn + ",PCRday_" + nn + ",PCR_" + nn + ",TYPE_" + nn + ",TTEL_" + nn + ",TTER_" + nn + ",numexp_" + nn);
     }
     headers.push_back("firstTTL, firstTTR, firstPCR, firstNumExp");
@@ -229,34 +228,34 @@ void Surveillance::printRecords(std::string file, int currDay){
 
     outSurveillance << outstring;
 
-    std::map<std::string, hRecord>::iterator it;
+    map<string, hRecord>::iterator it;
     for(it = recordsDatabase.begin(); it != recordsDatabase.end(); ++it){
-	std::string serostatus = ((*it).second.seroStatusAtVaccination == true) ? "POSITIVE" : "NEGATIVE";
+	string serostatus = ((*it).second.seroStatusAtVaccination == true) ? "POSITIVE" : "NEGATIVE";
 	int lastDay = (*it).second.dropoutDay > -1 ? (*it).second.dropoutDay : currDay;
 	outSurveillance << (*it).second.houseID.c_str() << "_" << (*it).second.houseMemNum << "," << (*it).second.ageDaysAtVaccination / 365 << "," << (*it).second.trialArm.c_str() << "," << serostatus.c_str() << ",";
 	outSurveillance << (*it).second.enrollmentDay << "," << lastDay << ",";
 	for(int i = 0; i < 4; i++){
-	    std::string sympt = "NA";
-	    std::string hosp = "NA";
-	    std::string onset = ((*it).second.onset[i] < 0) ? "NA" : std::to_string((*it).second.onset[i]); 
+	    string sympt = "NA";
+	    string hosp = "NA";
+	    string onset = ((*it).second.onset[i] < 0) ? "NA" : std::to_string((*it).second.onset[i]); 
 	    if((*it).second.symptoms[i] == 1){
 		sympt =  "symptomatic";
 		//		onset = std::to_string((*it).second.onset[i]); 
 		hosp = ((*it).second.hosp[i] == 1) ? "hospitalized" : "mild";
 	    }
-	    std::string ttr = (*it).second.TTR[i] >= 0 ? std::to_string((*it).second.TTR[i]) : "NA";
-	    std::string pcr_day = (*it).second.pcrDay[i] >= 0 ? std::to_string((*it).second.pcrDay[i]) : "NA";
+	    string ttr = (*it).second.TTR[i] >= 0 ? std::to_string((*it).second.TTR[i]) : "NA";
+	    string pcr_day = (*it).second.pcrDay[i] >= 0 ? std::to_string((*it).second.pcrDay[i]) : "NA";
 	    outSurveillance << (*it).second.previousExposure[i] << "," << onset << "," << sympt << "," << hosp << "," << pcr_day << ","<< (*it).second.pcr[i].c_str() << "," << (*it).second.primary[i] << "," << (*it).second.TTL[i] << "," << ttr;
 	    outSurveillance << "," << (*it).second.numExp[i] << ",";
 	}
-	std::string ttr = (*it).second.firstTTR >= 0 ? std::to_string((*it).second.firstTTR) : "NA";
+	string ttr = (*it).second.firstTTR >= 0 ? std::to_string((*it).second.firstTTR) : "NA";
 	outSurveillance << (*it).second.firstTTL << "," << ttr << "," << (*it).second.firstPCR << "," << (*it).second.firstExp << "\n";  
     }
     outSurveillance.close();
 
 }
 
-void Surveillance::addParameter(std::string line){
+void Surveillance::addParameter(string line){
     if(line.size() > 0 && line[0] != '#' && line[0] != ' '){
 	string param_name, param_value;
 	size_t pos_equal = line.find_first_of('=');
@@ -283,8 +282,8 @@ void Surveillance::addParameter(std::string line){
     }
 }
 
-int Surveillance::readParameter(std::string param_name, int vtemp){
-    std::map<std::string, std::string>::iterator it;
+int Surveillance::readParameter(string param_name, int vtemp){
+    map<string, string>::iterator it;
     int values_ = vtemp;
     it = parameters.find(param_name);
     if(it != parameters.end()){
@@ -292,8 +291,8 @@ int Surveillance::readParameter(std::string param_name, int vtemp){
     }
     return values_;
 }
-double Surveillance::readParameter(std::string param_name, double vtemp){
-    std::map<std::string, std::string>::iterator it;
+double Surveillance::readParameter(string param_name, double vtemp){
+    map<string, string>::iterator it;
     double values_ = vtemp;
     it = parameters.find(param_name);
     if(it != parameters.end()){
@@ -302,19 +301,19 @@ double Surveillance::readParameter(std::string param_name, double vtemp){
     return values_;
 }
 
-int Surveillance::parseInteger(std::string line){
+int Surveillance::parseInteger(string line){
     return strtol(line.c_str(), NULL, 10);
 }
 
-double Surveillance::parseDouble(std::string line){
+double Surveillance::parseDouble(string line){
     return strtod(line.c_str(), NULL);
 }
 
-void Surveillance::join(const vector<std::string>& v, char c, string& s) {
+void Surveillance::join(const vector<string>& v, char c, string& s) {
 
     s.clear();
 
-    for (vector<std::string>::const_iterator p = v.begin(); p != v.end(); ++p) {
+    for (vector<string>::const_iterator p = v.begin(); p != v.end(); ++p) {
 	s += *p;
 	if (p != v.end() - 1){
 	    s += c;

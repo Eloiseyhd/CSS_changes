@@ -11,27 +11,31 @@
 #include "RandomNumGenerator.h"
 #include "Human.h"
 
+using std::map;
+using std::string;
+using ratemap_t = map<unsigned,double> *;
+
 class Mosquito {
 public:
-    std::string getLocationID() const;
-    void setLocation(std::string);
+    string getLocationID() const;
+    void setLocation(string);
     void setBirthDay(int currDay) {bday = currDay;}
     int getBirthDay(){return bday;}
     double getDDay() const;
     void setBiteStartDay(double);
     double getBiteStartDay();
     double getNumBites(){return nbites;}
-    bool takeBite(double,Location *,RandomNumGenerator *, RandomNumGenerator *,std::map<unsigned,double> *,std::map<unsigned,double> *,int,int,std::ofstream *, double);
-    sp_human_t whoBite(double,Location *,RandomNumGenerator *);
-    bool infectingBite(double,Location *,RandomNumGenerator *,RandomNumGenerator *,int,int, double);
-    bool infectiousBite(double,Location *,RandomNumGenerator *,RandomNumGenerator *,std::map<unsigned,double> *,std::map<unsigned,double> *,int,int,std::ofstream *);
-    Mosquito(double, double, std::string);
+    bool takeBite(double, Location *, RandomNumGenerator *, RandomNumGenerator *, ratemap_t, ratemap_t, int, int, std::ofstream *, double);
+    sp_human_t whoBite(double, Location *, RandomNumGenerator *);
+    bool infectingBite(double, Location *, RandomNumGenerator *, RandomNumGenerator *, int, int, double);
+    bool infectiousBite(double, Location *, RandomNumGenerator *, RandomNumGenerator *, ratemap_t, ratemap_t, int, int, std::ofstream *);
+    Mosquito(double, double, string);
     Mosquito();
     Mosquito(const Mosquito& orig);
     //virtual ~Mosquito();
     std::unique_ptr<Infection> infection;
 private:
-    std::string locationID;
+    string locationID;
     double dday;
     double biteStartDay;    
     int nbites;

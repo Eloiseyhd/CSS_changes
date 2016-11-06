@@ -1,13 +1,11 @@
 #include "Mosquito.h"
 #include <sstream>
 
-using namespace std;
-
 string Mosquito::getLocationID() const {
     return locationID;
 }
 
-void Mosquito::setLocation(std::string loc) {
+void Mosquito::setLocation(string loc) {
     locationID = loc;
 }
 
@@ -28,8 +26,8 @@ bool Mosquito::takeBite(
     Location * locNow,
     RandomNumGenerator * rGen,
     RandomNumGenerator * rGenInf,
-    std::map<unsigned,double> * disRates,
-    std::map<unsigned,double> * hospRates,
+    ratemap_t disRates,
+    ratemap_t hospRates,
     int currentDay,
     int numDays,
     std::ofstream * out,
@@ -56,11 +54,11 @@ sp_human_t Mosquito::whoBite(
     Location * locNow,
     RandomNumGenerator * rGen)
 {
-    std::map<sp_human_t,double,Human::sortid> humanMap;
+    map<sp_human_t,double,Human::sortid> humanMap;
     // loop through set of 
     // (shared pointers to) humans at this place
     for(auto sphum :locNow->getHumans() ){
-        const std::string & currentLoc = sphum->getCurrentLoc(time);
+        const string & currentLoc = sphum->getCurrentLoc(time);
         if(currentLoc == locationID){
             humanMap.insert(make_pair(sphum,sphum->getAttractiveness()));
         }
@@ -126,8 +124,8 @@ bool Mosquito::infectiousBite(
     Location * locNow,
     RandomNumGenerator * rGen,
     RandomNumGenerator * rGenInf,
-    std::map<unsigned,double> * disRates,
-    std::map<unsigned,double> * hospRates,
+    ratemap_t disRates,
+    ratemap_t hospRates,
     int currentDay,
     int numDays,
     std::ofstream * out)

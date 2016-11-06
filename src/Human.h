@@ -15,7 +15,6 @@
 #include "Vaccine.h"
 #include "RandomNumGenerator.h"
 
-using std::pair;
 using std::string;
 using std::vector;
 using std::unique_ptr;
@@ -25,7 +24,7 @@ class Human;
 // e.g. Location.h and Simulation.h
 using sp_human_t = std::shared_ptr<Human>;
 // used to contruct trajectories
-using path_t = pair<string,double>;  
+using path_t = std::pair<string,double>;  
 using vpath_t = vector<path_t>;
 using traject_t = std::array<vpath_t, N_TRAJECTORY >;
 
@@ -82,29 +81,29 @@ private:
 
     Vaccine vaccineProfile;
 
-    std::string houseID;
-    std::string personID;
-    std::string trialArm;
-    std::map<unsigned,bool> immunity_perm;
+    string houseID;
+    string personID;
+    string trialArm;
+    map<unsigned,bool> immunity_perm;
     std::unique_ptr<traject_t> trajectories;
     // return by reference
-    std::set<std::string> locsVisited;
+    std::set<string> locsVisited;
 public:
     std::unique_ptr<Infection> infection;
     //Human(std::string,int,int,char,std::unique_ptr<std::vector<std::vector<std::pair<std::string,double>>>>&,RandomNumGenerator&,unsigned,std::vector<double>);
-    Human(std::string,int,char,int,int, RandomNumGenerator&);
+    Human(string,int,char,int,int, RandomNumGenerator&);
     Human();
     //    Human(const Human &orig);
     //virtual ~Human();
 
     void setTrajectories(std::unique_ptr<traject_t> &);
-    void initializeHuman(unsigned,std::vector<double>, RandomNumGenerator&);
+    void initializeHuman(unsigned,vector<double>, RandomNumGenerator&);
     void kill(){dead = true;}
     void checkRecovered(unsigned);
     void setAgeTrialEnrollment(int age_){tAge = age_;}
-    void enrollInTrial(int, std::string);
+    void enrollInTrial(int, string);
     void setSelfReportProb(double prob_){selfReportProb = prob_;}
-    void infect(int, unsigned, RandomNumGenerator *, std::map<unsigned,double> *, std::map<unsigned,double> *);
+    void infect(int, unsigned, RandomNumGenerator *, map<unsigned,double> *, map<unsigned,double> *);
     void initiateBodySize(unsigned,RandomNumGenerator&);
     void resetRecent();
     void setCohort(int c_){cohort = c_;}
@@ -173,11 +172,11 @@ public:
     bool isFullyVaccinated(){return vaccineComplete;}
     bool getReportSymptoms(){return reportSymptoms;}
 
-    const std::string & getCurrentLoc(double);
-    const std::string & getHouseID() const;
-    const std::string & getPersonID() const;
-    std::string getTrialArm(){return trialArm;}
-    const std::set<std::string> & getLocsVisited();
+    const string & getCurrentLoc(double);
+    const string & getHouseID() const;
+    const string & getPersonID() const;
+    string getTrialArm(){return trialArm;}
+    const std::set<string> & getLocsVisited();
     //traject_t const& getTrajectory(unsigned) const;
 
     struct sortid{

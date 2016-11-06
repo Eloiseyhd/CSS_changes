@@ -13,7 +13,9 @@
 #include "Human.h"
 #include "Mosquito.h"
 
-using namespace std;
+using std::string;
+using std::map;
+using std::vector;
 
 class Report {    
  public:
@@ -33,9 +35,9 @@ class Report {
     };
  private:
 
-    std::string outputCohortFile;
-    std::string outputAgesFile;
-    std::string outputGroupsFile;
+    string outputCohortFile;
+    string outputAgesFile;
+    string outputGroupsFile;
 
 
     std::ofstream outCohort;
@@ -56,17 +58,17 @@ class Report {
     bool printGroupsAgeFirst;
     bool printGroupsTotalAges;
 
-    std::vector<std::string> events;
-    std::vector<std::string> status;
+    vector<string> events;
+    vector<string> status;
 
-    std::map<std::string, std::string> parameters;
+    map<string, string> parameters;
 
     int cohortEvents[5];
     int cohortStatus[4];
     int cohortReportPeriod[3];
     int cohortMaxIndex;
-    std::vector<rangeStruct> cohortAges;
-    std::vector<reportStats> cohortStats;
+    vector<rangeStruct> cohortAges;
+    vector<reportStats> cohortStats;
 
     int groupsEvents[5];
     int groupsStatus[2];
@@ -74,8 +76,8 @@ class Report {
     int groupsMaxIndex;
     int groupsAvgAgeFirst;
     int groupsTotalFirstInf;
-    std::vector<rangeStruct> groupsAges;
-    std::vector<reportStats> groupsStats;
+    vector<rangeStruct> groupsAges;
+    vector<reportStats> groupsStats;
     reportStats groupsTotalAgeStats;
 
     int ageEvents[5];
@@ -83,7 +85,7 @@ class Report {
     rangeStruct discreteAges;
     int ageReportPeriod[3];
     int ageMaxIndex;
-    std::vector<reportStats> ageStats;
+    vector<reportStats> ageStats;
 
     int foiReportPeriod[3];
     int foiTypes[4];
@@ -95,33 +97,33 @@ class Report {
 
     int spatialReportPeriod[3];
     bool spatialMosquitoes;
-    std::vector<std::string> spatialData;
+    vector<string> spatialData;
 	
-    void parseEvents(std::string line, int *, int);
-    void parseGroupsAges(std::string line, std::vector<rangeStruct> *);
-    rangeStruct parseDiscreteAges(std::string);
-    void parsePeriod(std::string line, int *);
-    void addParameter(std::string);
+    void parseEvents(string line, int *, int);
+    void parseGroupsAges(string line, vector<rangeStruct> *);
+    rangeStruct parseDiscreteAges(string);
+    void parsePeriod(string line, int *);
+    void addParameter(string);
 
-    void readParameter(std::string,std::string,int *);
-    void readParameter(std::string,std::string, std::vector<rangeStruct> *);
-    rangeStruct readParameter(std::string,std::string, rangeStruct);
-    bool readParameter(std::string, bool);
+    void readParameter(string,string,int *);
+    void readParameter(string,string, vector<rangeStruct> *);
+    rangeStruct readParameter(string,string, rangeStruct);
+    bool readParameter(string, bool);
 
-    bool parseBoolean(std::string line);
-    int getGroup(int, std::vector<rangeStruct>);
+    bool parseBoolean(string line);
+    int getGroup(int, vector<rangeStruct>);
 
 public:
 
 
-    Report(std::string);
+    Report(string);
     Report();
     Report(const Report& orig);
     //virtual ~Report();
 
-    void setupReport(std::string, std::string, std::string);
+    void setupReport(string, string, string);
     void updateReport(int, Human *, Location *);
-    void join(const std::vector<string>&,char, std::string &);
+    void join(const vector<string>&,char, string &);
     void printReport(int);
     void printHeaders();
     void printGroupsHeader();

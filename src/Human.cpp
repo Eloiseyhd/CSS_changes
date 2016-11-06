@@ -55,7 +55,7 @@ Human::Human(string hID,
     trajDay = 0;
 }
 
-void Human::initializeHuman(unsigned currDay, std::vector<double> FOI, RandomNumGenerator& rGen){
+void Human::initializeHuman(unsigned currDay, vector<double> FOI, RandomNumGenerator& rGen){
     initiateBodySize(currDay,rGen);
     updateAttractiveness(currDay);
     immunity_temp = false;
@@ -105,7 +105,7 @@ double Human::getBodySize() const {
 
 
 
-const std::string & Human::getCurrentLoc(double time){
+const string & Human::getCurrentLoc(double time){
     const auto & today = (*trajectories)[trajDay];
     auto itrLoc = today.begin();
 
@@ -155,7 +155,7 @@ int Human::getHouseMemNum() const {
     return houseMemNum;
 }
 
-const std::set<std::string> & Human::getLocsVisited(){
+const std::set<string> & Human::getLocsVisited(){
     locsVisited.clear();
     for(auto & the_traj : (*trajectories)){
         for(auto & place : the_traj) {
@@ -191,8 +191,8 @@ void Human::infect(
     int currentDay,
     unsigned infectionType,
     RandomNumGenerator * rGen,
-    std::map<unsigned,double> * disRates,
-    std::map<unsigned,double> * hospRates)
+    map<unsigned,double> * disRates,
+    map<unsigned,double> * hospRates)
 {
     double RR = 1.0;
     double RRInf = 1.0;
@@ -485,7 +485,7 @@ void Human::boostVaccine(int currDay, RandomNumGenerator * rGen){
     }
 }
 
-void Human::enrollInTrial(int currDay, std::string arm_){
+void Human::enrollInTrial(int currDay, string arm_){
     tAge = getAgeDays(currDay);
     trialDay = currDay;
     enrolledInTrial = true;
