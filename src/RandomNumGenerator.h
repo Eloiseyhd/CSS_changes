@@ -43,10 +43,12 @@ public:
     RandomNumGenerator(const RandomNumGenerator& orig);
     //virtual ~RandomNumGenerator();
     
+    // print complete rng state
+    // absurd amounts of output
     void showAllState() {
         std::cout << gen << std::endl;
     }
-    // print RNG state (first nchar of ostream)
+    // print RNG state summary (first nchar of full state)
     void showState(unsigned nchar, const std::string prefix="## ") {
         char buff[nchar];
         std::stringstream the_state;

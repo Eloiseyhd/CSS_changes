@@ -64,8 +64,7 @@ void Simulation::simEngine() {
     lifeMoz = 0;
     while(currentDay < numDays){
         //std::cout << "# day " << humans.size() << " " << mosquitoes.size() << std::endl;
-        //rGen.showAllState();
-        //rGen.showState(32, "# rng ");
+        //rGen.showState(48, "# Daily RNG state excerpt: ");
 	humanDeaths = 0;
         if(ceil(double(currentDay + 1) / 365.0) != ceil(double(currentDay) / 365.0)){
             year++;
