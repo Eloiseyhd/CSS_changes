@@ -289,7 +289,8 @@ void Simulation::mosquitoDynamics(){
 void Simulation::generateMosquitoes(){
     int mozCount = 0;
     double mozFBiteRate = currentDay < firstBiteRate.size() ? firstBiteRate[currentDay] : firstBiteRate.back();
-    double seasFactor = getMosquitoSeasonality(currentDay);
+    double seasFactor = 
+				       //getMosquitoSeasonality(currentDay);
 
     for(auto& x : locations){
 	// The emergence is multiplied by a seasonal factor that could vary everyday
@@ -308,15 +309,6 @@ void Simulation::generateMosquitoes(){
     }
 }
 
-double Simulation::getMosquitoSeasonality(unsigned currDay){
-    double PI = 3.14159265;
-    double signal_mozz = y_mag * sin(2 * PI * currDay / (365 * y_freq) + y_phase * PI / 180) + multi_mag * sin( 2 * PI * currDay / (365 * multi_freq) + multi_phase * PI / 180) + signal_offset;
-    if(signal_mozz < 0.0){
-	signal_mozz = 0.0;
-    }
-    //    printf("Day: %d, PI %.4f, YM %.4f, MM %.4f YF %.4f, MF %.4f, OFFSET %.2f, SIGNAL %.4f\n", currDay, PI, y_mag, multi_mag, y_freq, multi_freq, signal_offset, signal_mozz);
-    return signal_mozz;
-}
 
 void Simulation::setLocNeighborhood(double dist){
     for(auto it1 = locations.begin(); it1 != locations.end(); ++it1){
@@ -396,20 +388,6 @@ void Simulation::readSimControlFile(string line) {
     mozMoveProbability = strtod(line.c_str(), NULL);
     getline(infile, line, ',');
     aegyptiRatesFile = line;
-    getline(infile, line, ',');
-    y_mag = strtod(line.c_str(), NULL);
-    getline(infile, line, ',');
-    multi_mag = strtod(line.c_str(), NULL);
-    getline(infile, line, ',');
-    y_freq = strtod(line.c_str(), NULL);
-    getline(infile, line, ',');
-    multi_freq = strtod(line.c_str(), NULL);
-    getline(infile, line, ',');
-    y_phase = strtod(line.c_str(), NULL);
-    getline(infile, line, ',');
-    multi_phase = strtod(line.c_str(), NULL);
-    getline(infile, line, ',');
-    signal_offset = strtod(line.c_str(), NULL);
 
     readInitialFOI(foiFile);
     readAnnualFOI(annualFoiFile);

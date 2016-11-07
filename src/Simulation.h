@@ -38,7 +38,6 @@ public:
     void simulate();
     void updatePop();
     unsigned setInitialInfection(double, unsigned);
-    double getMosquitoSeasonality(unsigned);
     bool checkAgeToVaccinate(int age_);
     virtual ~Simulation();
 
@@ -96,13 +95,6 @@ private:
     double biteProbablity;
     double mozInfectiousness;   
     double mozMoveProbability;
-    double y_mag;
-    double multi_mag;
-    double y_freq;
-    double multi_freq;
-    double y_phase;
-    double multi_phase;
-    double signal_offset;
 
     std::vector<double> meanDailyEIP;
     std::vector<double> firstBiteRate;
