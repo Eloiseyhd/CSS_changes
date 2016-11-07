@@ -49,6 +49,7 @@ Human::Human(string hID,
     selfReportProb = 0.0;
     immunity_temp = false;
     trajectories.reset(nullptr);
+    // 5 = N_SERO+1?
     for(int i = 1; i < 5; i++){
 	setImmunityPerm(i,false);
     }
@@ -61,8 +62,8 @@ void Human::initializeHuman(unsigned currDay, vector<double> FOI, RandomNumGener
     immunity_temp = false;
     if(currDay == 0){
 	// Set the initial conditions for the immune profile by serotype
-	for(int i = 1; i < 5; i++){
-	    setImmunityPerm(i, rGen.getHumanSeropositivity(FOI[i - 1], double(currDay - bday)));
+	for(int i = 0; i < N_SERO; i++){
+	    setImmunityPerm(i+1, rGen.getHumanSeropositivity(FOI[i], double(currDay - bday)));
 	}
     }
 }
@@ -104,7 +105,6 @@ double Human::getBodySize() const {
 }
 
 
-
 const string & Human::getCurrentLoc(double time){
     const auto & today = (*trajectories)[trajDay];
     auto itrLoc = today.begin();
@@ -120,8 +120,6 @@ const string & Human::getCurrentLoc(double time){
 
     return itrLoc->first;
 }
-
-
 
 char Human::getGender() const {
     return gender;
@@ -279,7 +277,7 @@ void Human::infect(
 	}
 	preExposureAtVaccination[infectionType - 1] = getPreviousInfections();
 	
-	for(int i = 0;i < 4; i++){
+	for(int i = 0;i < N_SERO; i++){
 	    if(i != (infectionType - 1) && immunity_perm[i + 1] == false){
 		preExposureAtVaccination[i]++;
 	    }
@@ -310,8 +308,6 @@ void Human::initiateBodySize(unsigned currDay, RandomNumGenerator& rGen){
     updateBodySize(currDay);
 }
 
-
-
 bool Human::isImmune(unsigned serotype) const {
     bool immunity = false;
 
@@ -330,8 +326,6 @@ void Human::resetRecent(){
     last_serotype = -1;
 }
 
-
-
 void Human::setImmEndDay(unsigned d) {
     immEndDay = d;
 }
@@ -349,6 +343,7 @@ void Human::setVaxImmStartDay(unsigned d){
     vaxImmStartDay = d;
 }
 
+// identical to updateImmunityPerm??
 void Human::setImmunityPerm(unsigned serotype, bool status) {
     immunity_perm.erase(serotype);
     immunity_perm.insert(std::make_pair(serotype,status));

@@ -65,7 +65,7 @@ sp_human_t Mosquito::whoBite(
     }
 
     if(humanMap.empty())
-        return NULL;
+        return nullptr;
 
     double attractivenessSum = 0;
     // for each map element

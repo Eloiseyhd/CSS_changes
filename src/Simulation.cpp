@@ -151,6 +151,7 @@ void Simulation::humanDynamics() {
             continue;
         }
         // daily mortality for humans by age
+        // why the draw if humans are assigned death day??
         if(rGen.getEventProbability() < (deathRate * phum.second->getAgeDays(currentDay))){
 	    if(vaccinationStrategy == "random_trial" && phum.second->isEnrolledInTrial() == true){
                 printf("Human %s removed from trial\n", phum.second->getPersonID().c_str());
@@ -903,7 +904,7 @@ void Simulation::readTrajectoryFile(string trajFile){
     printf("reading %s file with trajectories\n", trajFile.c_str());
     string line, houseID, personID;
     unsigned hMemID;
-
+    //
     ifstream infile(trajFile);
     if(!infile.good()){
         throw runtime_error("In Simulation.cpp, something missing");
