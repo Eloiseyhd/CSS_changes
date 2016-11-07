@@ -18,17 +18,22 @@
 using std::string;
 using std::vector;
 using std::map;
+// allow for shuffle without random access
+using eligible_t = vector<Human *>;
+// filled from above
+using recruit_t = std::set<Human *>;
 
 class Recruitment {
     struct groupStruct{
         int min;
         int max;
-        vector<Human *> placebo;
-        vector<Human *> vaccine;
-        vector<Human *> eligible;
+        eligible_t eligible;
+        recruit_t placebo;
+        recruit_t vaccine;
     };
 
  private:
+    RandomNumGenerator * rGen;
     Surveillance trialSurveillance;
 
     int vaccineSampleSize;
@@ -55,8 +60,8 @@ class Recruitment {
 
     void parseAges(string line, vector<groupStruct> *);
     void parseVector(string line, vector<double> *);
-    void enrollTodayParticipants(int, RandomNumGenerator *);
-    void enrollArmParticipants(vector<Human *> *, vector<Human *> *, string, int, int, int, int, int,unsigned, RandomNumGenerator *);
+    void enrollTodayParticipants(int);
+    void enrollArmParticipants(recruit_t &, eligible_t &, string, int, int, int, int, int,unsigned);
     string parseString(string);
     vector<string> getParamsLine(string);
     map<unsigned, Vaccine> vaccinesPtr;
@@ -68,12 +73,13 @@ class Recruitment {
     Recruitment(const Recruitment& orig);
     //virtual ~Recruitment();
 
-    void update(int, RandomNumGenerator *);
-    void updateArm(unsigned, vector<Human *> *, int, RandomNumGenerator *);
-    void setupRecruitment(string, map<unsigned,Vaccine>, string, string);
+    void update(int);
+    void updateArm(unsigned, recruit_t &, int);
+    // pseudo-ctor
+    void setupRecruitment(string, map<unsigned,Vaccine>, string, string, RandomNumGenerator * _rGen);
     void addPossibleParticipant(Human *, int);
-    void shuffleEligibleParticipants(RandomNumGenerator & refGen);
-    void updateParticipants(int, RandomNumGenerator *);
+    void shuffleEligibleParticipants();
+    void updateParticipants(int);
     void finalizeTrial(int);
     void removeParticipant(Human *, int);
     int getVaccineSampleSize(){return vaccineSampleSize;}

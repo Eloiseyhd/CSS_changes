@@ -42,7 +42,7 @@ string Simulation::readInputs() {
     readVaccineProfilesFile();
 
     if(vaccinationStrategy == "random_trial"){
-	recruitmentTrial.setupRecruitment(trialSettingsFile, vaccines, outputPath, simName);
+	recruitmentTrial.setupRecruitment(trialSettingsFile, vaccines, outputPath, simName, &rGen);
 	//	printf("Vax Sample: %d, Plac Sample: %d\n", recruitmentTrial.getVaccineSampleSize(), recruitmentTrial.getPlaceboSampleSize());
 	//	printf("Recruitment day: %d\n",recruitmentTrial.getRecruitmentStartDay());
     }
@@ -78,7 +78,7 @@ void Simulation::simEngine() {
 		printf("Current Day : %d is recruitment Start Day\n",currentDay);
 		selectEligibleTrialParticipants();
 	    }
-	    recruitmentTrial.update(currentDay, &rGenInf);
+	    recruitmentTrial.update(currentDay);
 	}
         humanDynamics();
 	outputReport.printReport(currentDay);
@@ -397,7 +397,7 @@ void Simulation::selectEligibleTrialParticipants(){
 	recruitmentTrial.addPossibleParticipant(hum.second.get(),currentDay);
     }
     //    printf("In total %lu participants are eligible out of %lu\n",recruitmentTrial.getEligibleParticipantsSize(),humans.size());
-    recruitmentTrial.shuffleEligibleParticipants(rGen);
+    recruitmentTrial.shuffleEligibleParticipants();
 }
 
 void Simulation::readAegyptiFile(string file){

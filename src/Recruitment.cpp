@@ -27,14 +27,14 @@ Recruitment::Recruitment(){
     placeboProfile = 0;
 }
 
-void Recruitment::update(int currDay, RandomNumGenerator * rGen){
+void Recruitment::update(int currDay){
     printf("Updating trial day %d\n", currDay);
     if(currDay >= recruitmentStartDay){
 	if(currDay < recruitmentStartDay + recruitmentTimeFrame){
-	    this->enrollTodayParticipants(currDay, rGen);
+	    this->enrollTodayParticipants(currDay);
 	}
 	if(currDay > recruitmentStartDay && currDay <= ( recruitmentStartDay + recruitmentTimeFrame + trialDurationDays)){
-	    this->updateParticipants(currDay, rGen);
+	    this->updateParticipants(currDay);
 	}
     }else if(currDay == recruitmentStartDay + recruitmentTimeFrame){
 	for(int i = 0; i < ageGroups.size(); i ++){
@@ -84,69 +84,68 @@ void Recruitment::finalizeTrial(int currDay){
     trialSurveillance.printRecords(outSurveillance, currDay);
 }
 
-void Recruitment::updateParticipants(int currDay, RandomNumGenerator * rGen){
+void Recruitment::updateParticipants(int currDay){
     // update doses if needed, remove dead people  and test for denv: self-reported and calls
     for(int i = 0;i < ageGroups.size(); i++){
-	updateArm(vaccineProfile,&ageGroups[i].vaccine, currDay, rGen);
-	updateArm(placeboProfile,&ageGroups[i].placebo, currDay, rGen);
+	updateArm(vaccineProfile, ageGroups[i].vaccine, currDay);
+	updateArm(placeboProfile, ageGroups[i].placebo, currDay);
     }
 }
 
-void Recruitment::updateArm(unsigned vaxID, vector<Human *> * arm, int currDay, RandomNumGenerator * rGen){
+void Recruitment::updateArm(unsigned vaxID, recruit_t & arm, int currDay){
     // boost vaccine, decide if dropout, remove death people from the list
     printf("Update Arm\n");
     if(vaccinesPtr.at(vaxID).getDoses() > 1){
-	vector<Human *>::iterator it;
-	for(it = arm->begin(); it != arm->end(); ){
-	    if((*it) != NULL){
-		if((*it)->isEnrolledInTrial() == true){
-		    if(currDay < (*it)->getTrialEnrollmentDay() + trialDurationDays){
+        // added redundant continue statements 
+        // to ensure that "it" only changes (delete or increment) once per for() 
+	for(auto it = arm.begin(); it != arm.end(); ){
+            // readability, reset after each continue
+            Human * phum = (*it);
+	    if(phum == nullptr){
+		printf("We found a null pointer\n");
+		it = arm.erase(it);
+                continue;
+	    } else {
+		if(phum->isEnrolledInTrial() == true){
+		    if(currDay < phum->getTrialEnrollmentDay() + trialDurationDays){
 			if(currDay > recruitmentStartDay + recruitmentTimeFrame && rGen->getEventProbability() < dropoutRate){
-			    removeParticipant(*it,currDay);
-			    auto tmpit = it;
-			    ++it;
-			    arm->erase(tmpit);
+			    removeParticipant(phum,currDay);
+			    it = arm.erase(it);
+                            continue;
 			}else{
-			    int pcr = trialSurveillance.update_human_surveillance((*it),currDay, rGen);
+			    int pcr = trialSurveillance.update_human_surveillance(phum, currDay, rGen);
 			    if(pcr >= 0){
-                                printf("PERSON %s removed from trial for real\n", (*it)->getPersonID().c_str());
-				removeParticipant(*it,currDay);
-				//auto tmpit = it;
-				//arm->erase(tmpit);
-				++it;
+                                printf("PERSON %s removed from trial for real\n", phum->getPersonID().c_str());
+				removeParticipant(phum,currDay);
+				it = arm.erase(it);
+                                continue;
 			    }else{
-				if((*it)->isFullyVaccinated() == false && (*it)->getNextDoseDay() == currDay){
-				    printf("human boosting %s\n", (*it)->getPersonID().c_str());
-				    (*it)->boostVaccine(currDay, rGen);
+				if(phum->isFullyVaccinated() == false && phum->getNextDoseDay() == currDay){
+				    printf("human boosting %s\n", phum->getPersonID().c_str());
+				    phum->boostVaccine(currDay, rGen);
 				}
-				++it;
+				it++;
+                                continue;
 			    }
 			}
 		    }else{
 			printf("Participant removed because time is over\n");
-			removeParticipant(*it,currDay);
-			auto tmpit = it;
-			++it;
-			arm->erase(tmpit);
+			removeParticipant(phum,currDay);
+			it = arm.erase(it);
+                        continue;
 		    }
 		}else{
 		    printf("Participant is not really enrolled in trial\n");
-		    auto tmpit = it;
-		    ++it;
-		    arm->erase(tmpit);
+		    it = arm.erase(it);
+                    continue;
 		}
-	    }else{
-		printf("We found a null pointer\n");
-		auto tmpit = it;
-		++it;
-		arm->erase(tmpit);
-	    }
+            }
 	}
     }
     printf("Arm updated\n");
 }
 
-void Recruitment::enrollTodayParticipants(int currDay, RandomNumGenerator * rGen){
+void Recruitment::enrollTodayParticipants(int currDay){
     if(dailyVaccineRecruitmentRate <= 0 || dailyPlaceboRecruitmentRate <= 0){
 	printf("Daily recruitment rate <= 0\n");
 	exit(1);
@@ -154,54 +153,73 @@ void Recruitment::enrollTodayParticipants(int currDay, RandomNumGenerator * rGen
     for(int i = 0; i < ageGroups.size(); i ++){
 	printf("Enroll participants day %d group %d, (eligible %zu).\n", currDay, i, ageGroups[i].eligible.size() );
 	//Vaccine enrollment
-	enrollArmParticipants(&ageGroups[i].vaccine, &ageGroups[i].eligible, "vaccine", currDay,vaccineSampleSize,dailyVaccineRecruitmentRate,ageGroups[i].min, ageGroups[i].max,vaccineProfile, rGen);
-	enrollArmParticipants(&ageGroups[i].placebo, &ageGroups[i].eligible, "placebo", currDay,placeboSampleSize,dailyPlaceboRecruitmentRate,ageGroups[i].min, ageGroups[i].max,placeboProfile, rGen);
+	enrollArmParticipants(ageGroups[i].vaccine, ageGroups[i].eligible, "vaccine", currDay,vaccineSampleSize,dailyVaccineRecruitmentRate,ageGroups[i].min, ageGroups[i].max,vaccineProfile);
+	enrollArmParticipants(ageGroups[i].placebo, ageGroups[i].eligible, "placebo", currDay,placeboSampleSize,dailyPlaceboRecruitmentRate,ageGroups[i].min, ageGroups[i].max,placeboProfile);
 	printf("%zu vaccine and %zu placebo participants successfully enrolled at day %d\n", ageGroups[i].vaccine.size(), ageGroups[i].placebo.size(), currDay);
     }
 }
 
 void Recruitment::enrollArmParticipants(
-					vector<Human *> * arm,
-					vector<Human *> * eligible_vector,
+					recruit_t & arm,
+					eligible_t & eligible,
 					string arm_str, int currDay,
 					int sample_size,
 					int rec_rate,
 					int min_,
 					int max_,
-					unsigned vProfile,
-					RandomNumGenerator * rGen)
+					unsigned vProfile)
 {
-    printf("Enroll participants today %d %s, (eligible %zu)\n", currDay, arm_str.c_str(), eligible_vector->size());
-    int j = 0;
-    while(!eligible_vector->empty() && j < rec_rate && arm->size() < sample_size){
-	if(eligible_vector->back() == nullptr){
+    printf("Enroll participants today %d %s, (eligible %zu)\n", currDay, arm_str.c_str(), eligible.size());
+    int nrecruit = 0;
+    // process from end, possibly deleting as we go
+    auto it = eligible.end();
+    while(it >= eligible.begin() && nrecruit < rec_rate && arm.size() < sample_size){
+        // back up from end
+        it--;
+        // convenience / clarity var
+        // reset after each continue
+        Human * phum = (*it);
+        //
+	if(phum == nullptr){
 	    printf("Found a dead participant in enrollment day %d\n", currDay);
-	    eligible_vector->pop_back();
+        // remove and restart loop
+	    it = eligible.erase(it);
 	    continue;
 	}
-	double temp_age = (double) eligible_vector->back()->getAgeDays(currDay) / 365.0;
+	double temp_age = (double) phum->getAgeDays(currDay) / 365.0;
 	if(temp_age >= max_){
-	    eligible_vector->pop_back();
-	}else if(temp_age < min_){
+        // remove and restart loop
+	    it = eligible.erase(it);
+	    continue;
+	} else if(temp_age < min_){
+        // skip, reshuffle at end?
+	    continue;
+            /*
 	    Human * temp_h = eligible_vector->back();
 	    eligible_vector->pop_back();
 	    vector<Human *>::iterator it = eligible_vector->begin();
 	    long unsigned pos = rGen->getRandomNum(eligible_vector->size());
 	    eligible_vector->insert(it+pos,temp_h);
+            */
 	}else{
-	    if(eligible_vector->back()->isEnrolledInTrial() == false){
-		eligible_vector->back()->enrollInTrial(currDay, arm_str);
-		arm->push_back(eligible_vector->back());
-		trialSurveillance.initialize_human_surveillance(arm->back(), currDay);
-		arm->back()->vaccinateWithProfile(currDay, rGen, vaccinesPtr.at(vProfile));		   
-		j++;
+	    if(phum->isEnrolledInTrial() == false){
+                // should phum be removed from eligible??
+		phum->enrollInTrial(currDay, arm_str);
+		arm.insert(phum);
+		trialSurveillance.initialize_human_surveillance(phum, currDay);
+		phum->vaccinateWithProfile(currDay, rGen, vaccinesPtr.at(vProfile));
+		nrecruit++;
 	    }
-	    eligible_vector->pop_back();
+        continue; // added for clarity
 	}
     }
+    // reshuffle at the end of each enrollment
+    shuffleEligibleParticipants();
 }
 
-void Recruitment::setupRecruitment(string file, map<unsigned,Vaccine> vaccines_, string outputPath, string simName_){
+void Recruitment::setupRecruitment(string file, map<unsigned,Vaccine> vaccines_, string outputPath, string simName_, RandomNumGenerator * _rGen){
+    // store reference to simulator-wide rng
+    rGen = _rGen;
     // Initialize vaccines profiles
     vaccinesPtr = vaccines_;
     if(vaccinesPtr.size() == 0){
@@ -295,29 +313,35 @@ void Recruitment::addPossibleParticipant(Human * h, int currDay){
 	return;
     } 
     // If it's random recruitment just push it into the list without any other requirement
+    // otherwise??
     if(recruitmentStrategy == "random"){
 	ageGroups[group_].eligible.push_back(h);
     }
 }
 
-void Recruitment::shuffleEligibleParticipants(RandomNumGenerator & refGen){
-    for(int i = 0;i < ageGroups.size(); i++){
-	if(ageGroups[i].eligible.size() >= vaccineSampleSize + placeboSampleSize){
+void Recruitment::shuffleEligibleParticipants(){
+    // counter
+    int ii{};
+    // process eligibles for each group
+    for(auto & grp : ageGroups ){
+        ii++;
+	if(grp.eligible.size() >= vaccineSampleSize + placeboSampleSize){
 	    // First make sure eligible participants have not died
-	    for(auto it = ageGroups[i].eligible.begin(); it !=  ageGroups[i].eligible.end();){
-		if((*it) == NULL){
+	    for(auto it = grp.eligible.begin(); it !=  grp.eligible.end();){
+		if( (*it) == nullptr){
 		    printf("NULL pointer in shuffle eligible participants\n");
-		    auto tmpit = it;
-		    ++it;
-		    ageGroups[i].eligible.erase(tmpit);
+                    // erase and advance (vector safe)
+		    it = grp.eligible.erase(it);
+                    continue; // redund
 		}else{
-		    ++it;
+                    // skip
+		    it++;
+                    continue; // redund
 		}
 	    }
-            // rGen really should be a member (reference)
-	    refGen.shuffle(ageGroups[i].eligible);
+	    rGen->shuffle(grp.eligible);
 	}else{
-	    printf("%lu is less than the sample size sum %d for age group %d\n",ageGroups[i].eligible.size(), vaccineSampleSize + placeboSampleSize, i);
+	    printf("%lu is less than the sample size sum %d for age group %d\n",grp.eligible.size(), vaccineSampleSize + placeboSampleSize, ii-1);
 	    exit(1);
 	}
     }
