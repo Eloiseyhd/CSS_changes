@@ -52,7 +52,7 @@ void Recruitment::update(int currDay){
 void Recruitment::removeParticipant(Human * h, int currDay){
     trialSurveillance.finalize_human_surveillance(h, currDay);
     h->unenrollTrial();
-    // erase(tmpit) in updateArm accomplishes the same thing??
+    // erase(tmpit) in updateArm accomplishes the same thing?? - I think so, this was a test
     // this linear scan is really expensive
     /*
     string arm_ = h->getTrialArm();
@@ -192,7 +192,7 @@ void Recruitment::enrollArmParticipants(
 	    it = eligible.erase(it);
 	    continue;
 	} else if(temp_age < min_){
-        // skip, reshuffle at end?
+        // skip, reshuffle at end? sounds good
 	    continue;
             /*
 	    Human * temp_h = eligible_vector->back();
@@ -209,6 +209,7 @@ void Recruitment::enrollArmParticipants(
 		trialSurveillance.initialize_human_surveillance(phum, currDay);
 		phum->vaccinateWithProfile(currDay, rGen, vaccinesPtr.at(vProfile));
 		nrecruit++;
+		it = eligible.erase(it);
 	    }
         continue; // added for clarity
 	}
@@ -313,9 +314,12 @@ void Recruitment::addPossibleParticipant(Human * h, int currDay){
 	return;
     } 
     // If it's random recruitment just push it into the list without any other requirement
-    // otherwise??
+    // otherwise?? -> This is for the future, I might add different recruitment strategies
     if(recruitmentStrategy == "random"){
 	ageGroups[group_].eligible.push_back(h);
+    }else{
+	printf("Please modify recruitment strategy %s is not a valid one: only random is supported at this momment\n", recruitmentStrategy.c_str());
+	exit(1);
     }
 }
 

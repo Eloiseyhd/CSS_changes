@@ -1,11 +1,11 @@
 ## 
 CC = g++
-CFLAGS = -O3 -O2 -pthread -std=c++11 -g
+CFLAGS = -O3 -O2 -pthread -std=c++11 -g3
 SRCDIR = src
 OBJDIR = obj
-RUNDIR = run
+RUNDIR = .
 TARGET = DengueSim
-#INCDIR = include
+INCDIR = include
 #VPATH = $(SRCDIR) $(INCDIR)
 
 
@@ -33,10 +33,10 @@ BIN = $(RUNDIR)/$(TARGET)
 OBJ = $(patsubst %,$(OBJDIR)/%,$(_OBJ))
 
 all: $(BIN)
-	
+
 $(BIN): $(OBJ)
 	$(CC) $(OBJ) $(CFLAGS) -o $(BIN)
-	
+
 $(OBJDIR)/%.o: $(SRCDIR)/%.cpp
 	$(CC) -c $(CFLAGS) -o $@ $<
 

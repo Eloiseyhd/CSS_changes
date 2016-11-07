@@ -1202,7 +1202,7 @@ void Report::printAgesReport(int currDay){
 			sum_ = 2;
 		    }
             // ?? CHECK j = j = j
-		    for(int j = 0;j < 2 * inc_;j = j = j + inc_){
+		    for(int j = 0;j < 2 * inc_;j = sum_ + inc_){
 			for(int k = 0; k <= discreteAges.max - discreteAges.min; k++){
 			    if(printAgesPop == true){
 				outAges << ageStats[k].status[j].nonevents[i] + ageStats[k].status[j + sum_].nonevents[i]<<",";
@@ -1276,7 +1276,7 @@ void Report::printGroupsReport(int currDay){
 			sum_ = 2;
 		    }
             // ?? CHECK j = j = j
-		    for(int j = 0;j < 2 * inc_;j = j = j + inc_){
+		    for(int j = 0;j < 2 * inc_;j = sum_ + inc_){
 			for(int k = 0; k < groupsAges.size(); k++){
 			    if(printGroupsPop == true){
 				outGroups << groupsStats[k].status[j].nonevents[i] + groupsStats[k].status[j + sum_].nonevents[i]<<",";
@@ -1354,7 +1354,7 @@ void Report::printCohortReport(int currDay){
 			sum_ = 2;
 		    }
             // ?? CHECK j = j = j
-		    for(int j = 0;j < 2 * inc_;j = j = j + inc_){
+		    for(int j = 0;j < 2 * inc_;j = sum_ + inc_){
 			for(int k = 0; k < cohortAges.size(); k++){
 			    if(printCohortPop == true){
 				outCohort << cohortStats[k].status[j].nonevents[i] + cohortStats[k].status[j + sum_].nonevents[i]<<",";

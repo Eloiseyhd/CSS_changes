@@ -9,6 +9,7 @@
 #include <utility>
 #include <memory>
 #include <cmath>
+#include <array>
 //
 #include "defines.h"
 #include "Infection.h"
@@ -113,7 +114,6 @@ public:
     void setVaxImmEndDay(unsigned);
     void setVaxImmunity(bool);
     void setImmunityTemp(bool);
-    void setImmunityPerm(unsigned,bool);
     void setSeroStatusAtVaccination();
     void setTrajDay(int dayIn){trajDay = dayIn;}
     void setContactByTrial(int dayIn){lastDayContactedByTrial = dayIn;}

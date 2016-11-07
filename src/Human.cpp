@@ -16,7 +16,7 @@ Human::Human(string hID,
     if(deathYear >= 0){
 	dday = deathYear * 365 + rGen.getRandomNum(365);
 	if(dday <= bday){
-	    dday = bday + 1;
+	    dday = bday + 1; // give them a chance to live at least one day
 	}
     }else{
 	dday = -1;
@@ -49,9 +49,9 @@ Human::Human(string hID,
     selfReportProb = 0.0;
     immunity_temp = false;
     trajectories.reset(nullptr);
-    // 5 = N_SERO+1?
-    for(int i = 1; i < 5; i++){
-	setImmunityPerm(i,false);
+    // 5 = N_SERO+1? -> Yes
+    for(int i = 1; i < N_SERO + 1; i++){
+	updateImmunityPerm(i,false);
     }
     trajDay = 0;
 }
@@ -63,7 +63,7 @@ void Human::initializeHuman(unsigned currDay, vector<double> FOI, RandomNumGener
     if(currDay == 0){
 	// Set the initial conditions for the immune profile by serotype
 	for(int i = 0; i < N_SERO; i++){
-	    setImmunityPerm(i+1, rGen.getHumanSeropositivity(FOI[i], double(currDay - bday)));
+	    updateImmunityPerm(i+1, rGen.getHumanSeropositivity(FOI[i], double(currDay - bday)));
 	}
     }
 }
@@ -341,12 +341,6 @@ void Human::setImmStartDay(unsigned d) {
 
 void Human::setVaxImmStartDay(unsigned d){
     vaxImmStartDay = d;
-}
-
-// identical to updateImmunityPerm??
-void Human::setImmunityPerm(unsigned serotype, bool status) {
-    immunity_perm.erase(serotype);
-    immunity_perm.insert(std::make_pair(serotype,status));
 }
 
 void Human::setImmunityTemp(bool status) {

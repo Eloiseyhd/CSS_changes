@@ -151,8 +151,8 @@ void Simulation::humanDynamics() {
             continue;
         }
         // daily mortality for humans by age
-        // why the draw if humans are assigned death day??
-        if(rGen.getEventProbability() < (deathRate * phum.second->getAgeDays(currentDay))){
+        // why the draw if humans are assigned death day?? -> that's a bug! FIXED with only checking for death day
+        if(phum.second->getDeathday() == currentDay){
 	    if(vaccinationStrategy == "random_trial" && phum.second->isEnrolledInTrial() == true){
                 printf("Human %s removed from trial\n", phum.second->getPersonID().c_str());
                 recruitmentTrial.removeParticipant(phum.second.get(),currentDay);
@@ -933,9 +933,9 @@ void Simulation::readTrajectoryFile(string trajFile){
                 getline(infile, line, ',');
             }
         }
-	if(locations.find(houseID) == locations.end()){
-            //error condition?
-        } else {
+
+	//error condition? -> just ignore if not valid trajectory
+	if(locations.find(houseID) != locations.end()){
 	    auto ithum = total_humans_by_id.find(personID);
 	    if( ithum != total_humans_by_id.end()){
 		//auto tmpIt = ithum;
@@ -956,7 +956,7 @@ void Simulation::readTrajectoryFile(string trajFile){
 		    future_humans.insert(make_pair(h->getBirthday(),h));
 		}
                 // cleanup at end
-                // necessary? shouldn't each person be unique?
+                // necessary? shouldn't each person be unique? -> I don't understand this question
 		total_humans_by_id.erase(ithum);
 	    }
 	}

@@ -7,6 +7,7 @@
 #include <fstream>
 #include <queue>
 #include <stdexcept>
+#include <array>
 // 
 #include "defines.h"
 #include "Location.h"
@@ -22,6 +23,8 @@ using std::string;
 using std::vector;
 using std::ifstream;
 using std::make_pair;
+using traject_t = std::array<vpath_t, N_TRAJECTORY >;
+
 
 class Simulation {
 public:
