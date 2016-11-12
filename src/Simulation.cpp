@@ -61,7 +61,7 @@ void Simulation::simEngine() {
     deathMoz = 0;
     lifeMoz = 0;
     while(currentDay < numDays){
-        //std::cout << "# day " << humans.size() << " " << mosquitoes.size() << std::endl;
+        std::cout << "# day " << humans.size() << " " << mosquitoes.size() << std::endl;
         //rGen.showState(48, "# Daily RNG state excerpt: ");
 	humanDeaths = 0;
         if(ceil(double(currentDay + 1) / 365.0) != ceil(double(currentDay) / 365.0)){
@@ -117,17 +117,13 @@ void Simulation::humanDynamics() {
     // walk through today's births
     // add to humans, locations
     for (auto it = newbornsRange.first; it != newbornsRange.second; it++){
-        printf("Human %s is born in day %d\n", it->second->getPersonID().c_str(), currentDay);
+	//        printf("Human %s is born in day %d\n", it->second->getPersonID().c_str(), currentDay);
         // copy-construct shared pointer to human
         sp_human_t h = it->second;
-        // what is this condition for? 
-        // Is it a problem if HouseID is *not* found?
-        // I.e., throw?
         if(locations.find(h->getHouseID()) != locations.end()){
             for(const auto & loc_str : h->getLocsVisited()){
                 // set.insert already performs check for presence
                 auto the_loc = locations.find(loc_str);
-                // error??
                 if (the_loc != locations.end() ) {
                     the_loc->second->addHuman(h);
                 }
@@ -168,7 +164,7 @@ void Simulation::humanDynamics() {
                     loc_it->second->removeHuman(phum.second);
                 }
 	    }
-	    printf("Human is dead %s\n", phum.second->getPersonID().c_str());
+	    //	    printf("Human is dead %s\n", phum.second->getPersonID().c_str());
 	    phum.second->kill();
 	    humanDeaths++;
 	    continue;
@@ -195,14 +191,14 @@ void Simulation::humanDynamics() {
         phum.second->setTrajDay(rGen.getRandomNum(N_TRAJECTORY));
 
         // simulate possible imported infection
-	//	if(currentDay - (year - 1) * 365 < 50){
-	for(unsigned serotype = 1; serotype <= N_SERO; serotype++){
-	    if(rGen.getEventProbability() < ForceOfImportation.at(serotype)){
-		if(!phum.second->isImmune(serotype)){
-		    phum.second->infect(currentDay, serotype, &rGenInf, &disRates, &hospRates);                
+	//	if(currentDay - (year - 1) * 365 < 50 || (currentDay - (year - 1) * 365 > 170 && currentDay - (year - 1) * 365 < 220)){
+	    for(unsigned serotype = 1; serotype <= N_SERO; serotype++){
+		if(rGen.getEventProbability() < ForceOfImportation.at(serotype)){
+		    if(!phum.second->isImmune(serotype)){
+			phum.second->infect(currentDay, serotype, &rGenInf, &disRates, &hospRates);                
+		    }
 		}
 	    }
-	}
 	    //	}
 
 	//update vaccine immunity if necessary
@@ -262,6 +258,13 @@ void Simulation::mosquitoDynamics(){
     double mozDeath = currentDay < mozDailyDeathRate.size() ? mozDailyDeathRate[currentDay] : mozDailyDeathRate.back();
     double mozFBiteRate = currentDay < firstBiteRate.size() ? firstBiteRate[currentDay] : firstBiteRate.back();
     double mozSBiteRate = currentDay < secondBiteRate.size() ? secondBiteRate[currentDay] : secondBiteRate.back();
+
+    // TEST, TEMPORARY!!!
+    if(currentDay > 2500){
+	mozFBiteRate *= 1;
+	mozSBiteRate *= 1;
+    }
+    
     for(auto it = mosquitoes.begin(); it != mosquitoes.end();){
 	if(it->second->infection != nullptr){
 	    if(it->second->infection->getStartDay() < 0 && rGenInf.getEventProbability() < rGenInf.getMozLatencyRate(mozEIP)){
@@ -465,8 +468,6 @@ void Simulation::readSimControlFile(string line) {
     trajectoryFile = line;
     getline(infile, line, ',');
     birthsFile = line;
-    getline(infile, line, ',');
-    deathRate = strtod(line.c_str(), NULL);    
     getline(infile, line, ',');
     string annualFoiFile = line;
     getline(infile, line, ',');

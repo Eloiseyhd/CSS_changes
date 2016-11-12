@@ -111,7 +111,6 @@ private:
     unsigned rSeed;
     unsigned rSeedInf;
     string outputPath;
-    double deathRate;
     unsigned humanInfectionDays;
     unsigned huImm;
     double mlife;

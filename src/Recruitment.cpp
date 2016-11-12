@@ -94,7 +94,7 @@ void Recruitment::updateParticipants(int currDay){
 
 void Recruitment::updateArm(unsigned vaxID, recruit_t & arm, int currDay){
     // boost vaccine, decide if dropout, remove death people from the list
-    printf("Update Arm\n");
+    //    printf("Update Arm\n");
     if(vaccinesPtr.at(vaxID).getDoses() > 1){
         // added redundant continue statements 
         // to ensure that "it" only changes (delete or increment) once per for() 
@@ -115,13 +115,13 @@ void Recruitment::updateArm(unsigned vaxID, recruit_t & arm, int currDay){
 			}else{
 			    int pcr = trialSurveillance.update_human_surveillance(phum, currDay, rGen);
 			    if(pcr >= 0){
-                                printf("PERSON %s removed from trial for real\n", phum->getPersonID().c_str());
+                                //printf("PERSON %s removed from trial for real\n", phum->getPersonID().c_str());
 				removeParticipant(phum,currDay);
 				it = arm.erase(it);
                                 continue;
 			    }else{
 				if(phum->isFullyVaccinated() == false && phum->getNextDoseDay() == currDay){
-				    printf("human boosting %s\n", phum->getPersonID().c_str());
+				    //				    printf("human boosting %s\n", phum->getPersonID().c_str());
 				    phum->boostVaccine(currDay, rGen);
 				}
 				it++;
@@ -129,20 +129,20 @@ void Recruitment::updateArm(unsigned vaxID, recruit_t & arm, int currDay){
 			    }
 			}
 		    }else{
-			printf("Participant removed because time is over\n");
+			//			printf("Participant removed because time is over\n");
 			removeParticipant(phum,currDay);
 			it = arm.erase(it);
                         continue;
 		    }
 		}else{
-		    printf("Participant is not really enrolled in trial\n");
+		    //		    printf("Participant is not really enrolled in trial\n");
 		    it = arm.erase(it);
                     continue;
 		}
             }
 	}
     }
-    printf("Arm updated\n");
+    //    printf("Arm updated\n");
 }
 
 void Recruitment::enrollTodayParticipants(int currDay){
@@ -151,11 +151,11 @@ void Recruitment::enrollTodayParticipants(int currDay){
 	exit(1);
     }
     for(int i = 0; i < ageGroups.size(); i ++){
-	printf("Enroll participants day %d group %d, (eligible %zu).\n", currDay, i, ageGroups[i].eligible.size() );
+	//	printf("Enroll participants day %d group %d, (eligible %zu).\n", currDay, i, ageGroups[i].eligible.size() );
 	//Vaccine enrollment
 	enrollArmParticipants(ageGroups[i].vaccine, ageGroups[i].eligible, "vaccine", currDay,vaccineSampleSize,dailyVaccineRecruitmentRate,ageGroups[i].min, ageGroups[i].max,vaccineProfile);
 	enrollArmParticipants(ageGroups[i].placebo, ageGroups[i].eligible, "placebo", currDay,placeboSampleSize,dailyPlaceboRecruitmentRate,ageGroups[i].min, ageGroups[i].max,placeboProfile);
-	printf("%zu vaccine and %zu placebo participants successfully enrolled at day %d\n", ageGroups[i].vaccine.size(), ageGroups[i].placebo.size(), currDay);
+	//	printf("%zu vaccine and %zu placebo participants successfully enrolled at day %d\n", ageGroups[i].vaccine.size(), ageGroups[i].placebo.size(), currDay);
     }
 }
 
@@ -169,7 +169,7 @@ void Recruitment::enrollArmParticipants(
 					int max_,
 					unsigned vProfile)
 {
-    printf("Enroll participants today %d %s, (eligible %zu)\n", currDay, arm_str.c_str(), eligible.size());
+    //    printf("Enroll participants today %d %s, (eligible %zu)\n", currDay, arm_str.c_str(), eligible.size());
     int nrecruit = 0;
     // process from end, possibly deleting as we go
     auto it = eligible.end();
@@ -351,7 +351,7 @@ void Recruitment::shuffleEligibleParticipants(){
     }
     dailyVaccineRecruitmentRate = ceil( (double) vaccineSampleSize / (double) recruitmentTimeFrame);
     dailyPlaceboRecruitmentRate = ceil( (double) placeboSampleSize / (double) recruitmentTimeFrame);
-    printf("Shuffle participants finished\n");
+    //    printf("Shuffle participants finished\n");
 }
 
 int Recruitment::getAgeGroup(int age_, vector<groupStruct> groups_temp){

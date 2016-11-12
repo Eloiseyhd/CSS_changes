@@ -94,7 +94,8 @@ class Report {
     int mozSusceptibles[4];
     int mozExposed[4];
     int mozInfectious[4];
-
+    int totalHumans;
+	
     int spatialReportPeriod[3];
     bool spatialMosquitoes;
     vector<string> spatialData;

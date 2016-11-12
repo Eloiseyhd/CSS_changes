@@ -319,6 +319,14 @@ bool Human::isImmune(unsigned serotype) const {
     return immunity;
 }
 
+bool Human::isPermImmune(unsigned serotype) const{
+    if(immunity_perm.at(serotype)){
+	return true;
+    }else{
+	return false;
+    }
+}
+
 void Human::resetRecent(){
     recent_inf = 0;
     recent_dis = 0; 

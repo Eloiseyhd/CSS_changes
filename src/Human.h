@@ -162,6 +162,7 @@ public:
 
     bool isHospitalized(){return hospitalized;}
     bool isImmune(unsigned) const;
+    bool isPermImmune(unsigned) const;
     bool isImmuneTemp(){return immunity_temp;}
     bool isImmuneVax(){return vaccineImmunity;}
     bool isInfected(){return infected;}

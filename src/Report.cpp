@@ -72,7 +72,8 @@ Report::Report(){
 	mozExposed[i] = 0;
 	mozInfectious[i] = 0;
     }
-
+    totalHumans = 0;
+    
     for(int i = 0; i < 5; i++){
 	// There are four status VacSero+ VacSero- PlacSero+ PlacSero-
 	for(int j = 0; j < 4; j++){
@@ -450,6 +451,7 @@ void Report::printReport(int currDay){
 void Report::updateFOIReport(int currDay, Human * h){
     // Collect the number of susceptibles and infections per serotype
     // If h is infectious, then get the serotype
+    totalHumans++;
     if(h->getRecentInf() > 0){
 	int sero = h->getRecentType();
 	if(sero > 0){
@@ -458,7 +460,7 @@ void Report::updateFOIReport(int currDay, Human * h){
     }else{
 	// If h isn't infected then check for immunity to all the serotypes
 	for(unsigned i = 0; i < 4; i++){
-	    susceptibles[i] +=  h->isImmune(i + 1) ? 0 : 1;
+	    susceptibles[i] +=  h->isPermImmune(i + 1) ? 0 : 1;
 	}
     }
 }
@@ -1159,11 +1161,14 @@ void Report::printFOIReport(int currDay){
 	    double foi_temp = susceptibles[i] > 0 ? (double) newInfections[i] / (double) susceptibles[i] : 1;
 	    foi_values.push_back(std::to_string(foi_temp));
 	    foi_values.push_back(std::to_string(susceptibles[i]));
+	    foi_values.push_back(std::to_string(newInfections[i]));
 	    foi_values.push_back(std::to_string(mozSusceptibles[i]));
 	    foi_values.push_back(std::to_string(mozExposed[i]));
 	    foi_values.push_back(std::to_string(mozInfectious[i]));
 	}
     }
+    
+    foi_values.push_back(std::to_string(totalHumans));
     if(!foi_values.empty()){
 	Report::join(foi_values,',',outstring);
 	outFOI << currDay << ",";
@@ -1444,15 +1449,17 @@ void Report::printFOIHeader(){
 	if(foiTypes[i]){
 	    headers.push_back("Denv" + std::to_string(i+1));
 	    headers.push_back("Susceptible_" + std::to_string(i+1));
+	    headers.push_back("Infectious_" + std::to_string(i+1));
 	    headers.push_back("MozSusceptible_" + std::to_string(i+1));
 	    headers.push_back("MozExposed_" + std::to_string(i+1));
 	    headers.push_back("MozInfectious_" + std::to_string(i+1));
 	}
     }
+    headers.push_back("Humans");
     if(!headers.empty()){
 	Report::join(headers,',',outstring);
 	outFOI << "day,";
-	outFOI << outstring;
+	outFOI << outstring;	
     }
 }
 
@@ -1716,6 +1723,7 @@ void Report::resetFOIStats(){
 	mozInfectious[i] = 0;
 	mozExposed[i] = 0;
     }
+    totalHumans = 0;
 }
 
 void Report::resetAgeStats(){
