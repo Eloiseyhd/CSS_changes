@@ -108,7 +108,7 @@ void Simulation::humanDynamics() {
     }
     map<unsigned,double>ForceOfImportation;
     ForceOfImportation.clear();
-    ForceOfImportation = (year - 1) < annualForceOfImportation.size() ? annualForceOfImportation[year - 1] : annualForceOfImportation.back();
+    ForceOfImportation = (currentDay - 1) < dailyForceOfImportation.size() ? dailyForceOfImportation[year - 1] : dailyForceOfImportation.back();
     int susceptibles[N_SERO] = {0,0,0,0};
     int infectious[N_SERO] = {0,0,0,0};
 
@@ -469,7 +469,7 @@ void Simulation::readSimControlFile(string line) {
     getline(infile, line, ',');
     birthsFile = line;
     getline(infile, line, ',');
-    string annualFoiFile = line;
+    string dailyFoiFile = line;
     getline(infile, line, ',');
     string foiFile = line;
     getline(infile, line, ',');
@@ -484,7 +484,7 @@ void Simulation::readSimControlFile(string line) {
     aegyptiRatesFile = line;
 
     readInitialFOI(foiFile);
-    readAnnualFOI(annualFoiFile);
+    readDailyFOI(dailyFoiFile);
 
 }
 
@@ -511,7 +511,7 @@ void Simulation::readInitialFOI(string fileIn){
     }
 }
 
-void Simulation::readAnnualFOI(string fileIn){
+void Simulation::readDailyFOI(string fileIn){
     if(fileIn.length() == 0){
         throw runtime_error("In Simulation.cpp, something missing");
 	//exit(1);
@@ -537,9 +537,9 @@ void Simulation::readAnnualFOI(string fileIn){
 	map_temp.insert(make_pair(2, d2));
 	map_temp.insert(make_pair(3, d3));
 	map_temp.insert(make_pair(4, d4));     
-	annualForceOfImportation.push_back(map_temp);
+	dailyForceOfImportation.push_back(map_temp);
     }
-    if(annualForceOfImportation.size() == 0){
+    if(dailyForceOfImportation.size() == 0){
 	throw runtime_error("ForceOfImportation not set\n");
 	//exit(1);
     }

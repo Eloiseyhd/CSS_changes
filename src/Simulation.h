@@ -46,7 +46,7 @@ public:
     void readVaccineSettingsFile();
     void readAegyptiFile(string);
     void readInitialFOI(string);
-    void readAnnualFOI(string);
+    void readDailyFOI(string);
     void setLocNeighborhood(double);
     void simEngine();
     void humanDynamics();
@@ -131,7 +131,7 @@ private:
     vector<double> mozDailyDeathRate;
     vector<double> dailyEmergenceFactor;
     vector<double> InitialConditionsFOI;
-    vector<map<unsigned, double>> annualForceOfImportation;
+    vector<map<unsigned, double>> dailyForceOfImportation;
 
     std::ofstream out;
     std::ofstream outpop;
