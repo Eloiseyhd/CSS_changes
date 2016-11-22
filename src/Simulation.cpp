@@ -108,7 +108,7 @@ void Simulation::humanDynamics() {
     }
     map<unsigned,double>ForceOfImportation;
     ForceOfImportation.clear();
-    ForceOfImportation = (currentDay - 1) < dailyForceOfImportation.size() ? dailyForceOfImportation[year - 1] : dailyForceOfImportation.back();
+    ForceOfImportation = currentDay < dailyForceOfImportation.size() ? dailyForceOfImportation[currentDay] : dailyForceOfImportation.back();
     int susceptibles[N_SERO] = {0,0,0,0};
     int infectious[N_SERO] = {0,0,0,0};
 
