@@ -68,9 +68,11 @@ Report::Report(){
 	foiTypes[i] = 0;
 	newInfections[i] = 0;
 	susceptibles[i] = 0;
+	susceptibles_temp[i] = 0;
 	mozSusceptibles[i] = 0;
 	mozExposed[i] = 0;
 	mozInfectious[i] = 0;
+	importations[i] = 0;
     }
     totalHumans = 0;
     
@@ -457,11 +459,17 @@ void Report::updateFOIReport(int currDay, Human * h){
 	if(sero > 0){
 	    newInfections[sero - 1]++; //The types from Human go from 1 - 4
 	}
-    }else{
-	// If h isn't infected then check for immunity to all the serotypes
-	for(unsigned i = 0; i < 4; i++){
-	    susceptibles[i] +=  h->isPermImmune(i + 1) ? 0 : 1;
-	}
+    }
+    // Check for immunity to all the serotypes
+    for(unsigned i = 0; i < 4; i++){
+	susceptibles[i] +=  h->isPermImmune(i + 1) ? 0 : 1;
+	susceptibles_temp[i] += h->isImmune(i+1) ? 0 : 1;
+    }
+}
+
+void Report::addImportation(int sero_in, Human * h){
+    if(sero_in > 0 && sero_in < 5){
+	importations[sero_in - 1]++;
     }
 }
 
@@ -1161,10 +1169,12 @@ void Report::printFOIReport(int currDay){
 	    double foi_temp = susceptibles[i] > 0 ? (double) newInfections[i] / (double) susceptibles[i] : 1;
 	    foi_values.push_back(std::to_string(foi_temp));
 	    foi_values.push_back(std::to_string(susceptibles[i]));
+	    foi_values.push_back(std::to_string(susceptibles_temp[i]));
 	    foi_values.push_back(std::to_string(newInfections[i]));
 	    foi_values.push_back(std::to_string(mozSusceptibles[i]));
 	    foi_values.push_back(std::to_string(mozExposed[i]));
 	    foi_values.push_back(std::to_string(mozInfectious[i]));
+	    foi_values.push_back(std::to_string(importations[i]));
 	}
     }
     
@@ -1449,10 +1459,12 @@ void Report::printFOIHeader(){
 	if(foiTypes[i]){
 	    headers.push_back("Denv" + std::to_string(i+1));
 	    headers.push_back("Susceptible_" + std::to_string(i+1));
+	    headers.push_back("Susceptible_temp_" + std::to_string(i+1));
 	    headers.push_back("Infectious_" + std::to_string(i+1));
 	    headers.push_back("MozSusceptible_" + std::to_string(i+1));
 	    headers.push_back("MozExposed_" + std::to_string(i+1));
 	    headers.push_back("MozInfectious_" + std::to_string(i+1));
+	    headers.push_back("Importations_" + std::to_string(i+1));
 	}
     }
     headers.push_back("Humans");
@@ -1719,9 +1731,11 @@ void Report::resetFOIStats(){
     for(int i = 0; i < 4; i++){
 	newInfections[i] = 0;
 	susceptibles[i] = 0;
+	susceptibles_temp[i] = 0;
 	mozSusceptibles[i] = 0;
 	mozInfectious[i] = 0;
 	mozExposed[i] = 0;
+	importations[i] = 0;
     }
     totalHumans = 0;
 }

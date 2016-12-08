@@ -109,6 +109,7 @@ void Simulation::humanDynamics() {
     map<unsigned,double>ForceOfImportation;
     ForceOfImportation.clear();
     ForceOfImportation = currentDay < dailyForceOfImportation.size() ? dailyForceOfImportation[currentDay] : dailyForceOfImportation.back();
+
     int susceptibles[N_SERO] = {0,0,0,0};
     int infectious[N_SERO] = {0,0,0,0};
 
@@ -191,14 +192,14 @@ void Simulation::humanDynamics() {
         phum.second->setTrajDay(rGen.getRandomNum(N_TRAJECTORY));
 
         // simulate possible imported infection
-	//	if(currentDay - (year - 1) * 365 < 50 || (currentDay - (year - 1) * 365 > 170 && currentDay - (year - 1) * 365 < 220)){
-	    for(unsigned serotype = 1; serotype <= N_SERO; serotype++){
-		if(rGen.getEventProbability() < ForceOfImportation.at(serotype)){
-		    if(!phum.second->isImmune(serotype)){
-			phum.second->infect(currentDay, serotype, &rGenInf, &disRates, &hospRates);                
-		    }
+	for(unsigned serotype = 1; serotype <= (N_SERO); serotype++){
+	    if(rGen.getEventProbability() < ForceOfImportation.at(serotype)){
+		if(!phum.second->isImmune(serotype)){
+		    outputReport.addImportation(serotype,(phum.second).get());
+		    phum.second->infect(currentDay, serotype, &rGenInf, &disRates, &hospRates);                
 		}
 	    }
+	}
 	    //	}
 
 	//update vaccine immunity if necessary
@@ -259,11 +260,6 @@ void Simulation::mosquitoDynamics(){
     double mozFBiteRate = currentDay < firstBiteRate.size() ? firstBiteRate[currentDay] : firstBiteRate.back();
     double mozSBiteRate = currentDay < secondBiteRate.size() ? secondBiteRate[currentDay] : secondBiteRate.back();
 
-    // TEST, TEMPORARY!!!
-    if(currentDay > 2500){
-	mozFBiteRate *= 1;
-	mozSBiteRate *= 1;
-    }
     
     for(auto it = mosquitoes.begin(); it != mosquitoes.end();){
 	if(it->second->infection != nullptr){

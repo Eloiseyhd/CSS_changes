@@ -91,6 +91,8 @@ class Report {
     int foiTypes[4];
     int newInfections[4];
     int susceptibles[4];
+    int susceptibles_temp[4];
+    int importations[4];
     int mozSusceptibles[4];
     int mozExposed[4];
     int mozInfectious[4];
@@ -141,6 +143,7 @@ public:
     void updateGroupsReport(int, Human *);
     void updateAgesReport(int, Human *);
     void updateFOIReport(int, Human *);
+    void addImportation(int, Human *);
     void updateSpatialReport(int, Human *, Location *);
     void updateMosquitoReport(int, Mosquito *, Location *);
     void resetReports();
