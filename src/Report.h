@@ -16,6 +16,7 @@
 using std::string;
 using std::map;
 using std::vector;
+using std::set;
 
 class Report {    
  public:
@@ -57,12 +58,15 @@ class Report {
     bool printGroupsPop;
     bool printGroupsAgeFirst;
     bool printGroupsTotalAges;
-
+    bool printZonesFOI;
+    
     vector<string> events;
     vector<string> status;
 
     map<string, string> parameters;
-
+    map<string, vector<int>> zonesInf;
+    map<string, vector<int>> zonesSus;
+    
     int cohortEvents[5];
     int cohortStatus[4];
     int cohortReportPeriod[3];
@@ -125,6 +129,7 @@ public:
     //virtual ~Report();
 
     void setupReport(string, string, string);
+    void setupZones(set<string>);
     void updateReport(int, Human *, Location *);
     void join(const vector<string>&,char, string &);
     void printReport(int);

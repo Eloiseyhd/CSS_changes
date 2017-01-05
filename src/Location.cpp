@@ -15,6 +15,10 @@ string Location::getNeighID() const {
     return neighborhoodID;
 }
 
+string Location::getZoneID() const{
+  return zoneID;
+}
+
 double Location::getLocX() const {
     return xCor;
 }
@@ -37,10 +41,11 @@ Location::Location(string lID, string lType, double x, double y, double e) {
     infectedVisitor = false;
 }
 
-Location::Location(string lID, string lType, string NID, double x, double y, double e) {
+Location::Location(string lID, string lType, string NID, string ZID, double x, double y, double e) {
     locID = lID;
     locType = lType;
     neighborhoodID = NID;
+    zoneID = ZID;
     xCor = x;
     yCor = y;
     emergenceRate = e;

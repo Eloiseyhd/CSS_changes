@@ -3,12 +3,14 @@
 
 Human::Human(string hID,
 	     int hMemID,
+	     string zID,
 	     char gen,
 	     int birthYear,
 	     int deathYear,
 	     RandomNumGenerator& rGen)
 {
     houseID = hID;
+    zoneID = zID;
     houseMemNum = hMemID;
     personID = hID + std::to_string(hMemID);
     gender = gen;
@@ -139,6 +141,10 @@ unsigned Human::getImmEndDay() const {
 
 unsigned Human::getVaxImmEndDay() const {
     return vaxImmEndDay;
+}
+
+const string & Human::getZoneID() const{
+  return zoneID;
 }
 
 const string & Human::getHouseID() const {

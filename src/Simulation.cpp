@@ -27,18 +27,17 @@ string Simulation::readInputs() {
     readAegyptiFile(aegyptiRatesFile);
 
     outputPath.erase(remove(outputPath.begin(), outputPath.end(), '\"'), outputPath.end());
-    outputReport.setupReport(reportsFile,outputPath,simName);
-
+    
     RandomNumGenerator rgen(rSeed, huImm, emergeFactor, 1 / mozDailyDeathRate.back(), firstBiteRate.back(), halflife);
     rGen = rgen;
-
+    
     RandomNumGenerator rgen2(rSeedInf, huImm, emergeFactor, 1 / mozDailyDeathRate.back(), firstBiteRate.back(), halflife);
     rGenInf = rgen2;
-
+    
     readDiseaseRatesFile();
-
+    
     readVaccineSettingsFile();
-
+    
     readVaccineProfilesFile();
 
     if(vaccinationStrategy == "random_trial"){
@@ -49,9 +48,11 @@ string Simulation::readInputs() {
     if(vaccinationStrategy == "sanofi_trial"){
 	readVaccinationGroupsFile();
     }
+
     readLocationFile(locationFile);
     readBirthsFile(birthsFile);
     readTrajectoryFile(trajectoryFile);
+    outputReport.setupReport(reportsFile,outputPath,simName);
     return simName;
 }
 
@@ -80,6 +81,7 @@ void Simulation::simEngine() {
 	    }
 	    recruitmentTrial.update(currentDay);
 	}
+	
         humanDynamics();
 	outputReport.printReport(currentDay);
         mosquitoDynamics();	
@@ -110,9 +112,12 @@ void Simulation::humanDynamics() {
     ForceOfImportation.clear();
     ForceOfImportation = currentDay < dailyForceOfImportation.size() ? dailyForceOfImportation[currentDay] : dailyForceOfImportation.back();
 
-    int susceptibles[N_SERO] = {0,0,0,0};
-    int infectious[N_SERO] = {0,0,0,0};
-
+    for(auto locIt = zones.begin(); locIt != zones.end();){
+      std::string tmpstr = (*locIt);
+      zones_counts[tmpstr] = 0;
+      ++locIt;
+    }
+    
     // Newborns !!!
     auto newbornsRange = future_humans.equal_range(currentDay);
     // walk through today's births
@@ -179,15 +184,6 @@ void Simulation::humanDynamics() {
             phum.second->checkRecovered(currentDay);
 	}
 
-	if(currentDay == 0){
-	    for(int i = 0; i< N_SERO; i++){
-		if(!phum.second->isImmune(i+1)){
-		    susceptibles[i]++;
-		}else{
-		    infectious[i]++;
-		}
-	    }
-	}
         // select movement trajectory for the day
         phum.second->setTrajDay(rGen.getRandomNum(N_TRAJECTORY));
 
@@ -200,7 +196,6 @@ void Simulation::humanDynamics() {
 		}
 	    }
 	}
-	    //	}
 
 	//update vaccine immunity if necessary
 	if(phum.second->isVaccinated()){
@@ -246,7 +241,13 @@ void Simulation::humanDynamics() {
     	    }
     	}
 	outputReport.updateReport(currentDay,(phum.second).get(), locations[phum.second->getHouseID()].get());
+	Location * housetmp = locations[phum.second->getHouseID()].get();
+	zones_counts[housetmp->getZoneID()]++;
     }
+    /*    for(auto locIt = zones.begin(); locIt != zones.end();){
+      printf("zone: %s counts: %u\n", (*locIt).c_str(), zones_counts[(*locIt)]);
+      ++locIt;
+      }*/
 }
 
 void Simulation::mosquitoDynamics(){
@@ -398,6 +399,7 @@ void Simulation::selectEligibleTrialParticipants(){
     }
     //    printf("In total %lu participants are eligible out of %lu\n",recruitmentTrial.getEligibleParticipantsSize(),humans.size());
     recruitmentTrial.shuffleEligibleParticipants();
+    //    recruitmentTrial.printEligibleGroups();
 }
 
 void Simulation::readAegyptiFile(string file){
@@ -509,13 +511,15 @@ void Simulation::readInitialFOI(string fileIn){
 
 void Simulation::readDailyFOI(string fileIn){
     if(fileIn.length() == 0){
-        throw runtime_error("In Simulation.cpp, something missing");
+	printf("In Simulation.cpp, something missing in readDailyFoI %s\n", fileIn.c_str());
+        throw runtime_error("In Simulation.cpp, something missing in readDailyFoI");
 	//exit(1);
     }
     ifstream infile(fileIn);
     string line;
     if(!infile.good()){
-        throw runtime_error("In Simulation.cpp, something missing");
+	printf("In Simulation.cpp, something missing, file %s is not good in readDailyFoI\n", fileIn.c_str());
+        throw runtime_error("In Simulation.cpp, something missing, file is not good in readDailyFoI");
 	//exit(1);
     }
     getline(infile, line);
@@ -546,7 +550,7 @@ void Simulation::readLocationFile(string locFile) {
         throw runtime_error("In Simulation.cpp, something missing");
         //exit(1);
     }
-    string line, locID, locType, nID;
+    string line, locID, locType, nID,zID;
     double x, y, mozzes;
 
     ifstream infile(locFile);
@@ -563,10 +567,11 @@ void Simulation::readLocationFile(string locFile) {
 
         getline(infile, line, ',');
         locType = line;
-
+	
         getline(infile, line, ',');
         getline(infile, line, ',');
-
+	zID = line;
+	
         getline(infile, line, ',');
 	nID = line;
         getline(infile, line, ',');
@@ -574,14 +579,21 @@ void Simulation::readLocationFile(string locFile) {
 
         getline(infile, line);
         mozzes = strtod(line.c_str(), NULL);
-
-        while (infile.peek() == '\n')
+	
+        while (infile.peek() == '\n'){
             infile.ignore(1, '\n');
-        unique_ptr<Location> location(new Location(locID, locType, nID, x, y, mozzes));
+	}
+        unique_ptr<Location> location(new Location(locID, locType, nID, zID, x, y, mozzes));
         locations.insert(make_pair(locID, move(location)));
-
+	zones.insert(zID);
     }
     infile.close();
+    outputReport.setupZones(zones);
+    for(auto locIt = zones.begin(); locIt != zones.end();){
+	std::string tmpstr = (*locIt);
+	zones_counts.insert(make_pair(tmpstr,0));
+	++locIt;
+    }
 }
 
 
@@ -617,14 +629,16 @@ void Simulation::readDiseaseRatesFile(){
 void Simulation::readVaccineSettingsFile(){
     vaccinationStrategy = "none";
     if(vaccineSettingsFile.length() == 0){
-        throw runtime_error("In Simulation.cpp, something missing");
+	printf("In Simulation.cpp, readvaccinesettings, something missing length is 0 for %s\n", vaccineSettingsFile.c_str());
+        throw runtime_error("In Simulation.cpp, readvaccinesettings, something missing length is 0 for vaccine file");
         //exit(1);
     }
     string line;
     ifstream infile(vaccineSettingsFile);
     if(!infile.good()){
         //exit(1);
-        throw runtime_error("In Simulation.cpp, something missing");
+	printf("In Simulation.cpp (readVaccineSettingsFile) something missing. file %s not good\n", vaccineSettingsFile.c_str());
+        throw runtime_error("In Simulation.cpp (readVaccineSettingsFile) something missing. file of vaccine settings is not good\n");
     }
     printf("Reading vaccine settings file %s\n", vaccineSettingsFile.c_str());
     while(getline(infile,line,'\n')){
@@ -859,7 +873,7 @@ void Simulation::readBirthsFile(string bFile){
         throw runtime_error("In Simulation.cpp, something missing");
         //exit(1);
     }
-    string line, houseID;
+    string line, houseID,zID;
     int bday,dday;
     unsigned hMemID;
     char gen;
@@ -878,7 +892,8 @@ void Simulation::readBirthsFile(string bFile){
 	if(locations.find(houseID) == locations.end()){
 	    printf("HouseID: %s not found\n", houseID.c_str());
         } else {
-	    sp_human_t h(new Human(houseID, hMemID, gen, bday, dday, rGen));
+	    Location * housetmp = locations[houseID].get();
+	    sp_human_t h(new Human(houseID, hMemID, housetmp->getZoneID(), gen, bday, dday, rGen));
 	    //if(total_humans_by_id.find(h->getPersonID()) == total_humans_by_id.end()){
 	    // map.insert checks, only inserts if none present
             total_humans_by_id.insert(make_pair(h->getPersonID(), h));

@@ -28,7 +28,7 @@ void Surveillance::setup(string file){
 	exit(1);
     }
     while(getline(infile,line,'\n')){
-	addParameter(line);
+	this->addParameter(line);
     }
     infile.close();
 
@@ -216,6 +216,7 @@ void Surveillance::printRecords(string file, int currDay){
     if (!outSurveillance.good()) {
 	exit(1);
     }
+    
     vector<string> headers; string outstring;
 
     headers.push_back("ID,Age,Arm,Serostatus,Enrollment_day,Last_day");
@@ -310,9 +311,7 @@ double Surveillance::parseDouble(string line){
 }
 
 void Surveillance::join(const vector<string>& v, char c, string& s) {
-
     s.clear();
-
     for (vector<string>::const_iterator p = v.begin(); p != v.end(); ++p) {
 	s += *p;
 	if (p != v.end() - 1){

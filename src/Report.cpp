@@ -15,12 +15,13 @@ Report::Report(){
     reportAges = false;
     reportGroups = false;
     reportFOI = false;
-    reportSpatial = false;
+    reportSpatial = false;    
 
     printCohortPop = false;
     printAgesPop = false;
     printGroupsPop = false;
-
+    printZonesFOI = false;
+    
     printGroupsAgeFirst = false;
     printGroupsTotalAges = false;
 
@@ -94,6 +95,21 @@ Report::Report(){
     status = {"vac", "plac", "serop", "seron"};
 }
 
+void Report::setupZones(set<string> zonesIn){
+    for(auto locIt = zonesIn.begin(); locIt != zonesIn.end();){
+	std::string tmpstr = (*locIt);
+	printf("Setting up Zones in Report...zone:%s\n", tmpstr.c_str());
+	vector<int> tmp;
+	tmp.clear();
+	for(unsigned i = 0; i < 4; i++){
+	    tmp.push_back(0);
+	}
+	zonesInf.insert(make_pair(tmpstr,tmp));
+	zonesSus.insert(make_pair(tmpstr,tmp));
+	++locIt;
+    }
+}
+
 void Report::setupReport(string file, string outputPath_, string simName_) {
     //       Read the reporting file and assign variable values
     if (file.length() == 0) {
@@ -105,7 +121,7 @@ void Report::setupReport(string file, string outputPath_, string simName_) {
 	exit(1);
     }
     while(getline(infile,line,'\n')){
-	addParameter(line);
+	this->addParameter(line);
     }
     infile.close();
 
@@ -124,12 +140,14 @@ void Report::setupReport(string file, string outputPath_, string simName_) {
 
     this->readParameter("groups_ages","ages",&groupsAges);
     this->readParameter("cohort_ages","ages",&cohortAges);
+
     discreteAges = this->readParameter("age_ages","ages", discreteAges);
     printGroupsPop = this->readParameter("groups_complement", printGroupsPop);
     printCohortPop = this->readParameter("cohort_complement", printCohortPop);
     printAgesPop = this->readParameter("age_complement", printAgesPop);
     printGroupsAgeFirst = this->readParameter("groups_avg_first", printGroupsAgeFirst);
     printGroupsTotalAges = this->readParameter("groups_print_total_ages", printGroupsTotalAges);
+    printZonesFOI = this->readParameter("foi_print_zones", printZonesFOI);
     reportGroups = this->readParameter("groups_print", reportGroups);
     reportCohort = this->readParameter("cohort_print", reportCohort);
     reportAges = this->readParameter("age_print", reportAges);
@@ -150,6 +168,9 @@ void Report::setupReport(string file, string outputPath_, string simName_) {
 	outFOI.open(outputFOIFile);
 	if (!outFOI.good()) {
 	    exit(1);
+	}
+	if(printZonesFOI == true){
+	    printf("PRINTING FoI per ZONE\n");
 	}
     }
     if(reportGroups == true){
@@ -454,16 +475,19 @@ void Report::updateFOIReport(int currDay, Human * h){
     // Collect the number of susceptibles and infections per serotype
     // If h is infectious, then get the serotype
     totalHumans++;
+    string tmpzone = h->getZoneID();
     if(h->getRecentInf() > 0){
 	int sero = h->getRecentType();
 	if(sero > 0){
 	    newInfections[sero - 1]++; //The types from Human go from 1 - 4
+	    zonesInf[tmpzone][sero-1]++;
 	}
     }
     // Check for immunity to all the serotypes
     for(unsigned i = 0; i < 4; i++){
 	susceptibles[i] +=  h->isPermImmune(i + 1) ? 0 : 1;
 	susceptibles_temp[i] += h->isImmune(i+1) ? 0 : 1;
+	zonesSus[tmpzone][i] += h->isPermImmune(i + 1) ? 0 : 1;
     }
 }
 
@@ -1177,6 +1201,19 @@ void Report::printFOIReport(int currDay){
 	    foi_values.push_back(std::to_string(importations[i]));
 	}
     }
+
+    if(printZonesFOI == true){
+	for(auto locIt = zonesInf.begin(); locIt != zonesInf.end();){
+	    string zz = locIt->first;
+	    for(int i = 0; i < 4; i++){
+		if(foiTypes[i]){
+		    double foi_temp = zonesSus[zz][i] > 0 ? (double) zonesInf[zz][i] / (double) zonesSus[zz][i] : 1;
+		    foi_values.push_back(std::to_string(foi_temp));
+		}
+	    }
+	    ++locIt;
+	}
+    }
     
     foi_values.push_back(std::to_string(totalHumans));
     if(!foi_values.empty()){
@@ -1455,6 +1492,7 @@ void Report::printSpatialHeader(){
 void Report::printFOIHeader(){
     vector<string> headers; string outstring;
     headers.clear();
+    printf("PRINTING FOI HEADERS\n");
     for(int i = 0; i < 4; i++){
 	if(foiTypes[i]){
 	    headers.push_back("Denv" + std::to_string(i+1));
@@ -1465,6 +1503,17 @@ void Report::printFOIHeader(){
 	    headers.push_back("MozExposed_" + std::to_string(i+1));
 	    headers.push_back("MozInfectious_" + std::to_string(i+1));
 	    headers.push_back("Importations_" + std::to_string(i+1));
+	}
+    }
+    if(printZonesFOI == true){
+	for(auto locIt = zonesInf.begin(); locIt != zonesInf.end();){
+	    for(int i = 0; i < 4; i++){
+		if(foiTypes[i]){
+		    printf("PRINTING ZONES HEADERS FOR ZONE %s and SEROTYPE %d\n", (locIt->first).c_str(), i);
+		    headers.push_back("FOI_" + locIt->first +std::to_string(i + 1));
+		}
+	    }
+	    ++locIt;
 	}
     }
     headers.push_back("Humans");
@@ -1705,8 +1754,6 @@ void Report::printCohortHeader(){
     }
 }
 
-
-
 void Report::resetReports(){
     if(reportGroups == true){
 	resetGroupStats();
@@ -1724,9 +1771,11 @@ void Report::resetReports(){
 	resetSpatialStats();
     }
 }
+
 void Report::resetSpatialStats(){
     spatialData.clear();
 }
+
 void Report::resetFOIStats(){
     for(int i = 0; i < 4; i++){
 	newInfections[i] = 0;
@@ -1738,6 +1787,19 @@ void Report::resetFOIStats(){
 	importations[i] = 0;
     }
     totalHumans = 0;
+    for(auto locIt = zonesInf.begin(); locIt != zonesInf.end();){
+	for(int i = 0; i < 4; i++){
+	    locIt->second[i] = 0;
+	}
+	++locIt;
+    }
+    
+    for(auto locIt = zonesSus.begin(); locIt != zonesSus.end();){
+	for(int i = 0; i < 4; i++){
+	    locIt->second[i] = 0;
+	}
+	++locIt;
+    }
 }
 
 void Report::resetAgeStats(){

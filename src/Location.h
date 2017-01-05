@@ -17,6 +17,7 @@ class Location {
 private:
     string locID;
     string neighborhoodID;
+    string zoneID;
     double xCor;
     double yCor;
     double emergenceRate;
@@ -39,8 +40,9 @@ public:
     string getLocID() const;
     string getLocType() const;
     string getNeighID() const;
+    string getZoneID() const;
     Location(string, string, double, double, double);
-    Location(string, string, string, double, double, double);
+    Location(string, string, string, string, double, double, double);
     Location();
     Location(const Location& orig);
     //virtual ~Location();

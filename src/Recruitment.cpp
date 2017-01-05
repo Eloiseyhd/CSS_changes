@@ -21,6 +21,7 @@ Recruitment::Recruitment(){
     dropoutRate = 0.0;
 
     recruitmentStrategy = "none";
+    recruitmentZone = "";
     ageGroups.clear();
 
     vaccineProfile = 0;
@@ -35,14 +36,18 @@ void Recruitment::update(int currDay){
 	}
 	if(currDay > recruitmentStartDay && currDay <= ( recruitmentStartDay + recruitmentTimeFrame + trialDurationDays)){
 	    this->updateParticipants(currDay);
-	}
-    }else if(currDay == recruitmentStartDay + recruitmentTimeFrame){
-	for(int i = 0; i < ageGroups.size(); i ++){
-	    if(ageGroups[i].vaccine.size() != vaccineSampleSize || ageGroups[i].placebo.size() != placeboSampleSize ){
-		printf("Take a look at the size  age group %d of vaccine %lu and placebo %lu\n", i, ageGroups[i].vaccine.size(),ageGroups[i].placebo.size());
-		exit(1);
-	    }else{
-		ageGroups[i].eligible.clear();
+	}else if(currDay == recruitmentStartDay + recruitmentTimeFrame){
+	    printf("Recruitment finished\n");
+	    for(int i = 0; i < ageGroups.size(); i ++){
+		if(ageGroups[i].vaccine.size() != vaccineSampleSize || ageGroups[i].placebo.size() != placeboSampleSize ){
+		    printf("Recruitment finished: take a look at the size  age group %d of vaccine %lu and placebo %lu\n",
+			   i, ageGroups[i].vaccine.size(),ageGroups[i].placebo.size());
+		    exit(1);
+		}else{
+		    printf("age group: %d - %d, size vaccine: %lu, size placebo: %lu. Eligibles: %lu\n",
+			   ageGroups[i].min, ageGroups[i].max, ageGroups[i].vaccine.size(), ageGroups[i].placebo.size(), ageGroups[i].eligible.size());
+		    ageGroups[i].eligible.clear();
+		}
 	    }
 	}
     }
@@ -52,32 +57,6 @@ void Recruitment::update(int currDay){
 void Recruitment::removeParticipant(Human * h, int currDay){
     trialSurveillance.finalize_human_surveillance(h, currDay);
     h->unenrollTrial();
-    // erase(tmpit) in updateArm accomplishes the same thing?? - I think so, this was a test
-    // this linear scan is really expensive
-    /*
-    string arm_ = h->getTrialArm();
-    vector<Human *> * arm_v;
-    int i = getAgeGroup(h->getAgeTrialEnrollment(),ageGroups);
-    if(i >=0){
-	if(arm_ == "vaccine"){
-	    arm_v = &ageGroups[i].vaccine;
-	}else{
-	    arm_v = &ageGroups[i].placebo;
-	}
-	for(auto it = arm_v->begin(); it !=  arm_v->end();){
-	    if((*it)->getPersonID() == h->getPersonID()){
-		printf("PERSON %s removed from trial for real\n", h->getPersonID().c_str());
-		arm_v->erase(it);
-		break;
-	    }else{
-		++it;
-	    }
-	}
-    }else{
-	printf("SOMETHING IS VERY STRANGE in removeparticipant\n");
-	exit(1);
-    }
-    */
 }
 
 void Recruitment::finalizeTrial(int currDay){
@@ -144,6 +123,11 @@ void Recruitment::updateArm(unsigned vaxID, recruit_t & arm, int currDay){
     }
     //    printf("Arm updated\n");
 }
+void Recruitment::printEligibleGroups(){
+    for(int i = 0; i < ageGroups.size(); i ++){
+	printf(" Eligibles age-group: %d - %d, (eligible size %zu).\n", ageGroups[i].min, ageGroups[i].max, ageGroups[i].eligible.size() );
+    }
+}
 
 void Recruitment::enrollTodayParticipants(int currDay){
     if(dailyVaccineRecruitmentRate <= 0 || dailyPlaceboRecruitmentRate <= 0){
@@ -151,7 +135,7 @@ void Recruitment::enrollTodayParticipants(int currDay){
 	exit(1);
     }
     for(int i = 0; i < ageGroups.size(); i ++){
-	//	printf("Enroll participants day %d group %d, (eligible %zu).\n", currDay, i, ageGroups[i].eligible.size() );
+	//	
 	//Vaccine enrollment
 	enrollArmParticipants(ageGroups[i].vaccine, ageGroups[i].eligible, "vaccine", currDay,vaccineSampleSize,dailyVaccineRecruitmentRate,ageGroups[i].min, ageGroups[i].max,vaccineProfile);
 	enrollArmParticipants(ageGroups[i].placebo, ageGroups[i].eligible, "placebo", currDay,placeboSampleSize,dailyPlaceboRecruitmentRate,ageGroups[i].min, ageGroups[i].max,placeboProfile);
@@ -169,7 +153,7 @@ void Recruitment::enrollArmParticipants(
 					int max_,
 					unsigned vProfile)
 {
-    //    printf("Enroll participants today %d %s, (eligible %zu)\n", currDay, arm_str.c_str(), eligible.size());
+    //    printf("Enroll participants today: %d, min: %d, max: %d, arm: %s size: %zu, (eligible %zu)\n", currDay, min_, max_, arm_str.c_str(), arm.size(), eligible.size());
     int nrecruit = 0;
     // process from end, possibly deleting as we go
     auto it = eligible.end();
@@ -203,7 +187,6 @@ void Recruitment::enrollArmParticipants(
             */
 	}else{
 	    if(phum->isEnrolledInTrial() == false){
-                // should phum be removed from eligible??
 		phum->enrollInTrial(currDay, arm_str);
 		arm.insert(phum);
 		trialSurveillance.initialize_human_surveillance(phum, currDay);
@@ -241,70 +224,117 @@ void Recruitment::setupRecruitment(string file, map<unsigned,Vaccine> vaccines_,
     if(!infile.good()){
 		exit(1);
     }
-    printf("Reading setuprecruitment file %s\n", file.c_str());
+    
+    printf("Reading recruitment setup file %s\n", file.c_str());
+
     // Read the trial recruitment parameters
     while(getline(infile,line,'\n')){
-	string line2,line3;
-	vector<string>param_line = getParamsLine(line);
-	line2 = param_line[0];
-	line3 = param_line[1];
-	//	printf("Line2: -%s- Line3: -%s-\n",line2.c_str(),line3.c_str());
-	if(line2 == "trial_recruitment_strategy"){
-	    recruitmentStrategy = this->parseString(line3);
-	}
-	if(line2 == "trial_recruitment_timeframe"){
-	    recruitmentTimeFrame = this->parseInteger(line3);
-	}
-	if(line2 == "trial_recruitment_start_day"){
-	    recruitmentStartDay = this->parseInteger(line3);
-	}
-	if(line2 == "trial_vaccine_sample_size"){
-	    vaccineSampleSize = this->parseInteger(line3);
-	}
-	if(line2 == "trial_placebo_sample_size"){
-	    placeboSampleSize = this->parseInteger(line3);
-	}
-	if(line2 == "trial_age_groups"){
-	    this->parseAges(line3,&ageGroups);
-	}
-	if(line2 == "trial_vaccine_profile"){
-	    vaccineProfile = this->parseInteger(line3);
-	}
-	if(line2 == "trial_placebo_profile"){
-	    placeboProfile = this->parseInteger(line3);
-	}
-	if(line2 == "trial_length_days"){
-	    trialDurationDays = this->parseInteger(line3);
-	}
-	if(line2 == "trial_avg_enrollment_days"){
-	    dropoutRate = (double) 1.0 / (this->parseDouble(line3));
-	}
+	this->addParameter(line);
     }
+    
+    double tmp;
+    this->readParameter("trial_age_groups",&ageGroups);
+    this->readParameter("trial_recruitment_strategy", &recruitmentStrategy);
+    this->readParameter("trial_recruitment_zone", &recruitmentZone);
+    this->readParameter("trial_vaccine_profile", &vaccineProfile);
+    this->readParameter("trial_placebo_profile", &placeboProfile);
+    this->readParameter("trial_recruitment_start_day", &recruitmentStartDay);
+    this->readParameter("trial_recruitment_timeframe", &recruitmentTimeFrame);
+    this->readParameter("trial_vaccine_sample_size", &vaccineSampleSize);
+    this->readParameter("trial_placebo_sample_size", &placeboSampleSize);
+    this->readParameter("trial_length_days", &trialDurationDays);
+    this->readParameter("trial_avg_enrollment_days",&tmp);
+    dropoutRate = (double) 1.0 / tmp;
 
-
-    printf("Recruitment strategy: |%s| duration %d dropoutRate %.6f\n",recruitmentStrategy.c_str(), trialDurationDays, dropoutRate);
+    printf("TRIAL RECRUITMENT SETTINGS----------------\n");
+    if(recruitmentStrategy == "zones"){
+	printf("starting development of zones... be careful, this is experimental\n");
+	printf("Recruitment zone selected %s\n", recruitmentZone.c_str());
+    }
+    printf("Recruitment strategy: |%s| duration: %d dropoutRate: %.6f recruitment_time_frame: %d\n",
+	   recruitmentStrategy.c_str(), trialDurationDays, dropoutRate,recruitmentTimeFrame);
     printf("Vaccine Profile ID: %d, placebo profile ID: %d\n",vaccineProfile, placeboProfile);
     if(recruitmentStrategy == "none"){
 	printf("Please specify a recruitment Strategy\n");
 	exit(1);
     }
+    for(int i = 0; i < ageGroups.size(); i ++){
+	printf("Age group: %d - %d\n",ageGroups[i].min, ageGroups[i].max - 1);
+    }
+
     infile.close();
 }
 
-vector<string> Recruitment::getParamsLine(string line_){
-    std::stringstream linetemp;
-    string line2_,line3_;
-    linetemp.clear();
-    linetemp << line_;
-    getline(linetemp,line2_,'=');
-    getline(linetemp,line3_,'=');
-    linetemp.clear();
-    linetemp << line2_;
-    getline(linetemp,line2_,' ');
-    vector<string> params;
-    params.push_back(line2_);
-    params.push_back(line3_);
-    return params;
+void Recruitment::addParameter(string line){
+    if(line.size() > 0 && line[0] != '#' && line[0] != ' '){
+	string param_name, param_value;
+	size_t pos_equal = line.find_first_of('=');
+	if(pos_equal != string::npos){
+	    param_name = line.substr(0,pos_equal);
+	    param_value = line.substr(pos_equal + 1);	    
+	    // trim trailing spaces and weird stuff for param_name
+	    pos_equal = param_name.find_first_of(" \t");
+	    if(pos_equal != string::npos){
+		param_name = param_name.substr(0,pos_equal);
+	    }
+	    // trim trailing and leading spaces and weird stuff from param_value
+	    pos_equal = param_value.find_first_not_of(" \t");
+	    if(pos_equal != string::npos){
+		param_value = param_value.substr(pos_equal);
+	    }
+	    pos_equal = param_value.find_first_of("#");
+	    if(pos_equal != string::npos){
+		param_value = param_value.substr(0,pos_equal);
+	    }
+	    // trim trailing and leading spaces and weird stuff from param_value
+	    pos_equal = param_value.find_last_not_of(" \t");
+	    if(pos_equal != string::npos){
+		param_value = param_value.substr(0,pos_equal+1);
+	    }
+	    // Add the parameter name and value to the map
+	    parameters.insert(make_pair(param_name,param_value));
+	}
+    }
+}
+
+void Recruitment::readParameter(string param_name, vector<Recruitment::groupStruct> * param_var){
+   map<string, string>::iterator it;
+    it = parameters.find(param_name);
+    if(it != parameters.end()){
+	this->parseAges(it->second,param_var);
+    }
+}
+
+void Recruitment::readParameter(string param_name, unsigned * param_var){
+   map<string, string>::iterator it;
+    it = parameters.find(param_name);
+    if(it != parameters.end()){
+	*param_var = parseInteger(it->second);
+    }
+}
+
+void Recruitment::readParameter(string param_name, int * param_var){
+   map<string, string>::iterator it;
+    it = parameters.find(param_name);
+    if(it != parameters.end()){
+	*param_var = parseInteger(it->second);
+    }
+}
+
+void Recruitment::readParameter(string param_name, double * param_var){
+   map<string, string>::iterator it;
+    it = parameters.find(param_name);
+    if(it != parameters.end()){
+	*param_var = parseDouble(it->second);
+    }
+}
+
+void Recruitment::readParameter(string param_name, string * param_var){
+   map<string, string>::iterator it;
+    it = parameters.find(param_name);
+    if(it != parameters.end()){
+	*param_var = parseString(it->second);
+    }
 }
 
 void Recruitment::addPossibleParticipant(Human * h, int currDay){
@@ -314,11 +344,14 @@ void Recruitment::addPossibleParticipant(Human * h, int currDay){
 	return;
     } 
     // If it's random recruitment just push it into the list without any other requirement
-    // otherwise?? -> This is for the future, I might add different recruitment strategies
     if(recruitmentStrategy == "random"){
 	ageGroups[group_].eligible.push_back(h);
+    }else if(recruitmentStrategy == "zones"){
+	if(h->getZoneID() == recruitmentZone){
+	    ageGroups[group_].eligible.push_back(h);
+	}
     }else{
-	printf("Please modify recruitment strategy %s is not a valid one: only random is supported at this momment\n", recruitmentStrategy.c_str());
+	printf("Please modify recruitment strategy %s is not a valid one: only random and zones are supported at this momment\n", recruitmentStrategy.c_str());
 	exit(1);
     }
 }
@@ -329,7 +362,7 @@ void Recruitment::shuffleEligibleParticipants(){
     // process eligibles for each group
     for(auto & grp : ageGroups ){
         ii++;
-	if(grp.eligible.size() >= vaccineSampleSize + placeboSampleSize){
+	if(grp.eligible.size() > 0){
 	    // First make sure eligible participants have not died
 	    for(auto it = grp.eligible.begin(); it !=  grp.eligible.end();){
 		if( (*it) == nullptr){
@@ -343,10 +376,12 @@ void Recruitment::shuffleEligibleParticipants(){
                     continue; // redund
 		}
 	    }
-	    rGen->shuffle(grp.eligible);
+	    if(grp.eligible.size() > 0){
+		rGen->shuffle(grp.eligible);
+	    }
 	}else{
-	    printf("%lu is less than the sample size sum %d for age group %d\n",grp.eligible.size(), vaccineSampleSize + placeboSampleSize, ii-1);
-	    exit(1);
+	    printf("Eligibles are 0, there are no more to recruit. vaccine arm size: %lu, placebo arm size: %lu\n", grp.vaccine.size(), grp.placebo.size());
+	    
 	}
     }
     dailyVaccineRecruitmentRate = ceil( (double) vaccineSampleSize / (double) recruitmentTimeFrame);

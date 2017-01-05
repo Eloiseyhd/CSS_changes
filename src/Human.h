@@ -84,6 +84,7 @@ private:
 
     string houseID;
     string personID;
+    string zoneID;
     string trialArm;
     map<unsigned,bool> immunity_perm;
     std::unique_ptr<traject_t> trajectories;
@@ -92,7 +93,7 @@ private:
 public:
     std::unique_ptr<Infection> infection;
     //Human(std::string,int,int,char,std::unique_ptr<std::vector<std::vector<std::pair<std::string,double>>>>&,RandomNumGenerator&,unsigned,std::vector<double>);
-    Human(string,int,char,int,int, RandomNumGenerator&);
+    Human(string,int,string,char,int,int, RandomNumGenerator&);
     Human();
     //    Human(const Human &orig);
     //virtual ~Human();
@@ -175,6 +176,7 @@ public:
 
     const string & getCurrentLoc(double);
     const string & getHouseID() const;
+    const string & getZoneID() const;
     const string & getPersonID() const;
     string getTrialArm(){return trialArm;}
     const std::set<string> & getLocsVisited();

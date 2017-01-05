@@ -36,6 +36,8 @@ class Recruitment {
     RandomNumGenerator * rGen;
     Surveillance trialSurveillance;
 
+    map<string, string> parameters;
+    
     int vaccineSampleSize;
     int placeboSampleSize;
     int recruitmentTimeFrame;
@@ -46,6 +48,7 @@ class Recruitment {
 
     string recruitmentStrategy;
     string outSurveillance;
+    string recruitmentZone;
     vector<groupStruct> ageGroups;
 
     unsigned vaccineProfile;
@@ -58,12 +61,18 @@ class Recruitment {
     int parseInteger(string);
     double parseDouble(string); 
 
+    void addParameter(string line);
+    void readParameter(string param_name, int * param_var);
+    void readParameter(string param_name, unsigned * param_var);
+    void readParameter(string param_name, double * param_var);
+    void readParameter(string param_name, string * param_var);
+    void readParameter(string param_name, vector<Recruitment::groupStruct> * param_var);
+    
     void parseAges(string line, vector<groupStruct> *);
     void parseVector(string line, vector<double> *);
     void enrollTodayParticipants(int);
     void enrollArmParticipants(recruit_t &, eligible_t &, string, int, int, int, int, int,unsigned);
     string parseString(string);
-    vector<string> getParamsLine(string);
     map<unsigned, Vaccine> vaccinesPtr;
 
  public:
@@ -82,6 +91,7 @@ class Recruitment {
     void updateParticipants(int);
     void finalizeTrial(int);
     void removeParticipant(Human *, int);
+    void printEligibleGroups();
     int getVaccineSampleSize(){return vaccineSampleSize;}
     int getPlaceboSampleSize(){return placeboSampleSize;}
     int getRecruitmentStartDay(){return recruitmentStartDay;}

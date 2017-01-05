@@ -67,8 +67,6 @@ private:
     void parseVector(string line, vector<int> *);
 
     map <string,std::unique_ptr<Location>> locations;
-    map<unsigned,double> VE_pos;
-    map<unsigned,double> VE_neg;
     map<unsigned,double> halflife;
     map<unsigned,double> disRates;
     map<unsigned,double> hospRates;
@@ -78,7 +76,8 @@ private:
     std::multimap<string,sp_human_t> humans;
     std::multimap<int,sp_human_t> future_humans;
     map<string, sp_human_t> total_humans_by_id;
-
+    std::set<std::string> zones;
+    std::map<std::string,unsigned> zones_counts;
     unsigned currentDay;
     unsigned numDays;
     string trajectoryFile;
