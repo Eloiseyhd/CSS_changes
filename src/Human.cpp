@@ -206,6 +206,7 @@ void Human::infect(
     int vaxAdvancement = 0;
 
     if(vaccinated){
+	printf("Infecting human vaccinated with profile %s...age: %d\n",vaccineProfile.getMode().c_str(),getAgeDays(currentDay));
 	if(vaccineProfile.getVaccineID() == -1){
 	    printf("Human::infect vaccineProfile is -1 and person is vaccinated\n");
 	    exit(1);
@@ -220,6 +221,7 @@ void Human::infect(
 	    RR =  vaccineProfile.getRR(getPreviousInfections(), double(getAgeDays(currentDay)));
     	    RRInf = pow(RR, vaccineProfile.getPropInf());
     	    RRDis = pow(RR, 1.0 - vaccineProfile.getPropInf());
+	    //	    printf("Human ID %s vaccinated age %d. RR: %.2f RRInf: %.2f RRDis: %.2f\n",getHouseID().c_str(), getAgeDays(currentDay),RR,RRInf,RRDis);
     	}else if(vaccineProfile.getMode() == "GSK"){
 
 	    // After the waning period there's no effect of the vaccine in the reduction of the relative risk of infection
@@ -446,6 +448,7 @@ void Human::vaccinateGSKMode(int currDay, RandomNumGenerator& rGen)
 
 void Human::vaccinateWithProfile(int currDay, RandomNumGenerator * rGen, Vaccine  vax){
     vaccineProfile = vax;
+    //    printf("Human  %s vaccinated at day %d age: %d\n", getHouseID().c_str(), currDay, getAgeDays(currDay));
     //    vaccineProfile.printVaccine();
     if(vaccineProfile.getVaccineID() != -1){
 	for(int i = 0;i < 4; i++){

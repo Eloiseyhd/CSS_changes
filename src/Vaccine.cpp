@@ -73,11 +73,12 @@ int Vaccine::getNextDoseTime(int vday, int received){
 }
 double Vaccine::getRR(double prevInf, double ageDays){
     if(prevInf > 0){
-	total_VE = 1.0 - VE_pos.at(0) / (1.0 + exp(VE_pos.at(1) * ageDays / 365.0 - VE_pos.at(2)));
+	total_VE = 1.0 - VE_pos.at(0) / (1.0 + exp(VE_pos.at(1) * (ageDays / 365.0 - VE_pos.at(2))));
     }else{
-	total_VE = 1.0 - VE_neg.at(0) / (1.0 + exp(VE_neg.at(1) * ageDays / 365.0 - VE_neg.at(2)));
+	total_VE = 1.0 - VE_neg.at(0) / (1.0 + exp(VE_neg.at(1) * (ageDays / 365.0 - VE_neg.at(2))));
     }
     double RR = exp(log(1.0 - total_VE) + normdev * pow(1.0 / 100.5 + 1.0 / (100.0 * (1.0 - total_VE) + 0.5), 0.5));
+    //    printf("getRR: total_VE: %.2f RR: %.2f previnf: %.0f\n", total_VE, RR, prevInf);
     return RR;
 }
 

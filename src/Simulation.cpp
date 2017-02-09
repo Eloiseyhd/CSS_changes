@@ -190,9 +190,11 @@ void Simulation::humanDynamics() {
         // simulate possible imported infection
 	for(unsigned serotype = 1; serotype <= (N_SERO); serotype++){
 	    if(rGen.getEventProbability() < ForceOfImportation.at(serotype)){
-		if(!phum.second->isImmune(serotype)){
-		    outputReport.addImportation(serotype,(phum.second).get());
-		    phum.second->infect(currentDay, serotype, &rGenInf, &disRates, &hospRates);                
+		if(!phum.second->isImmune(serotype)){		    
+		    phum.second->infect(currentDay, serotype, &rGenInf, &disRates, &hospRates);
+		    if(phum.second->infection != nullptr){
+			outputReport.addImportation(serotype,(phum.second).get());
+		    }
 		}
 	    }
 	}
@@ -628,6 +630,7 @@ void Simulation::readDiseaseRatesFile(){
 
 void Simulation::readVaccineSettingsFile(){
     vaccinationStrategy = "none";
+    catchupFlag = false;
     if(vaccineSettingsFile.length() == 0){
 	printf("In Simulation.cpp, readvaccinesettings, something missing length is 0 for %s\n", vaccineSettingsFile.c_str());
         throw runtime_error("In Simulation.cpp, readvaccinesettings, something missing length is 0 for vaccine file");
@@ -646,6 +649,7 @@ void Simulation::readVaccineSettingsFile(){
 	vector<string>param_line = getParamsLine(line);
 	line2 = param_line[0];
 	line3 = param_line[1];
+	printf("%s:%s|\n",line2.c_str(),line3.c_str());
 	if(line2 == "vaccination_strategy"){
 	    vaccinationStrategy = this->parseString(line3);
 	}
@@ -659,7 +663,8 @@ void Simulation::readVaccineSettingsFile(){
 	    vaccineCoverage = this->parseDouble(line3);
 	}
 	if(line2 == "vaccine_catchup"){
-	    catchupFlag = this->parseInteger(line3) == 0 ? false : true;
+	    printf("%s\n", line2.c_str());
+	    catchupFlag = this->parseInteger(line3) == 1 ? true : false;
 	}
 	if(line2 == "vaccine_groups_file"){
 	    vaccinationGroupsFile = this->parseString(line3);
@@ -676,7 +681,12 @@ void Simulation::readVaccineSettingsFile(){
     }
     infile.close();
     printf("file %s read\n", vaccineSettingsFile.c_str());
-    //    printf("vStrategy %s day %d age %d coverage: %.2f: groups_file: %s: profilesFile: %s: ID: %d\n",vaccinationStrategy.c_str(), vaccineDay, vaccineAge,vaccineCoverage, vaccinationGroupsFile.c_str(), vaccineProfilesFile.c_str(), vaccineID);
+    printf("vStrategy %s day %d age %d coverage: %.2f: groups_file: %s: profilesFile: %s: ID: %d\n",vaccinationStrategy.c_str(), vaccineDay, vaccineAge,vaccineCoverage, vaccinationGroupsFile.c_str(), vaccineProfilesFile.c_str(), vaccineID);
+    if(catchupFlag){
+	printf("Catchup enabled\n");
+    }else{
+	printf("Catchup disabled\n");
+    }
 }
 
 
