@@ -48,6 +48,7 @@ Human::Human(string hID,
     reportSymptoms = false;
     vaccineDosesReceived = 0;
     lastDayContactedByTrial = 0;
+    firstContactWithTrial = 0;
     selfReportProb = 0.0;
     immunity_temp = false;
     trajectories.reset(nullptr);
@@ -278,8 +279,10 @@ void Human::infect(
     	infection.reset(new Infection(
     	      currentDay + 1, currentDay + 15, 0.0, infectionType, getPreviousInfections() == 0, recent_dis > 0, exp(rGen->getRandomNormal() * 0.2701716 + 1.750673)));
 
-	if(symptomatic == true && enrolledInTrial == true){
-	    if(rGen->getEventProbability() < selfReportProb){
+	if(symptomatic == true && enrolledInTrial == true){	    
+	    if(hospitalized == true){
+		reportSymptoms = true;
+	    }else if(rGen->getEventProbability() < selfReportProb){
 		reportSymptoms = true;
 	    }
 	}

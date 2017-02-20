@@ -45,6 +45,9 @@ class Recruitment {
     int dailyVaccineRecruitmentRate;
     int dailyPlaceboRecruitmentRate;
     int trialDurationDays;
+    int trialMaximumDays;
+    int trialMinimumCases;
+    int pcr_cases;
 
     string recruitmentStrategy;
     string outSurveillance;
@@ -90,7 +93,7 @@ class Recruitment {
     void shuffleEligibleParticipants();
     void updateParticipants(int);
     void finalizeTrial(int);
-    void removeParticipant(Human *, int);
+    void removeParticipant(Human *, int, bool);
     void printEligibleGroups();
     int getVaccineSampleSize(){return vaccineSampleSize;}
     int getPlaceboSampleSize(){return placeboSampleSize;}

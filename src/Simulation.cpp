@@ -62,14 +62,13 @@ void Simulation::simEngine() {
     deathMoz = 0;
     lifeMoz = 0;
     while(currentDay < numDays){
-        std::cout << "# day " << humans.size() << " " << mosquitoes.size() << std::endl;
         //rGen.showState(48, "# Daily RNG state excerpt: ");
 	humanDeaths = 0;
         if(ceil(double(currentDay + 1) / 365.0) != ceil(double(currentDay) / 365.0)){
             year++;
             updatePop();
         }
-	printf("day %d year %d\n",currentDay, year);
+	printf("day %d year %d Humans %lu Mosquitoes %lu\n",currentDay, year,humans.size(), mosquitoes.size());
         for(auto itLoc = locations.begin(); itLoc != locations.end(); itLoc++){
             itLoc->second->updateInfectedVisitor();
         }
@@ -157,7 +156,7 @@ void Simulation::humanDynamics() {
         if(phum.second->getDeathday() == currentDay){
 	    if(vaccinationStrategy == "random_trial" && phum.second->isEnrolledInTrial() == true){
                 printf("Human %s removed from trial\n", phum.second->getPersonID().c_str());
-                recruitmentTrial.removeParticipant(phum.second.get(),currentDay);
+                recruitmentTrial.removeParticipant(phum.second.get(),currentDay,true);
 	    }
             // name of each location 
 	    for(const auto & loc_str : phum.second->getLocsVisited() ){
@@ -408,7 +407,7 @@ void Simulation::readAegyptiFile(string file){
     ifstream infile(file);
     if (!infile.good()) {
         //exit(1);
-        throw runtime_error("In Simulation.cpp, something missing");
+        throw runtime_error("In Simulation.cpp, Aegypti file not good");
     }
     string line;
     getline(infile,line);
@@ -437,7 +436,7 @@ void Simulation::readAegyptiFile(string file){
 	}
     }
     if(firstBiteRate.empty() || secondBiteRate.empty() || mozDailyDeathRate.empty() || meanDailyEIP.empty() || dailyEmergenceFactor.empty()){
-        throw runtime_error("In Simulation.cpp, something missing");
+        throw runtime_error("In Simulation.cpp, Aegypti file has empty values");
 	//exit(1);
     }
     infile.close();
@@ -490,13 +489,13 @@ void Simulation::readSimControlFile(string line) {
 
 void Simulation::readInitialFOI(string fileIn){
     if(fileIn.length() == 0){
-        throw runtime_error("In Simulation.cpp, something missing");
+        throw runtime_error("In Simulation.cpp, InitialFoI file has length 0");
 	//exit(1);
     }
     ifstream infile(fileIn);
     string line;
     if(!infile.good()){
-        throw runtime_error("In Simulation.cpp, something missing");
+        throw runtime_error("In Simulation.cpp, Initial FoI file is not good");
 	//exit(1);
     }
     getline(infile, line);
@@ -506,7 +505,7 @@ void Simulation::readInitialFOI(string fileIn){
 	InitialConditionsFOI.push_back(foiTemp);
     }
     if(InitialConditionsFOI.size() != N_SERO){
-	throw runtime_error("InitialConditionsFOI not set\n");
+	throw runtime_error("InitialConditionsFOI not set properly\n");
 	//exit(1);
     }
 }
@@ -549,7 +548,7 @@ void Simulation::readDailyFOI(string fileIn){
 
 void Simulation::readLocationFile(string locFile) {
     if (locFile.length() == 0) {
-        throw runtime_error("In Simulation.cpp, something missing");
+        throw runtime_error("In Simulation.cpp, Locations file has length 0");
         //exit(1);
     }
     string line, locID, locType, nID,zID;
@@ -557,7 +556,7 @@ void Simulation::readLocationFile(string locFile) {
 
     ifstream infile(locFile);
    if (!infile.good()) {
-        throw runtime_error("In Simulation.cpp, something missing");
+        throw runtime_error("In Simulation.cpp, locations file is not good to read");
         //exit(1);
     }
     getline(infile, line);
@@ -602,7 +601,7 @@ void Simulation::readLocationFile(string locFile) {
 
 void Simulation::readDiseaseRatesFile(){
     if(diseaseRatesFile.length() == 0){
-        throw runtime_error("In Simulation.cpp, something missing");
+        throw runtime_error("In Simulation.cpp, disease rates file has length 0");
         //exit(1);
     }
     string line;
@@ -612,7 +611,7 @@ void Simulation::readDiseaseRatesFile(){
 
     ifstream infile(diseaseRatesFile);
     if(!infile.good()){
-        throw runtime_error("In Simulation.cpp, something missing");
+        throw runtime_error("In Simulation.cpp, disease rates file is not good");
         //exit(1);
     }
     while(getline(infile, line, ',')){
@@ -649,7 +648,7 @@ void Simulation::readVaccineSettingsFile(){
 	vector<string>param_line = getParamsLine(line);
 	line2 = param_line[0];
 	line3 = param_line[1];
-	printf("%s:%s|\n",line2.c_str(),line3.c_str());
+	//	printf("%s:%s|\n",line2.c_str(),line3.c_str());
 	if(line2 == "vaccination_strategy"){
 	    vaccinationStrategy = this->parseString(line3);
 	}
@@ -696,14 +695,14 @@ void Simulation::readVaccineProfilesFile(){
     
     if(vaccineProfilesFile.length() == 0){
         //exit(1);
-        throw runtime_error("In Simulation.cpp, something missing");
+        throw runtime_error("In Simulation.cpp, vaccine profile file has length 0");
     }
     vaccines.clear();
     string line;
     ifstream infile(vaccineProfilesFile);
     if(!infile.good()){
         //exit(1);
-        throw runtime_error("In Simulation.cpp, something missing");
+        throw runtime_error("In Simulation.cpp, vaccine profile file is not good");
     }
     int numVaccines = 0;
     // First find the number of vaccines
@@ -921,7 +920,7 @@ void Simulation::readBirthsFile(string bFile){
 void Simulation::readTrajectoryFile(string trajFile){
     if(trajFile.length() == 0){
         //exit(1);
-        throw runtime_error("In Simulation.cpp, something missing");
+        throw runtime_error("In Simulation.cpp, trajectories file has length 0");
     }
     printf("reading %s file with trajectories\n", trajFile.c_str());
     string line, houseID, personID;
@@ -929,7 +928,7 @@ void Simulation::readTrajectoryFile(string trajFile){
     //
     ifstream infile(trajFile);
     if(!infile.good()){
-        throw runtime_error("In Simulation.cpp, something missing");
+        throw runtime_error("In Simulation.cpp, trajectories file is not good");
         //exit(1);
     }
     while(getline(infile, line, ',')){
@@ -998,7 +997,7 @@ void Simulation::readTrajectoryFile(string trajFile){
 void Simulation::readVaccinationGroupsFile(){
     if (vaccinationGroupsFile.length() == 0) {
 	//exit(1);
-        throw runtime_error("In Simulation.cpp, something missing");
+        throw runtime_error("In Simulation.cpp, vaccination groups file has length 0");
     }
     string line;
     int maxAge;
@@ -1006,7 +1005,7 @@ void Simulation::readVaccinationGroupsFile(){
     ifstream infile(vaccinationGroupsFile);
     if(!infile.good()){
 	//exit(1);
-        throw runtime_error("In Simulation.cpp, something missing");
+        throw runtime_error("In Simulation.cpp,  vaccination groups file is not good");
     }
     while(getline(infile, line, ',')){
         minAge = strtol(line.c_str(), NULL, 10);

@@ -18,6 +18,9 @@ Recruitment::Recruitment(){
     dailyPlaceboRecruitmentRate = 0;
     recruitmentStartDay = 0;
     trialDurationDays = 0;
+    trialMaximumDays = 0;
+    trialMinimumCases = 0;
+    pcr_cases = 0;
     dropoutRate = 0.0;
 
     recruitmentStrategy = "none";
@@ -34,7 +37,7 @@ void Recruitment::update(int currDay){
 	if(currDay < recruitmentStartDay + recruitmentTimeFrame){
 	    this->enrollTodayParticipants(currDay);
 	}
-	if(currDay > recruitmentStartDay && currDay <= ( recruitmentStartDay + recruitmentTimeFrame + trialDurationDays)){
+	if(currDay > recruitmentStartDay && currDay <= ( recruitmentStartDay + recruitmentTimeFrame + trialMaximumDays)){
 	    this->updateParticipants(currDay);
 	}else if(currDay == recruitmentStartDay + recruitmentTimeFrame){
 	    printf("Recruitment finished\n");
@@ -54,12 +57,13 @@ void Recruitment::update(int currDay){
     printf("Updating finished day %d\n", currDay);
 }
 
-void Recruitment::removeParticipant(Human * h, int currDay){
-    trialSurveillance.finalize_human_surveillance(h, currDay);
+void Recruitment::removeParticipant(Human * h, int currDay, bool drop_in){
+    trialSurveillance.finalize_human_surveillance(h, currDay,drop_in);
     h->unenrollTrial();
 }
 
 void Recruitment::finalizeTrial(int currDay){
+    printf("Finalizing trial. Day: %d, PCR cases: %d\n", currDay, pcr_cases);
     trialSurveillance.printRecords(outSurveillance, currDay);
 }
 
@@ -86,16 +90,21 @@ void Recruitment::updateArm(unsigned vaxID, recruit_t & arm, int currDay){
                 continue;
 	    } else {
 		if(phum->isEnrolledInTrial() == true){
-		    if(currDay < phum->getTrialEnrollmentDay() + trialDurationDays){
+		    if(phum->isInfected() == true){
+			// count symptomatic infections even if they don't get caught by pcr
+			trialSurveillance.track_infected(phum,currDay);
+		    }
+		    if( currDay < trialMaximumDays && (currDay < phum->getTrialEnrollmentDay() + trialDurationDays ||  pcr_cases < trialMinimumCases)){
 			if(currDay > recruitmentStartDay + recruitmentTimeFrame && rGen->getEventProbability() < dropoutRate){
-			    removeParticipant(phum,currDay);
+			    removeParticipant(phum,currDay,true);
 			    it = arm.erase(it);
                             continue;
 			}else{
 			    int pcr = trialSurveillance.update_human_surveillance(phum, currDay, rGen);
 			    if(pcr >= 0){
                                 //printf("PERSON %s removed from trial for real\n", phum->getPersonID().c_str());
-				removeParticipant(phum,currDay);
+				pcr_cases++;
+				removeParticipant(phum,currDay,false);
 				it = arm.erase(it);
                                 continue;
 			    }else{
@@ -109,7 +118,7 @@ void Recruitment::updateArm(unsigned vaxID, recruit_t & arm, int currDay){
 			}
 		    }else{
 			//			printf("Participant removed because time is over\n");
-			removeParticipant(phum,currDay);
+			removeParticipant(phum,currDay,false);
 			it = arm.erase(it);
                         continue;
 		    }
@@ -243,6 +252,8 @@ void Recruitment::setupRecruitment(string file, map<unsigned,Vaccine> vaccines_,
     this->readParameter("trial_vaccine_sample_size", &vaccineSampleSize);
     this->readParameter("trial_placebo_sample_size", &placeboSampleSize);
     this->readParameter("trial_length_days", &trialDurationDays);
+    this->readParameter("trial_maximum_days", &trialMaximumDays);
+    this->readParameter("trial_minimum_cases", &trialMinimumCases);
     this->readParameter("trial_avg_enrollment_days",&tmp);
     dropoutRate = (double) 1.0 / tmp;
 
@@ -251,8 +262,8 @@ void Recruitment::setupRecruitment(string file, map<unsigned,Vaccine> vaccines_,
 	printf("starting development of zones... be careful, this is experimental\n");
 	printf("Recruitment zone selected %s\n", recruitmentZone.c_str());
     }
-    printf("Recruitment strategy: |%s| duration: %d dropoutRate: %.6f recruitment_time_frame: %d\n",
-	   recruitmentStrategy.c_str(), trialDurationDays, dropoutRate,recruitmentTimeFrame);
+    printf("Recruitment strategy: |%s| duration: %d dropoutRate: %.6f recruitment_time_frame: %d Max. Days %d, min cases: %d\n",
+	   recruitmentStrategy.c_str(), trialDurationDays, dropoutRate,recruitmentTimeFrame, trialMaximumDays, trialMinimumCases);
     printf("Vaccine Profile ID: %d, placebo profile ID: %d\n",vaccineProfile, placeboProfile);
     if(recruitmentStrategy == "none"){
 	printf("Please specify a recruitment Strategy\n");

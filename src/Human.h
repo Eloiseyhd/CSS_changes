@@ -55,6 +55,7 @@ private:
     int trialDay;
     int vaccineDosesReceived;
     int lastDayContactedByTrial;
+    int firstContactWithTrial;
     int exposedCount[4];
     int preExposureAtVaccination[4];
 
@@ -118,6 +119,7 @@ public:
     void setSeroStatusAtVaccination();
     void setTrajDay(int dayIn){trajDay = dayIn;}
     void setContactByTrial(int dayIn){lastDayContactedByTrial = dayIn;}
+    void setFirstContactWithTrial(int dayIn){firstContactWithTrial = dayIn;}
     void updateAttractiveness(unsigned);
     void updateBodySize(unsigned);
     void updateImmunityPerm(unsigned,bool);
@@ -157,6 +159,7 @@ public:
     int getAgeTrialEnrollment(){return tAge;}
     int getNextDoseDay();
     int getLastContactByTrial(){return lastDayContactedByTrial;}
+    int getFirstContactWithTrial(){return firstContactWithTrial;}    
     int getTrialEnrollmentDay(){return trialDay;}
     int getExposedCount(unsigned sero){return exposedCount[sero];}
     int getPreExposureAtVaccination(unsigned);

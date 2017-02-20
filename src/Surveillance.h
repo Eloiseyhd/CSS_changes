@@ -27,15 +27,20 @@ class Surveillance {
 	int firstTTL;
 	int firstTTR;
 	int firstExp;
+	int first_real_infected;
+	int first_real_symptomatic;
 	int symptoms[4];
 	int hosp[4];
 	int pcrDay[4];
+	int previousExposure[4];
+	int real_infected_day[4];
+	int real_symptomatic_day[4];
 	int dropoutDay;
 	int enrollmentDay;
 	int houseMemNum;
 	double onset[4];
 	bool seroStatusAtVaccination;
-	int previousExposure[4];
+	bool dropout;
 	string trialArm;
 	vector<string> primary;
 	vector<string> pcr;
@@ -48,9 +53,9 @@ class Surveillance {
     //virtual ~Surveillance();
 
     int update_human_surveillance(Human *, int, RandomNumGenerator *);
-
+    void track_infected(Human *, int);
     void initialize_human_surveillance(Human *, int);
-    void finalize_human_surveillance(Human *, int);
+    void finalize_human_surveillance(Human *, int, bool);
     void setup(string);
     void printRecords(string, int);
 

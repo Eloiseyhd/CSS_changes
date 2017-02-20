@@ -1225,7 +1225,6 @@ void Report::printFOIReport(int currDay){
 
 void Report::printAgesReport(int currDay){
     outAges << currDay << ",";
-
     for(int i = 0; i < 5 ; i++){
 	if(ageEvents[i] == 1){
 	    if(ageStatus[0] > 0 || ageStatus[1] > 0){
@@ -1253,7 +1252,6 @@ void Report::printAgesReport(int currDay){
 			inc_ = 1;
 			sum_ = 2;
 		    }
-            // ?? CHECK j = j = j
 		    for(int j = 0;j < 2 * inc_;j = sum_ + inc_){
 			for(int k = 0; k <= discreteAges.max - discreteAges.min; k++){
 			    if(printAgesPop == true){
@@ -1327,7 +1325,6 @@ void Report::printGroupsReport(int currDay){
 			inc_ = 1;
 			sum_ = 2;
 		    }
-            // ?? CHECK j = j = j
 		    for(int j = 0;j < 2 * inc_;j = sum_ + inc_){
 			for(int k = 0; k < groupsAges.size(); k++){
 			    if(printGroupsPop == true){
@@ -1895,7 +1892,6 @@ void Report::resetGroupStats(){
 	groupsTotalAgeStats.total.nonevents[i] = 0;
     }
 }
-
 
 
 void Report::finalizeReport(){

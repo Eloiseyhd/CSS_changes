@@ -12,6 +12,7 @@
 #include <cmath>
 #include "Human.h"
 #include "Mosquito.h"
+#include "RandomNumGenerator.h"
 
 using std::string;
 using std::map;
@@ -116,8 +117,8 @@ class Report {
     void readParameter(string,string, vector<rangeStruct> *);
     rangeStruct readParameter(string,string, rangeStruct);
     bool readParameter(string, bool);
-
     bool parseBoolean(string line);
+    
     int getGroup(int, vector<rangeStruct>);
 
 public:
