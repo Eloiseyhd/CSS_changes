@@ -36,9 +36,11 @@ Human::Human(string hID,
     vaccineComplete = false;
     enrolledInTrial = false;
     seroStatusAtVaccination = false;
+    dateOfExposures.clear();
     for(int i = 0;i < 4; i++){
 	preExposureAtVaccination[i] = 0;
 	exposedCount[i] = 0;
+	dateOfExposures.push_back("");
     }
     
     infected = false;
@@ -215,7 +217,6 @@ void Human::infect(
 	
 	// There are multiple vaccines supported: GSK, advance (Sanofi), or age
 	// We have to specify the effects for each of these vaccine modes
-
 	if(vaccineProfile.getMode() == "advance"){
     	    vaxAdvancement = 1;
     	}else if(vaccineProfile.getMode() == "age"){
@@ -224,14 +225,14 @@ void Human::infect(
     	    RRDis = pow(RR, 1.0 - vaccineProfile.getPropInf());
 	    //	    printf("Human ID %s vaccinated age %d. RR: %.2f RRInf: %.2f RRDis: %.2f\n",getHouseID().c_str(), getAgeDays(currentDay),RR,RRInf,RRDis);
     	}else if(vaccineProfile.getMode() == "GSK"){
-
 	    // After the waning period there's no effect of the vaccine in the reduction of the relative risk of infection
 	    // The waning time is approximately tau * 4, being waning = exp(-t/tau), the RR should go up from RR(0) to 1
 	    double vaxWaning = getPreviousInfections() > 0 ? vaxWaning_pos : vaxWaning_neg;
 	    double wan_ = exp(-double(currentDay - vday) / (vaxWaning));
-	    RRInf = 1 - (1 - vaccineProfile.getRRInf(getPreviousInfections() > 0)) * wan_ ;
-	    RRDis = 1 - (1 - vaccineProfile.getRRDis(getPreviousInfections() > 0)) * wan_;
-	    RRHosp = 1 - (1 - vaccineProfile.getRRHosp(getPreviousInfections() > 0)) * wan_;
+	    RRInf = 1 - (1 - vaccineProfile.getRRInf(getPreviousInfections() > 0,infectionType - 1)) * wan_ ;
+	    RRDis = 1 - (1 - vaccineProfile.getRRDis(getPreviousInfections() > 0, infectionType - 1)) * wan_;
+	    RRHosp = 1 - (1 - vaccineProfile.getRRHosp(getPreviousInfections() > 0, infectionType - 1)) * wan_;
+	    printf("SEROTYPE %u RRInf %.4f RRDis %.4f\n", infectionType - 1, RRInf, RRDis);
 	}
     }
     
@@ -241,6 +242,11 @@ void Human::infect(
     }
 
     exposedCount[infectionType - 1]++;
+    // Records the date of each exposure
+    string ss = dateOfExposures[infectionType - 1].empty() ? std::to_string(currentDay) : ";" + std::to_string(currentDay);
+    dateOfExposures[infectionType - 1] += ss;
+    //printf("NEW EXPOSURE:: ID %s,  %s -- %s\n",getHouseID().c_str(), dateOfExposures[infectionType - 1].c_str(), ss.c_str());
+	
     if(rGen->getEventProbability() < RRInf * vax_protection){
     	infected = true;
     	recent_inf = infectionType;
@@ -293,6 +299,7 @@ void Human::infect(
 		preExposureAtVaccination[i]++;
 	    }
 	}
+	
     	updateImmunityPerm(infectionType, true);
     	setImmunityTemp(true);
     	setImmStartDay(currentDay);
@@ -447,6 +454,7 @@ void Human::vaccinateGSKMode(int currDay, RandomNumGenerator& rGen)
     vday = currDay;
     vaxWaning_neg = rGen.getVaxHumanImmunity(vaccineProfile.getWaning(false));
     vaxWaning_pos = rGen.getVaxHumanImmunity(vaccineProfile.getWaning(true));
+    //    printf("wanpos, %d, wanneg, %d\n", vaxWaning_pos, vaxWaning_neg);
 }
 
 void Human::vaccinateWithProfile(int currDay, RandomNumGenerator * rGen, Vaccine  vax){
@@ -456,6 +464,7 @@ void Human::vaccinateWithProfile(int currDay, RandomNumGenerator * rGen, Vaccine
     if(vaccineProfile.getVaccineID() != -1){
 	for(int i = 0;i < 4; i++){
 	    exposedCount[i] = 0;
+	    dateOfExposures[i].clear();
 	}
 	vaccineDosesReceived = 1;
 	vday = currDay;

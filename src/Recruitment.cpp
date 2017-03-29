@@ -31,7 +31,7 @@ Recruitment::Recruitment(){
     placeboProfile = 0;
 }
 
-void Recruitment::update(int currDay){
+void Recruitment::update(unsigned currDay){
     printf("Updating trial day %d\n", currDay);
     if(currDay >= recruitmentStartDay){
 	if(currDay < recruitmentStartDay + recruitmentTimeFrame){
@@ -41,7 +41,7 @@ void Recruitment::update(int currDay){
 	    this->updateParticipants(currDay);
 	}else if(currDay == recruitmentStartDay + recruitmentTimeFrame){
 	    printf("Recruitment finished\n");
-	    for(int i = 0; i < ageGroups.size(); i ++){
+	    for(unsigned i = 0; i < ageGroups.size(); i ++){
 		if(ageGroups[i].vaccine.size() != vaccineSampleSize || ageGroups[i].placebo.size() != placeboSampleSize ){
 		    printf("Recruitment finished: take a look at the size  age group %d of vaccine %lu and placebo %lu\n",
 			   i, ageGroups[i].vaccine.size(),ageGroups[i].placebo.size());
@@ -62,20 +62,20 @@ void Recruitment::removeParticipant(Human * h, int currDay, bool drop_in){
     h->unenrollTrial();
 }
 
-void Recruitment::finalizeTrial(int currDay){
+void Recruitment::finalizeTrial(unsigned currDay){
     printf("Finalizing trial. Day: %d, PCR cases: %d\n", currDay, pcr_cases);
     trialSurveillance.printRecords(outSurveillance, currDay);
 }
 
-void Recruitment::updateParticipants(int currDay){
+void Recruitment::updateParticipants(unsigned currDay){
     // update doses if needed, remove dead people  and test for denv: self-reported and calls
-    for(int i = 0;i < ageGroups.size(); i++){
+    for(unsigned i = 0;i < ageGroups.size(); i++){
 	updateArm(vaccineProfile, ageGroups[i].vaccine, currDay);
 	updateArm(placeboProfile, ageGroups[i].placebo, currDay);
     }
 }
 
-void Recruitment::updateArm(unsigned vaxID, recruit_t & arm, int currDay){
+void Recruitment::updateArm(unsigned vaxID, recruit_t & arm, unsigned currDay){
     // boost vaccine, decide if dropout, remove death people from the list
     //    printf("Update Arm\n");
     if(vaccinesPtr.at(vaxID).getDoses() > 1){
@@ -94,7 +94,7 @@ void Recruitment::updateArm(unsigned vaxID, recruit_t & arm, int currDay){
 			// count symptomatic infections even if they don't get caught by pcr
 			trialSurveillance.track_infected(phum,currDay);
 		    }
-		    if( currDay < trialMaximumDays && (currDay < phum->getTrialEnrollmentDay() + trialDurationDays ||  pcr_cases < trialMinimumCases)){
+		    if((currDay < phum->getTrialEnrollmentDay() + trialMaximumDays ) && (currDay < phum->getTrialEnrollmentDay() + trialDurationDays ||  pcr_cases < trialMinimumCases)){
 			if(currDay > recruitmentStartDay + recruitmentTimeFrame && rGen->getEventProbability() < dropoutRate){
 			    removeParticipant(phum,currDay,true);
 			    it = arm.erase(it);
@@ -133,7 +133,7 @@ void Recruitment::updateArm(unsigned vaxID, recruit_t & arm, int currDay){
     //    printf("Arm updated\n");
 }
 void Recruitment::printEligibleGroups(){
-    for(int i = 0; i < ageGroups.size(); i ++){
+    for(unsigned i = 0; i < ageGroups.size(); i ++){
 	printf(" Eligibles age-group: %d - %d, (eligible size %zu).\n", ageGroups[i].min, ageGroups[i].max, ageGroups[i].eligible.size() );
     }
 }
@@ -143,7 +143,7 @@ void Recruitment::enrollTodayParticipants(int currDay){
 	printf("Daily recruitment rate <= 0\n");
 	exit(1);
     }
-    for(int i = 0; i < ageGroups.size(); i ++){
+    for(unsigned i = 0; i < ageGroups.size(); i ++){
 	//	
 	//Vaccine enrollment
 	enrollArmParticipants(ageGroups[i].vaccine, ageGroups[i].eligible, "vaccine", currDay,vaccineSampleSize,dailyVaccineRecruitmentRate,ageGroups[i].min, ageGroups[i].max,vaccineProfile);
@@ -156,7 +156,7 @@ void Recruitment::enrollArmParticipants(
 					recruit_t & arm,
 					eligible_t & eligible,
 					string arm_str, int currDay,
-					int sample_size,
+					unsigned sample_size,
 					int rec_rate,
 					int min_,
 					int max_,
@@ -269,7 +269,7 @@ void Recruitment::setupRecruitment(string file, map<unsigned,Vaccine> vaccines_,
 	printf("Please specify a recruitment Strategy\n");
 	exit(1);
     }
-    for(int i = 0; i < ageGroups.size(); i ++){
+    for(unsigned i = 0; i < ageGroups.size(); i ++){
 	printf("Age group: %d - %d\n",ageGroups[i].min, ageGroups[i].max - 1);
     }
 
@@ -429,7 +429,7 @@ int Recruitment::getPossibleAgeGroup(int age_, vector<groupStruct> groups_temp, 
 
 long int Recruitment::getEligibleParticipantsSize(){
     long int s = 0;
-    for(int i = 0; i < ageGroups.size(); i++ ){
+    for(unsigned i = 0; i < ageGroups.size(); i++ ){
 	s += ageGroups[i].eligible.size();
     }
     return s;

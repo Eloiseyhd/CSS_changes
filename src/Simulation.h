@@ -65,6 +65,7 @@ private:
     string parseString(string);
     double parseDouble(string);
     void parseVector(string line, vector<int> *);
+    void parseVector(string line, vector<double> *);
 
     map <string,std::unique_ptr<Location>> locations;
     map<unsigned,double> halflife;

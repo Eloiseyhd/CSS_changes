@@ -30,12 +30,12 @@ class Vaccine {
     double seronegVE;
     double seroposWaning;
     double seronegWaning;
-    double RRInf_seropos;
-    double RRInf_seroneg;
-    double RRDis_seropos;
-    double RRDis_seroneg;
-    double RRHosp_seropos;
-    double RRHosp_seroneg;
+    double RRInf_seropos[4];
+    double RRInf_seroneg[4];
+    double RRDis_seropos[4];
+    double RRDis_seroneg[4];
+    double RRHosp_seropos[4];
+    double RRHosp_seroneg[4];
 
     string mode;
     string name;
@@ -55,6 +55,9 @@ public:
     void setWaning(double w){waning = w;}
     void setWaning(bool seroposIn, double w);
     void setVaccineEfficacy(bool seroposIn, double w);
+    void setRRInf(bool seroposIn, double rr, unsigned sero_);
+    void setRRDis(bool seroposIn, double rr, unsigned sero_);
+    void setRRHosp(bool seroposIn, double rr, unsigned sero_);
     void setRRInf(bool seroposIn, double rr);
     void setRRDis(bool seroposIn, double rr);
     void setRRHosp(bool seroposIn, double rr);
@@ -67,7 +70,7 @@ public:
     void setRelativeSchedule(vector<int>);
     void printVaccine();
 
-    unsigned getVaccineID(){return vaccineID;}
+    int getVaccineID(){return vaccineID;}
     string getMode(){return mode;}
 
     int getDoses(){return doses;}
@@ -79,9 +82,9 @@ public:
     double getRR(double, double);
     double getVE(){return total_VE;}
     double getVaccineEfficacy(bool seroposIn);
-    double getRRInf(bool seroposIn);
-    double getRRDis(bool seroposIn);
-    double getRRHosp(bool seroposIn);
+    double getRRInf(bool seroposIn, unsigned sero_);
+    double getRRDis(bool seroposIn, unsigned sero_);
+    double getRRHosp(bool seroposIn, unsigned sero_);    
     double getWaning(bool seroposIn);
 };
 

@@ -152,8 +152,7 @@ void Simulation::humanDynamics() {
             continue;
         }
         // daily mortality for humans by age
-        // why the draw if humans are assigned death day?? -> that's a bug! FIXED with only checking for death day
-        if(phum.second->getDeathday() == currentDay){
+        if(phum.second->getDeathday() == int(currentDay)){
 	    if(vaccinationStrategy == "random_trial" && phum.second->isEnrolledInTrial() == true){
                 printf("Human %s removed from trial\n", phum.second->getPersonID().c_str());
                 recruitmentTrial.removeParticipant(phum.second.get(),currentDay,true);
@@ -771,22 +770,82 @@ void Simulation::readVaccineProfilesFile(){
 		    vaxTemp.setVaccineEfficacy(true,this->parseDouble(line3));
 		}
 		if(line2 == "vaccine_RRInfneg_" + s_id){
-		    vaxTemp.setRRInf(false,this->parseDouble(line3));
+		    vector<double> rrVector;
+		    this->parseVector(line3, &(rrVector));
+		    if(rrVector.empty()){
+			throw runtime_error("vaccine_RRInfneg has been specified but no value was found\n");
+		    }else if(rrVector.size() < 4){
+			vaxTemp.setRRInf(false,rrVector[0]);
+		    }else{
+			for(unsigned ii = 0; ii < rrVector.size(); ii++){
+			    vaxTemp.setRRInf(false,rrVector[ii],ii);
+			}
+		    }
 		}
 		if(line2 == "vaccine_RRInfpos_" + s_id){
-		    vaxTemp.setRRInf(true,this->parseDouble(line3));
+		    vector<double> rrVector;
+		    this->parseVector(line3, &(rrVector));
+		    if(rrVector.empty()){
+			throw runtime_error("vaccine_RRInfpos has been specified but no value was found\n");
+		    }else if(rrVector.size() < 4){
+			vaxTemp.setRRInf(true,rrVector[0]);
+		    }else{
+			for(unsigned ii = 0; ii < rrVector.size(); ii++){
+			    vaxTemp.setRRInf(true,rrVector[ii],ii);
+			}
+		    }
 		}
 		if(line2 == "vaccine_RRDisneg_" + s_id){
-		    vaxTemp.setRRDis(false,this->parseDouble(line3));
+		    vector<double> rrVector;
+		    this->parseVector(line3, &(rrVector));
+		    if(rrVector.empty()){
+			throw runtime_error("vaccine_RRDisneg has been specified but no value was found\n");
+		    }else if(rrVector.size() < 4){
+			vaxTemp.setRRDis(false,rrVector[0]);
+		    }else{
+			for(unsigned ii = 0; ii < rrVector.size(); ii++){
+			    vaxTemp.setRRDis(false,rrVector[ii],ii);
+			}
+		    }
 		}
 		if(line2 == "vaccine_RRDispos_" + s_id){
-		    vaxTemp.setRRDis(true,this->parseDouble(line3));
+		    vector<double> rrVector;
+		    this->parseVector(line3, &(rrVector));
+		    if(rrVector.empty()){
+			throw runtime_error("vaccine_RRDispos has been specified but no value was found\n");
+		    }else if(rrVector.size() < 4){
+			vaxTemp.setRRDis(true,rrVector[0]);
+		    }else{
+			for(unsigned ii = 0; ii < rrVector.size(); ii++){
+			    vaxTemp.setRRDis(true,rrVector[ii],ii);
+			}
+		    }
 		}
 		if(line2 == "vaccine_RRHospneg_" + s_id){
-		    vaxTemp.setRRHosp(false,this->parseDouble(line3));
+		    vector<double> rrVector;
+		    this->parseVector(line3, &(rrVector));
+		    if(rrVector.empty()){
+			throw runtime_error("vaccine_RRHospneg has been specified but no value was found\n");
+		    }else if(rrVector.size() < 4){
+			vaxTemp.setRRHosp(false,rrVector[0]);
+		    }else{
+			for(unsigned ii = 0; ii < rrVector.size(); ii++){
+			    vaxTemp.setRRHosp(false,rrVector[ii],ii);
+			}
+		    }		    
 		}
 		if(line2 == "vaccine_RRHosppos_" + s_id){
-		    vaxTemp.setRRHosp(true,this->parseDouble(line3));
+		    vector<double> rrVector;
+		    this->parseVector(line3, &(rrVector));
+		    if(rrVector.empty()){
+			throw runtime_error("vaccine_RRHosppos has been specified but no value was found\n");
+		    }else if(rrVector.size() < 4){
+			vaxTemp.setRRHosp(true,rrVector[0]);
+		    }else{
+			for(unsigned ii = 0; ii < rrVector.size(); ii++){
+			    vaxTemp.setRRHosp(true,rrVector[ii],ii);
+			}
+		    }
 		}
 		if(line2 == "vaccine_waning_pos_" + s_id){
 		    vaxTemp.setWaning(true,this->parseDouble(line3));
@@ -855,6 +914,25 @@ void Simulation::parseVector(string line, vector<int> * vector_temp){
 
     while(getline(linetemp,line2,',')){
 	int temp = strtol(line2.c_str(), NULL, 10);
+	if(temp >= 0){
+	    vector_temp->push_back(temp);
+	}
+    }
+
+    if(vector_temp->empty()){
+	throw runtime_error("Parsevector Vector_temp is empty\n");
+        //exit(1);
+    }
+}
+void Simulation::parseVector(string line, vector<double> * vector_temp){
+    std::stringstream linetemp;
+    string line2;
+    linetemp.clear();
+    linetemp << line;
+    vector_temp->clear();
+
+    while(getline(linetemp,line2,',')){
+	double temp = strtod(line2.c_str(), NULL);
 	if(temp >= 0){
 	    vector_temp->push_back(temp);
 	}

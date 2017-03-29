@@ -14,6 +14,7 @@ Surveillance::Surveillance(){
     firstContactDelay = 0;
     selfReportProb = 0.0;
     reportTodayProb = 0.0;
+    printExposure = false;
     recordsDatabase.clear();
     parameters.clear();
 }
@@ -35,11 +36,15 @@ void Surveillance::setup(string file){
     contactFrequency = this->readParameter("surveillance_contact_frequency",0);
     firstContactDelay = this->readParameter("surveillance_first_contact_delay",0);
     selfReportProb = this->readParameter("surveillance_self_report_probability",0.0);
+    printExposure = this->readParameter("surveillance_print_exposure",printExposure);
     double avgDelay = this->readParameter("surveillance_avg_report_delay",0.0);
 
     reportTodayProb = avgDelay > 0.0 ? (double) 1.0 / avgDelay : 1.0;
     reportTodayProb = reportTodayProb > 1.0 ? 1.0 : reportTodayProb;
     printf("Surveillance setup contact frecuency %d first delay %d selfReport probability %.2f prob report %.6f\n", contactFrequency, firstContactDelay, selfReportProb, reportTodayProb);
+    if(printExposure){
+	printf("Printing specific date of exposure\n");
+    }
 }
 
 void Surveillance::initialize_human_surveillance(Human * h, int currDay){
@@ -62,6 +67,7 @@ void Surveillance::initialize_human_surveillance(Human * h, int currDay){
     tempRecord.firstPCR = "NA";
     tempRecord.pcr.clear();
     tempRecord.primary.clear();
+    tempRecord.dateExposure.clear();
     tempRecord.dropout = false;
     tempRecord.first_real_infected = -1;
     tempRecord.first_real_symptomatic = -1;
@@ -78,6 +84,7 @@ void Surveillance::initialize_human_surveillance(Human * h, int currDay){
 	tempRecord.pcr.push_back("NA");
 	tempRecord.pcrDay[i] = -1;
 	tempRecord.primary.push_back("NA");
+	tempRecord.dateExposure.push_back("NA");
     }
     recordsDatabase.insert(make_pair(id,tempRecord));
 }
@@ -184,6 +191,7 @@ void Surveillance::finalize_human_surveillance(Human *h, int currDay, bool drop_
 	recordsDatabase.find(id)->second.numExp[i] = h->getExposedCount(i);
 	recordsDatabase.find(id)->second.firstExp += h->getExposedCount(i);
 	recordsDatabase.find(id)->second.previousExposure[i] = h->getPreExposureAtVaccination(i);
+	recordsDatabase.find(id)->second.dateExposure[i] = h->getExposureDate(i);
     }
 }
 
@@ -239,11 +247,16 @@ void Surveillance::printRecords(string file, int currDay){
     
     vector<string> headers; string outstring;
 
-    headers.push_back("ID,Age,Arm,Serostatus,Enrollment_day,Last_day,Dropout");
+    headers.push_back("ID,Age,Agegroup,Arm,Serostatus,Enrollment_day,Last_day,Dropout");
     for(unsigned i = 0; i < 4; i++){
-	string nn = std::to_string(i + 1);;
-	headers.push_back("previous_exposure_"+ nn + ",onset_" + nn + ",symptoms_" + nn + ",severity_" + nn + ",PCRday_" + nn + ",PCR_" + nn + ",TYPE_" + nn + ",TTEL_" + nn + ",TTER_" + nn + ",numexp_" + nn +
-			  ",first_real_inf_" + nn + ",first_real_symp_" + nn);
+	string nn = std::to_string(i + 1);
+	if(printExposure){
+	    headers.push_back("previous_exposure_"+ nn + ",onset_" + nn + ",symptoms_" + nn + ",severity_" + nn + ",PCRday_" + nn + ",PCR_" + nn + ",TYPE_" + nn + ",TTEL_" + nn + ",TTER_" + nn + ",numexp_" + nn + ",dateexp_" + nn + 
+			      ",first_real_inf_" + nn + ",first_real_symp_" + nn);
+	}else{
+	    headers.push_back("previous_exposure_"+ nn + ",onset_" + nn + ",symptoms_" + nn + ",severity_" + nn + ",PCRday_" + nn + ",PCR_" + nn + ",TYPE_" + nn + ",TTEL_" + nn + ",TTER_" + nn + ",numexp_" + nn +
+			      ",first_real_inf_" + nn + ",first_real_symp_" + nn);
+	}
     }
     headers.push_back("firstTTL, firstTTR, firstPCR, firstNumExp,firstRealInf,firstRealSymp");
     Surveillance::join(headers,',',outstring);
@@ -254,8 +267,9 @@ void Surveillance::printRecords(string file, int currDay){
     for(it = recordsDatabase.begin(); it != recordsDatabase.end(); ++it){
 	string serostatus = ((*it).second.seroStatusAtVaccination == true) ? "POSITIVE" : "NEGATIVE";
 	string drop_str = ((*it).second.dropout == true) ? "TRUE" : "FALSE";
+	string age_g = (*it).second.ageDaysAtVaccination / 365 < 18 ? "Children" : "Adults";
 	int lastDay = (*it).second.dropoutDay > -1 ? (*it).second.dropoutDay : currDay;
-	outSurveillance << (*it).second.houseID.c_str() << "_" << (*it).second.houseMemNum << "," << (*it).second.ageDaysAtVaccination / 365 << "," << (*it).second.trialArm.c_str() << "," << serostatus.c_str() << ",";
+	outSurveillance << (*it).second.houseID.c_str() << "_" << (*it).second.houseMemNum << "," << (*it).second.ageDaysAtVaccination / 365 << "," << age_g <<","<< (*it).second.trialArm.c_str() << "," << serostatus.c_str() << ",";
 	outSurveillance << (*it).second.enrollmentDay << "," << lastDay << "," << drop_str << ",";
 	for(int i = 0; i < 4; i++){
 	    string sympt = "NA";
@@ -276,7 +290,11 @@ void Surveillance::printRecords(string file, int currDay){
 	    string ttr = (*it).second.TTR[i] >= 0 ? std::to_string((*it).second.TTR[i]) : "NA";
 	    string pcr_day = (*it).second.pcrDay[i] >= 0 ? std::to_string((*it).second.pcrDay[i]) : "NA";
 	    outSurveillance << (*it).second.previousExposure[i] << "," << onset << "," << sympt << "," << hosp << "," << pcr_day << ","<< (*it).second.pcr[i].c_str() << "," << (*it).second.primary[i] << "," << (*it).second.TTL[i] << "," << ttr;
-	    outSurveillance << "," << (*it).second.numExp[i] << "," << real_inf << "," << real_symp << ",";
+	    if(printExposure){
+		outSurveillance << "," << (*it).second.numExp[i] << "," << (*it).second.dateExposure[i] << "," << real_inf << "," << real_symp << ",";
+	    }else{
+		outSurveillance << "," << (*it).second.numExp[i] << "," << real_inf << "," << real_symp << ",";
+	    }
 	}
 	string ttr = (*it).second.firstTTR >= 0 ? std::to_string((*it).second.firstTTR) : "NA";
 	string first_real_inf = (*it).second.first_real_infected >= 0 ? std::to_string((*it).second.first_real_infected) : "NA";
@@ -332,6 +350,22 @@ double Surveillance::readParameter(string param_name, double vtemp){
     }
     return values_;
 }
+
+bool Surveillance::readParameter(string param_name, bool vtemp){
+    map<string, string>::iterator it;
+    bool values_ = vtemp;
+    it = parameters.find(param_name);
+    if(it != parameters.end()){
+	values_ = this-parseBoolean(it->second);
+    }
+    return values_;
+}
+
+bool Surveillance::parseBoolean(string line){
+    bool flag_temp = (std::stoi(line.c_str(), NULL, 10) == 0 ? false : true);
+    return flag_temp;
+}
+
 
 int Surveillance::parseInteger(string line){
     return strtol(line.c_str(), NULL, 10);

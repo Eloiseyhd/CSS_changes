@@ -58,7 +58,8 @@ private:
     int firstContactWithTrial;
     int exposedCount[4];
     int preExposureAtVaccination[4];
-
+    vector<string> dateOfExposures;
+    
     double attractiveness;
     double bodySize;
     double bodySizeAdult;
@@ -162,7 +163,8 @@ public:
     int getFirstContactWithTrial(){return firstContactWithTrial;}    
     int getTrialEnrollmentDay(){return trialDay;}
     int getExposedCount(unsigned sero){return exposedCount[sero];}
-    int getPreExposureAtVaccination(unsigned);
+    string getExposureDate(unsigned sero){return (dateOfExposures[sero] == "" )? "NA" : dateOfExposures[sero] ;}
+    int getPreExposureAtVaccination(unsigned);    
 
     bool isHospitalized(){return hospitalized;}
     bool isImmune(unsigned) const;

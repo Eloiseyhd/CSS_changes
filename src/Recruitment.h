@@ -38,15 +38,15 @@ class Recruitment {
 
     map<string, string> parameters;
     
-    int vaccineSampleSize;
-    int placeboSampleSize;
-    int recruitmentTimeFrame;
-    int recruitmentStartDay;
+    unsigned vaccineSampleSize;
+    unsigned placeboSampleSize;
+    unsigned recruitmentTimeFrame;
+    unsigned recruitmentStartDay;
     int dailyVaccineRecruitmentRate;
     int dailyPlaceboRecruitmentRate;
     int trialDurationDays;
-    int trialMaximumDays;
-    int trialMinimumCases;
+    unsigned trialMaximumDays;
+    unsigned trialMinimumCases;
     int pcr_cases;
 
     string recruitmentStrategy;
@@ -74,7 +74,7 @@ class Recruitment {
     void parseAges(string line, vector<groupStruct> *);
     void parseVector(string line, vector<double> *);
     void enrollTodayParticipants(int);
-    void enrollArmParticipants(recruit_t &, eligible_t &, string, int, int, int, int, int,unsigned);
+    void enrollArmParticipants(recruit_t &, eligible_t &, string, int, unsigned, int, int, int,unsigned);
     string parseString(string);
     map<unsigned, Vaccine> vaccinesPtr;
 
@@ -85,19 +85,19 @@ class Recruitment {
     Recruitment(const Recruitment& orig);
     //virtual ~Recruitment();
 
-    void update(int);
-    void updateArm(unsigned, recruit_t &, int);
+    void update(unsigned);
+    void updateArm(unsigned, recruit_t &, unsigned);
     // pseudo-ctor
     void setupRecruitment(string, map<unsigned,Vaccine>, string, string, RandomNumGenerator * _rGen);
     void addPossibleParticipant(Human *, int);
     void shuffleEligibleParticipants();
-    void updateParticipants(int);
-    void finalizeTrial(int);
+    void updateParticipants(unsigned);
+    void finalizeTrial(unsigned);
     void removeParticipant(Human *, int, bool);
     void printEligibleGroups();
     int getVaccineSampleSize(){return vaccineSampleSize;}
     int getPlaceboSampleSize(){return placeboSampleSize;}
-    int getRecruitmentStartDay(){return recruitmentStartDay;}
+    unsigned getRecruitmentStartDay(){return recruitmentStartDay;}
     long int getEligibleParticipantsSize();
 };
 

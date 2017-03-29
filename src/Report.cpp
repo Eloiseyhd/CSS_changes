@@ -1296,7 +1296,7 @@ void Report::printGroupsReport(int currDay){
 	    if(groupsStatus[0] > 0 || groupsStatus[1] > 0){
 		if(groupsStatus[0] > 0 && groupsStatus[1] > 0){
 		    for(int j = 0;j < 4 ;j++){
-			for(int k = 0; k < groupsAges.size(); k++){
+			for(unsigned k = 0; k < groupsAges.size(); k++){
 			    if(printGroupsPop == true){
 				outGroups << groupsStats[k].status[j].nonevents[i]<<",";
 			    }
@@ -1326,7 +1326,7 @@ void Report::printGroupsReport(int currDay){
 			sum_ = 2;
 		    }
 		    for(int j = 0;j < 2 * inc_;j = sum_ + inc_){
-			for(int k = 0; k < groupsAges.size(); k++){
+			for(unsigned k = 0; k < groupsAges.size(); k++){
 			    if(printGroupsPop == true){
 				outGroups << groupsStats[k].status[j].nonevents[i] + groupsStats[k].status[j + sum_].nonevents[i]<<",";
 			    }
@@ -1347,7 +1347,7 @@ void Report::printGroupsReport(int currDay){
 		    }
 		}
 	    }else{
-		for(int k = 0; k < groupsStats.size(); k++){
+		for(unsigned k = 0; k < groupsStats.size(); k++){
 		    if(printGroupsPop == true){
 			outGroups << groupsStats[k].total.nonevents[i]<<",";
 		    }
@@ -1380,7 +1380,7 @@ void Report::printCohortReport(int currDay){
 	    if(cohortStatus[0] > 0 || cohortStatus[1] > 0){
 		if(cohortStatus[0] > 0 && cohortStatus[1] > 0){
 		    for(int j = 0;j < 4 ;j++){
-			for(int k = 0; k < cohortAges.size(); k++){
+			for(unsigned k = 0; k < cohortAges.size(); k++){
 			    if(printCohortPop == true){
 				outCohort << cohortStats[k].status[j].nonevents[i]<<",";
 			    }
@@ -1404,7 +1404,7 @@ void Report::printCohortReport(int currDay){
 		    }
             // ?? CHECK j = j = j
 		    for(int j = 0;j < 2 * inc_;j = sum_ + inc_){
-			for(int k = 0; k < cohortAges.size(); k++){
+			for(unsigned k = 0; k < cohortAges.size(); k++){
 			    if(printCohortPop == true){
 				outCohort << cohortStats[k].status[j].nonevents[i] + cohortStats[k].status[j + sum_].nonevents[i]<<",";
 			    }
@@ -1419,7 +1419,7 @@ void Report::printCohortReport(int currDay){
 		}
 
 	    }else{
-		for(int k = 0; k < cohortStats.size(); k++){
+		for(unsigned k = 0; k < cohortStats.size(); k++){
 		    if(printCohortPop == true){
 			outCohort << cohortStats[k].total.nonevents[i]<<",";
 		    }
@@ -1598,7 +1598,7 @@ void Report::printGroupsHeader(){
 		if(groupsStatus[0] > 0 && groupsStatus[1] > 0){
 		    for(int j = 0;j < 2 ;j++){
 			for(int jj = 2; jj < 4; jj++){
-			    for(int k = 0; k < groupsAges.size(); k++){
+			    for(unsigned k = 0; k < groupsAges.size(); k++){
 				if(printGroupsPop == true){
 				    outGroups << status[j].c_str() <<"_"<< status[jj].c_str() << "_age_" << groupsAges[k].min << "_" << groupsAges[k].max << "_";
 				    outGroups << "no"<<events[i].c_str()<<",";
@@ -1630,7 +1630,7 @@ void Report::printGroupsHeader(){
 			ind_ = 2;
 		    }
 		    for(int j = ind_;j < ind_ + 2;j++){
-			for(int k = 0; k < groupsAges.size(); k++){
+			for(unsigned k = 0; k < groupsAges.size(); k++){
 			    if(printGroupsPop == true){
 				outGroups << status[j].c_str() << "_age_" << groupsAges[k].min << "_" << groupsAges[k].max << "_";
 				outGroups << "no"<<events[i].c_str()<<",";
@@ -1656,7 +1656,7 @@ void Report::printGroupsHeader(){
 		}
 
 	    }else{
-		for(int k = 0; k < groupsAges.size(); k++){
+		for(unsigned k = 0; k < groupsAges.size(); k++){
 		    if(printGroupsPop == true){
 			outGroups << "age_" << groupsAges[k].min << "_" << groupsAges[k].max << "_";
 			outGroups << "no"<<events[i].c_str()<<",";
@@ -1693,7 +1693,7 @@ void Report::printCohortHeader(){
 		if(cohortStatus[0] > 0 && cohortStatus[1] > 0){
 		    for(int j = 0;j < 2 ;j++){
 			for(int jj = 2; jj < 4; jj++){
-			    for(int k = 0; k < cohortAges.size(); k++){
+			    for(unsigned k = 0; k < cohortAges.size(); k++){
 				if(printCohortPop == true){
 				    outCohort << status[j].c_str() <<"_"<< status[jj].c_str() << "_age_" << cohortAges[k].min << "_" << cohortAges[k].max << "_";
 				    outCohort << "no"<<events[i].c_str()<<",";
@@ -1716,7 +1716,7 @@ void Report::printCohortHeader(){
 			ind_ = 2;
 		    }
 		    for(int j = ind_;j < ind_ + 2;j++){
-			for(int k = 0; k < cohortAges.size(); k++){
+			for(unsigned k = 0; k < cohortAges.size(); k++){
 			    if(printCohortPop == true){
 				outCohort << status[j].c_str() << "_age_" << cohortAges[k].min << "_" << cohortAges[k].max << "_";
 				outCohort << "no"<<events[i].c_str()<<",";
@@ -1733,7 +1733,7 @@ void Report::printCohortHeader(){
 		}
 
 	    }else{
-		for(int k = 0; k < cohortAges.size(); k++){
+		for(unsigned k = 0; k < cohortAges.size(); k++){
 		    if(printCohortPop == true){
 			outCohort << "age_" << cohortAges[k].min << "_" << cohortAges[k].max << "_";
 			outCohort << "no"<<events[i].c_str()<<",";
@@ -1832,7 +1832,7 @@ void Report::resetCohortStats(){
 	exit(1);
     }
 
-    for(int k = 0; k < cohortAges.size(); k++){
+    for(unsigned k = 0; k < cohortAges.size(); k++){
 	reportStats tempStats;
 	for(int i = 0; i < 5; i++){
 	    // There are four status VacSero+ VacSero- PlacSero+ PlacSero-
@@ -1862,7 +1862,7 @@ void Report::resetGroupStats(){
     if(groupsAges.empty()){
 	exit(1);
     }
-    for(int k = 0; k < groupsAges.size(); k++){
+    for(unsigned k = 0; k < groupsAges.size(); k++){
 	reportStats tempStats;
 	for(int i = 0; i < 5; i++){
 	    // There are four status VacSero+ VacSero- PlacSero+ PlacSero-

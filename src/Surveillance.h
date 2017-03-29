@@ -42,6 +42,7 @@ class Surveillance {
 	bool seroStatusAtVaccination;
 	bool dropout;
 	string trialArm;
+	vector<string> dateExposure;      
 	vector<string> primary;
 	vector<string> pcr;
 	string firstPCR;
@@ -64,7 +65,8 @@ class Surveillance {
     int firstContactDelay;
     double selfReportProb;
     double reportTodayProb;
-
+    bool printExposure;
+    
     map<string, hRecord> recordsDatabase;
     map<string, string> parameters;
 
@@ -74,8 +76,10 @@ class Surveillance {
     int PCR_test(Human *, int, RandomNumGenerator *);
     int parseInteger(string);
     int readParameter(string, int );
+    bool parseBoolean(string);
     double parseDouble(string);
     double readParameter(string, double );
+    bool readParameter(string , bool );
 };
 
 #endif	/* SURVEILLANCE_H */
