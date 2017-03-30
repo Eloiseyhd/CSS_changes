@@ -118,6 +118,13 @@ int Surveillance::update_human_surveillance(Human * h, int currDay, RandomNumGen
     //    printf("update surveillance %s day %d\n", id.c_str(), currDay);
     if(recordsDatabase.find(id) != recordsDatabase.end() && h->isEnrolledInTrial()){
 	if( ( currDay - recordsDatabase.find(id)->second.enrollmentDay ) >= 30){
+	    recordsDatabase.find(id)->second.firstExp = 0;
+	    for(unsigned i = 0; i < 4; i++){
+		recordsDatabase.find(id)->second.numExp[i] = h->getExposedCount(i);
+		recordsDatabase.find(id)->second.firstExp += h->getExposedCount(i);
+		recordsDatabase.find(id)->second.previousExposure[i] = h->getPreExposureAtVaccination(i);
+		recordsDatabase.find(id)->second.dateExposure[i] = h->getExposureDate(i);
+	    }
 	    if(h->infection != NULL){
 		// set IIP and serotype and symptoms
 		unsigned serotype = h->infection->getInfectionType() - 1;
@@ -185,6 +192,7 @@ void Surveillance::finalize_human_surveillance(Human *h, int currDay, bool drop_
     if(drop_in){
 	recordsDatabase.find(id)->second.dropout = true;
     }
+    /*
     recordsDatabase.find(id)->second.dropoutDay = currDay;
     recordsDatabase.find(id)->second.firstExp = 0;
     for(unsigned i = 0; i < 4; i++){
@@ -193,6 +201,7 @@ void Surveillance::finalize_human_surveillance(Human *h, int currDay, bool drop_
 	recordsDatabase.find(id)->second.previousExposure[i] = h->getPreExposureAtVaccination(i);
 	recordsDatabase.find(id)->second.dateExposure[i] = h->getExposureDate(i);
     }
+    */
 }
 
 void Surveillance::contactPerson(Human * h, int currDay, RandomNumGenerator * rGen){
