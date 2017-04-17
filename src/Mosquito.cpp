@@ -71,16 +71,18 @@ sp_human_t Mosquito::whoBite(
     // for each map element
     for(auto & hum : humanMap) {
         attractivenessSum += hum.second;
-	//	printf("attractiveness of %s is %f\n", hum.first->getPersonID().c_str(), hum.second);
+	//printf("attractiveness of %s is %f. Sum: %.2f\n", hum.first->getPersonID().c_str(), hum.second, attractivenessSum);
     }
 
     double biteWho = rGen->getEventProbability() * attractivenessSum;
+    //printf("BiteWho: %.2f\n",biteWho);
     // find human based on cum attractiveness? 
     attractivenessSum = 0;
     // need mapItr at this scope
     auto mapItr = humanMap.begin();
     for(; attractivenessSum < biteWho; mapItr++) {
         attractivenessSum += mapItr->second;
+	//	printf("CHOOSE ATTRACTIVENESS OF %s -> %f, sum: %.2f\n", mapItr->first->getPersonID().c_str(), mapItr->second,attractivenessSum);
     }
     // back up one?
     mapItr--;
@@ -98,8 +100,9 @@ bool Mosquito::infectingBite(
     int numDays, 
     double mozEIP)
 {
-    sp_human_t humBite = whoBite(time, locNow, rGen);
+    sp_human_t humBite = whoBite(time, locNow, rGen);    
     if(humBite != nullptr){
+	printf("BITE,%s,%.2f,1\n",humBite->getPersonID().c_str(),humBite->getAttractiveness());
 	if(humBite->infection != nullptr){
             humBite->infection->setInfectiousnessHuman(currentDay);
             if(rGenInf->getEventProbability() < humBite->infection->getInfectiousness()){
@@ -132,6 +135,7 @@ bool Mosquito::infectiousBite(
 {
     sp_human_t humBite = whoBite(time, locNow, rGen);
     if(humBite != nullptr){
+	printf("BITE,%s,1\n",humBite->getPersonID().c_str());
         if(infection != nullptr && humBite->infection == nullptr && !humBite->isImmune(infection->getInfectionType())){
             if(rGenInf->getEventProbability() < infection->getInfectiousness()){
                 humBite->infect(currentDay, infection->getInfectionType(), rGenInf, disRates, hospRates);

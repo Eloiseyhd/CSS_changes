@@ -119,6 +119,7 @@ private:
     double biteProbablity;
     double mozInfectiousness;   
     double mozMoveProbability;
+    double attractShape;
     double selfReportProb;
     unsigned year;
 

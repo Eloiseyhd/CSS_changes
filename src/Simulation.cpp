@@ -28,10 +28,10 @@ string Simulation::readInputs() {
 
     outputPath.erase(remove(outputPath.begin(), outputPath.end(), '\"'), outputPath.end());
     
-    RandomNumGenerator rgen(rSeed, huImm, emergeFactor, 1 / mozDailyDeathRate.back(), firstBiteRate.back(), halflife);
+    RandomNumGenerator rgen(rSeed, huImm, emergeFactor, 1 / mozDailyDeathRate.back(), firstBiteRate.back(), halflife,attractShape);
     rGen = rgen;
     
-    RandomNumGenerator rgen2(rSeedInf, huImm, emergeFactor, 1 / mozDailyDeathRate.back(), firstBiteRate.back(), halflife);
+    RandomNumGenerator rgen2(rSeedInf, huImm, emergeFactor, 1 / mozDailyDeathRate.back(), firstBiteRate.back(), halflife, attractShape);
     rGenInf = rgen2;
     
     readDiseaseRatesFile();
@@ -66,7 +66,7 @@ void Simulation::simEngine() {
 	humanDeaths = 0;
         if(ceil(double(currentDay + 1) / 365.0) != ceil(double(currentDay) / 365.0)){
             year++;
-            updatePop();
+            //updatePop();
         }
 	printf("day %d year %d Humans %lu Mosquitoes %lu\n",currentDay, year,humans.size(), mosquitoes.size());
         for(auto itLoc = locations.begin(); itLoc != locations.end(); itLoc++){
@@ -480,7 +480,9 @@ void Simulation::readSimControlFile(string line) {
     mozMoveProbability = strtod(line.c_str(), NULL);
     getline(infile, line, ',');
     aegyptiRatesFile = line;
-
+    getline(infile, line, ',');
+    attractShape = strtod(line.c_str(), NULL);
+    
     readInitialFOI(foiFile);
     readDailyFOI(dailyFoiFile);
 

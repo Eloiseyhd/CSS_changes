@@ -8,6 +8,11 @@ double RandomNumGenerator::getWaningTime(double wan) {
     return d(gen);
 }
 
+double RandomNumGenerator::getAttractiveness(){
+    std::gamma_distribution<> d(attractShape,1.0);
+    return d(gen);
+}
+
 unsigned RandomNumGenerator::getMozEmerge(double mozMean) {    
     std::poisson_distribution<> dis(emergeFactor * mozMean);
     return dis(gen);
@@ -120,7 +125,7 @@ string RandomNumGenerator::toString() const {
 
 RandomNumGenerator::RandomNumGenerator(
     unsigned s, unsigned huImm, double efactor, double mlife,
-    double mbite, map<unsigned,double> hlife)
+    double mbite, map<unsigned,double> hlife, double atShape)
 {
     seed = s;
     gen.seed(s);
@@ -129,6 +134,10 @@ RandomNumGenerator::RandomNumGenerator(
     mozLife = mlife;
     mozRest = mbite;
     halflife = hlife;
+    attractShape = atShape;
+    if(attractShape <= 0){
+	attractShape = 0.01;
+    }
 }
 
 RandomNumGenerator::RandomNumGenerator() {

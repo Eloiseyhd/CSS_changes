@@ -36,12 +36,13 @@ public:
     double getMozLatencyRate(double);
     double getMozRestDays();
     double getMozRestDays(double);
-
+    double getAttractiveness();
+    
     int getSelfReportDay(double);
 
     void setSeed(unsigned);
     string toString() const;
-    RandomNumGenerator(unsigned, unsigned, double, double, double, map<unsigned,double>);
+    RandomNumGenerator(unsigned, unsigned, double, double, double, map<unsigned,double>,double);
     RandomNumGenerator();
     RandomNumGenerator(const RandomNumGenerator& orig);
     //virtual ~RandomNumGenerator();
@@ -67,6 +68,7 @@ private:
     double emergeFactor;
     double mozLife;
     double mozRest;
+    double attractShape;
     map<unsigned,double> halflife;
 };
 
