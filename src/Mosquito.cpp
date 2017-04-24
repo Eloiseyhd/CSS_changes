@@ -102,7 +102,7 @@ bool Mosquito::infectingBite(
 {
     sp_human_t humBite = whoBite(time, locNow, rGen);    
     if(humBite != nullptr){
-	printf("BITE,%s_%d,%.2f,1\n",humBite->getHouseID().c_str(),humBite->getHouseMemNum(),humBite->getAttractiveness());
+	//printf("BITE,%s_%d,%.2f,1\n",humBite->getHouseID().c_str(),humBite->getHouseMemNum(),humBite->getAttractiveness());
 	if(humBite->infection != nullptr){
             humBite->infection->setInfectiousnessHuman(currentDay);
             if(rGenInf->getEventProbability() < humBite->infection->getInfectiousness()){
@@ -135,7 +135,7 @@ bool Mosquito::infectiousBite(
 {
     sp_human_t humBite = whoBite(time, locNow, rGen);
     if(humBite != nullptr){
-	printf("BITE,%s_%d,%.2f,1\n",humBite->getHouseID().c_str(),humBite->getHouseMemNum(),humBite->getAttractiveness());
+	//printf("BITE,%s_%d,%.2f,1\n",humBite->getHouseID().c_str(),humBite->getHouseMemNum(),humBite->getAttractiveness());
         if(infection != nullptr && humBite->infection == nullptr && !humBite->isImmune(infection->getInfectionType())){
             if(rGenInf->getEventProbability() < infection->getInfectiousness()){
                 humBite->infect(currentDay, infection->getInfectionType(), rGenInf, disRates, hospRates);

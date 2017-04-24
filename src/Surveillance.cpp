@@ -189,11 +189,9 @@ int Surveillance::update_human_surveillance(Human * h, int currDay, RandomNumGen
 
 void Surveillance::finalize_human_surveillance(Human *h, int currDay, bool drop_in){
     string id(h->getPersonID());
-    if(drop_in){
-	recordsDatabase.find(id)->second.dropout = true;
-    }
-    /*
+    recordsDatabase.find(id)->second.dropout = drop_in;
     recordsDatabase.find(id)->second.dropoutDay = currDay;
+    /*      
     recordsDatabase.find(id)->second.firstExp = 0;
     for(unsigned i = 0; i < 4; i++){
 	recordsDatabase.find(id)->second.numExp[i] = h->getExposedCount(i);
