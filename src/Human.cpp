@@ -195,7 +195,8 @@ void Human::infect(
     unsigned infectionType,
     RandomNumGenerator * rGen,
     map<unsigned,double> * disRates,
-    map<unsigned,double> * hospRates)
+    map<unsigned,double> * hospRates,
+    sp_human_t humInf)
 {
     double RR = 1.0;
     double RRInf = 1.0;
@@ -248,8 +249,13 @@ void Human::infect(
     	recent_inf = infectionType;
     	recent_dis = 0;
     	recent_hosp = 0;
-	last_serotype = infectionType;
-
+	last_serotype = infectionType;	
+	if(humInf != nullptr){
+	    printf("Human %s-%d infected by human %s-%d day %d\n", this->getHouseID().c_str(), this->getHouseMemNum(), humInf->getHouseID().c_str(), humInf->getHouseMemNum(),currentDay);
+	    humanInfectors.insert(make_pair(infectionType,humInf));
+	}
+	
+	
     	if(getPreviousInfections() + vaxAdvancement == 0){
     	    if(rGen->getEventProbability() < (*disRates)[0] * RRDis){
 		recent_dis = infectionType;

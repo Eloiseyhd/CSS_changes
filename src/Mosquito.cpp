@@ -1,6 +1,8 @@
 #include "Mosquito.h"
 #include <sstream>
 
+using std::runtime_error;
+
 string Mosquito::getLocationID() const {
     return locationID;
 }
@@ -41,7 +43,7 @@ bool Mosquito::takeBite(
             return true;
         }
     }
-    else if(infection->getInfectiousness() >= 0.0){
+    else if(infection->getInfectiousness() >= 0.0){	
         return infectiousBite(time, locNow, rGen, rGenInf, disRates, hospRates, currentDay, numDays, out);
     }
     return false;
@@ -110,6 +112,7 @@ bool Mosquito::infectingBite(
                 int eday = numDays + 1;
 		/*                infection.reset(new Infection(
 				  round(sday), eday, 0.0, humBite->infection->getInfectionType(), 0, 0, 0.0));*/
+		humanInfector = humBite;
                 infection.reset(new Infection(
                     -1, eday, 0.0, humBite->infection->getInfectionType(), 0, 0, 0.0
                 ));
@@ -134,12 +137,14 @@ bool Mosquito::infectiousBite(
     std::ofstream * out)
 {
     sp_human_t humBite = whoBite(time, locNow, rGen);
-    if(humBite != nullptr){
+    if(humBite != nullptr){	
 	//printf("BITE,%s_%d,%.2f,1\n",humBite->getHouseID().c_str(),humBite->getHouseMemNum(),humBite->getAttractiveness());
         if(infection != nullptr && humBite->infection == nullptr && !humBite->isImmune(infection->getInfectionType())){
-            if(rGenInf->getEventProbability() < infection->getInfectiousness()){
-                humBite->infect(currentDay, infection->getInfectionType(), rGenInf, disRates, hospRates);
-            }
+            if(rGenInf->getEventProbability() < infection->getInfectiousness() && humanInfector != nullptr){		
+                humBite->infect(currentDay, infection->getInfectionType(), rGenInf, disRates, hospRates, humanInfector);
+            }else if(humanInfector == nullptr){
+		throw runtime_error("In Mosquito.cpp:: Human infector is null");
+	    }
         }
 	nbites++;
         return true;
@@ -157,6 +162,7 @@ Mosquito::Mosquito(double dd, double bsd, string loc) {
     infection.reset(nullptr);
     nbites = 0;
     bday = 0;
+    humanInfector = nullptr;
 }
 
 Mosquito::Mosquito() {

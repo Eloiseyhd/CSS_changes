@@ -483,6 +483,7 @@ void Report::updateFOIReport(int currDay, Human * h){
 	    zonesInf[tmpzone][sero-1]++;
 	}
     }
+    
     // Check for immunity to all the serotypes
     for(unsigned i = 0; i < 4; i++){
 	susceptibles[i] +=  h->isPermImmune(i + 1) ? 0 : 1;

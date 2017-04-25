@@ -40,6 +40,7 @@ private:
     double biteStartDay;    
     int nbites;
     int bday;
+    sp_human_t humanInfector;
 };
 
 #endif	/* MOSQUITO_H */

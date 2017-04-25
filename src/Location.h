@@ -25,7 +25,7 @@ private:
     string locType;
     std::unique_ptr<vector<string>> closeLocs;
     std::set<sp_human_t,Human::sortid> humans;
-
+    
 public:
     string getRandomCloseLoc(RandomNumGenerator&);
     void addHuman(sp_human_t);

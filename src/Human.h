@@ -19,6 +19,7 @@
 using std::string;
 using std::vector;
 using std::unique_ptr;
+using std::make_pair;
 
 class Human;
 // type alias, used in containers of humans
@@ -88,8 +89,11 @@ private:
     string personID;
     string zoneID;
     string trialArm;
+    
     map<unsigned,bool> immunity_perm;
     std::unique_ptr<traject_t> trajectories;
+    map<unsigned,sp_human_t> humanInfectors;
+    
     // return by reference
     std::set<string> locsVisited;
 public:
@@ -107,7 +111,7 @@ public:
     void setAgeTrialEnrollment(int age_){tAge = age_;}
     void enrollInTrial(int, string);
     void setSelfReportProb(double prob_){selfReportProb = prob_;}
-    void infect(int, unsigned, RandomNumGenerator *, map<unsigned,double> *, map<unsigned,double> *);
+    void infect(int, unsigned, RandomNumGenerator *, map<unsigned,double> *, map<unsigned,double> *, sp_human_t);
     void initiateBodySize(unsigned,RandomNumGenerator&);
     void resetRecent();
     void setCohort(int c_){cohort = c_;}

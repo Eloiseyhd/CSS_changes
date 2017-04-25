@@ -189,7 +189,7 @@ void Simulation::humanDynamics() {
 	for(unsigned serotype = 1; serotype <= (N_SERO); serotype++){
 	    if(rGen.getEventProbability() < ForceOfImportation.at(serotype)){
 		if(!phum.second->isImmune(serotype)){		    
-		    phum.second->infect(currentDay, serotype, &rGenInf, &disRates, &hospRates);
+		    phum.second->infect(currentDay, serotype, &rGenInf, &disRates, &hospRates, nullptr);
 		    if(phum.second->infection != nullptr){
 			outputReport.addImportation(serotype,(phum.second).get());
 		    }
