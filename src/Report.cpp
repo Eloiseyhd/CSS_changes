@@ -423,6 +423,7 @@ void Report::updateReport(int currDay, Human * h, Location * locNow){
 	}
     }
     if(reportFOI == true){
+	updateSecondaryCases(currDay,h);
 	if(currDay >= foiReportPeriod[0] && currDay <= foiReportPeriod[2] && (currDay - foiReportPeriod[0]) % foiReportPeriod[1] == 0){
 	    updateFOIReport(currDay, h);
 	    reportNum++;
@@ -467,6 +468,18 @@ void Report::printReport(int currDay){
 	if(currDay >= spatialReportPeriod[0] && currDay <= spatialReportPeriod[2] && (currDay - spatialReportPeriod[0]) % spatialReportPeriod[1] == 0){
 	    printSpatialReport(currDay);
 	    resetSpatialStats();
+	}
+    }
+}
+void Report::updateSecondaryCases(int currDay, Human * h){
+    if(h != nullptr){
+	if(h->infection != nullptr){
+	    unsigned sero = h->infection->getInfectionType();
+	    if(!h->getHumInfectorID(sero).empty()){
+		string id = h->getHumInfectorID(sero);
+		printf("updateSecondaryCases:: %s\n", id.c_str());
+		secondaryCases[currDay][id] = 1;
+	    }
 	}
     }
 }

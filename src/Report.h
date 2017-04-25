@@ -67,6 +67,7 @@ class Report {
     map<string, string> parameters;
     map<string, vector<int>> zonesInf;
     map<string, vector<int>> zonesSus;
+    map<int,map<string,int>> secondaryCases;
     
     int cohortEvents[5];
     int cohortStatus[4];
@@ -148,6 +149,7 @@ public:
     void updateCohortReport(int, Human *);
     void updateGroupsReport(int, Human *);
     void updateAgesReport(int, Human *);
+    void updateSecondaryCases(int, Human *);
     void updateFOIReport(int, Human *);
     void addImportation(int, Human *);
     void updateSpatialReport(int, Human *, Location *);

@@ -143,6 +143,7 @@ public:
 
     char getGender() const;
 
+
     unsigned getImmEndDay() const;
     unsigned getImmStartDay() const;
     unsigned getVaxImmEndDay() const;
@@ -167,8 +168,10 @@ public:
     int getFirstContactWithTrial(){return firstContactWithTrial;}    
     int getTrialEnrollmentDay(){return trialDay;}
     int getExposedCount(unsigned sero){return exposedCount[sero];}
-    string getExposureDate(unsigned sero){return (dateOfExposures[sero] == "" )? "NA" : dateOfExposures[sero] ;}
     int getPreExposureAtVaccination(unsigned);    
+    string getExposureDate(unsigned sero){return (dateOfExposures[sero] == "" )? "NA" : dateOfExposures[sero] ;}
+    string getHumInfectorID(unsigned sero);
+    
 
     bool isHospitalized(){return hospitalized;}
     bool isImmune(unsigned) const;

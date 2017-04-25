@@ -309,7 +309,13 @@ void Human::infect(
     }
 }
 
-
+string Human::getHumInfectorID(unsigned sero){
+    if(humanInfectors[sero] != nullptr){	
+	return humanInfectors[sero]->getPersonID();
+    }else{
+	return std::string();
+    }
+}
 
 void Human::initiateBodySize(unsigned currDay, RandomNumGenerator& rGen){
     bodySizeBirth = -1.0;
