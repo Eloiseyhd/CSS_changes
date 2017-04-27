@@ -67,7 +67,7 @@ class Report {
     map<string, string> parameters;
     map<string, vector<int>> zonesInf;
     map<string, vector<int>> zonesSus;
-    map<int,map<string,int>> secondaryCases;
+    map<int,map<unsigned,map<string,int>>> secondaryCases;
     
     int cohortEvents[5];
     int cohortStatus[4];

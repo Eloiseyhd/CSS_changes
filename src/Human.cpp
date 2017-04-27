@@ -251,7 +251,7 @@ void Human::infect(
     	recent_hosp = 0;
 	last_serotype = infectionType;	
 	if(humInf != nullptr){
-	    printf("Human %s-%d infected by human %s-%d day %d\n", this->getHouseID().c_str(), this->getHouseMemNum(), humInf->getHouseID().c_str(), humInf->getHouseMemNum(),currentDay);
+	    //printf("Human %s-%d infected by human %s-%d day %d\n", this->getHouseID().c_str(), this->getHouseMemNum(), humInf->getHouseID().c_str(), humInf->getHouseMemNum(),currentDay);
 	    humanInfectors.insert(make_pair(infectionType,humInf));
 	}
 	

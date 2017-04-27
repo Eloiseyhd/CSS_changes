@@ -474,11 +474,24 @@ void Report::printReport(int currDay){
 void Report::updateSecondaryCases(int currDay, Human * h){
     if(h != nullptr){
 	if(h->infection != nullptr){
-	    unsigned sero = h->infection->getInfectionType();
-	    if(!h->getHumInfectorID(sero).empty()){
-		string id = h->getHumInfectorID(sero);
-		printf("updateSecondaryCases:: %s\n", id.c_str());
-		secondaryCases[currDay][id] = 1;
+	    if(h->infection->getStartDay() == currDay){
+		unsigned sero = h->infection->getInfectionType();
+		if(!h->getHumInfectorID(sero).empty()){
+		    string id = h->getHumInfectorID(sero);
+		    if(secondaryCases.find(currDay) != secondaryCases.end()){
+			if(secondaryCases[currDay].find(sero) != secondaryCases[currDay].end()){
+			    if(secondaryCases[currDay][sero].find(id) != secondaryCases[currDay][sero].end()){
+				secondaryCases[currDay][sero][id]++;
+			    }else{
+				secondaryCases[currDay][sero][id] = 1;
+			    }
+			}else{
+			    secondaryCases[currDay][sero][id] = 1;
+			}
+		    }else{
+			secondaryCases[currDay][sero][id] = 1;
+		    }
+		}
 	    }
 	}
     }
@@ -1235,6 +1248,17 @@ void Report::printFOIReport(int currDay){
 	outFOI << currDay << ",";
 	outFOI << outstring;
     }
+    
+    // Temporary!!!---TEST!!!
+    for(auto it = secondaryCases.begin(); it != secondaryCases.end();it++){
+	for(auto itt = it->second.begin(); itt != it->second.end();itt++){
+	    for(auto idt = itt->second.begin(); idt != itt->second.end();idt++){
+		printf("SECONDARY CASES %s = %d day %d\n", idt->first.c_str(), idt->second, it->first);
+	    }
+	}
+	
+    }
+    
 }
 
 void Report::printAgesReport(int currDay){
