@@ -15,6 +15,7 @@ Report::Report(){
     reportAges = false;
     reportGroups = false;
     reportFOI = false;
+    printR0 = false;
     reportSpatial = false;    
 
     printCohortPop = false;
@@ -152,6 +153,7 @@ void Report::setupReport(string file, string outputPath_, string simName_) {
     reportCohort = this->readParameter("cohort_print", reportCohort);
     reportAges = this->readParameter("age_print", reportAges);
     reportFOI = this->readParameter("foi_print", reportFOI);
+    printR0 = this->readParameter("foi_print_R0", printR0);
     reportSpatial = this->readParameter("spatial_print", reportSpatial);
     spatialMosquitoes = this->readParameter("spatial_mosquitoes", spatialMosquitoes);
 
@@ -165,8 +167,15 @@ void Report::setupReport(string file, string outputPath_, string simName_) {
 
     if(reportFOI == true){
 	string outputFOIFile = outputPath_ + "/" + simName_ + "_foi.csv";
+	string outputR0File = outputPath_ + "/" + simName_ + "_R0.csv";
 	outFOI.open(outputFOIFile);
 	if (!outFOI.good()) {
+	    exit(1);
+	}
+	if(printR0 == true){
+	    outR0.open(outputR0File);
+	}
+	if (!outR0.good()) {
 	    exit(1);
 	}
 	if(printZonesFOI == true){
@@ -423,7 +432,9 @@ void Report::updateReport(int currDay, Human * h, Location * locNow){
 	}
     }
     if(reportFOI == true){
-	updateSecondaryCases(currDay,h);
+	if(printR0 == true){
+	    updateSecondaryCases(currDay,h);
+	}
 	if(currDay >= foiReportPeriod[0] && currDay <= foiReportPeriod[2] && (currDay - foiReportPeriod[0]) % foiReportPeriod[1] == 0){
 	    updateFOIReport(currDay, h);
 	    reportNum++;
@@ -474,25 +485,10 @@ void Report::printReport(int currDay){
 void Report::updateSecondaryCases(int currDay, Human * h){
     if(h != nullptr){
 	if(h->infection != nullptr){
-	    if(h->infection->getStartDay() == currDay){
-		unsigned sero = h->infection->getInfectionType();
-		if(!h->getHumInfectorID(sero).empty()){
-		    string id = h->getHumInfectorID(sero);
-		    if(secondaryCases.find(currDay) != secondaryCases.end()){
-			if(secondaryCases[currDay].find(sero) != secondaryCases[currDay].end()){
-			    if(secondaryCases[currDay][sero].find(id) != secondaryCases[currDay][sero].end()){
-				secondaryCases[currDay][sero][id]++;
-			    }else{
-				secondaryCases[currDay][sero][id] = 1;
-			    }
-			}else{
-			    secondaryCases[currDay][sero][id] = 1;
-			}
-		    }else{
-			secondaryCases[currDay][sero][id] = 1;
-		    }
-		}
-	    }
+	    unsigned sero = h->infection->getInfectionType();
+	    int infDay = h->infection->getStartDay();
+	    string id = h->getPersonID();
+	    secondaryCases[infDay][sero][id] = h->getR0(sero);
 	}
     }
 }
@@ -1248,17 +1244,6 @@ void Report::printFOIReport(int currDay){
 	outFOI << currDay << ",";
 	outFOI << outstring;
     }
-    
-    // Temporary!!!---TEST!!!
-    for(auto it = secondaryCases.begin(); it != secondaryCases.end();it++){
-	for(auto itt = it->second.begin(); itt != it->second.end();itt++){
-	    for(auto idt = itt->second.begin(); idt != itt->second.end();idt++){
-		printf("SECONDARY CASES %s = %d day %d\n", idt->first.c_str(), idt->second, it->first);
-	    }
-	}
-	
-    }
-    
 }
 
 void Report::printAgesReport(int currDay){
@@ -1931,13 +1916,53 @@ void Report::resetGroupStats(){
     }
 }
 
+void Report::printR0Report(int lastDay){
+    outR0 << "day,R0_Denv1, R0_Denv2,R0_Denv3,R0_Denv4\n";
+    for(int d = 0; d < lastDay; d++){
+	vector<string> R_values; string outstring;
+	R_values.clear();       
+	if(secondaryCases.find(d) != secondaryCases.end()){
+	    for(unsigned s = 1; s < 5; s++){
+		if(secondaryCases[d].find(s) != secondaryCases[d].end()){
+		    int dailyR0 = 0;
+		    int sumInfectors = 0;
+		    for(auto idt = secondaryCases[d][s].begin(); idt != secondaryCases[d][s].end();idt++){
+			if(idt->second >= 0){
+			    dailyR0 += idt->second;
+			    sumInfectors++;
+			}
+		    }
+		    if(sumInfectors == 0){
+			sumInfectors = 1;
+		    }
+		    R_values.push_back(std::to_string((double) dailyR0 / (double) sumInfectors));
+		}else{
+		    R_values.push_back("0.00");
+		}
+	    }
+	}else{
+	    for(unsigned s = 1; s < 5; s++){
+		R_values.push_back("0.00");
+	    }
+	}
+	if(!R_values.empty()){
+	    Report::join(R_values,',',outstring);
+	    outR0 << d << ",";
+	    outR0 << outstring;
+	}    	
+    }
+    outR0.close();
+}
 
-void Report::finalizeReport(){
+void Report::finalizeReport(int currDay){
     outCohort.close();
     outAges.close();
     outGroups.close();
     outFOI.close();
     outSpatial.close();
+    if(reportFOI == true && printR0 == true){
+	this->printR0Report(currDay);
+    }
 }
 
 

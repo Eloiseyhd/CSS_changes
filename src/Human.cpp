@@ -41,6 +41,7 @@ Human::Human(string hID,
 	preExposureAtVaccination[i] = 0;
 	exposedCount[i] = 0;
 	dateOfExposures.push_back("");
+	R0[i+1] = -1;
     }
     
     infected = false;
@@ -206,7 +207,7 @@ void Human::infect(
     int vaxAdvancement = 0;
 
     if(vaccinated){
-	printf("Infecting human vaccinated with profile %s...age: %d\n",vaccineProfile.getMode().c_str(),getAgeDays(currentDay));
+	//printf("Infecting human vaccinated with profile %s...age: %d\n",vaccineProfile.getMode().c_str(),getAgeDays(currentDay));
 	if(vaccineProfile.getVaccineID() == -1){
 	    printf("Human::infect vaccineProfile is -1 and person is vaccinated\n");
 	    exit(1);
@@ -229,7 +230,7 @@ void Human::infect(
 	    RRInf = 1 - (1 - vaccineProfile.getRRInf(getPreviousInfections() > 0,infectionType - 1)) * wan_ ;
 	    RRDis = 1 - (1 - vaccineProfile.getRRDis(getPreviousInfections() > 0, infectionType - 1)) * wan_;
 	    RRHosp = 1 - (1 - vaccineProfile.getRRHosp(getPreviousInfections() > 0, infectionType - 1)) * wan_;
-	    printf("SEROTYPE %u RRInf %.4f RRDis %.4f\n", infectionType - 1, RRInf, RRDis);
+	    //printf("SEROTYPE %u RRInf %.4f RRDis %.4f\n", infectionType - 1, RRInf, RRDis);
 	}
     }
     
@@ -249,10 +250,12 @@ void Human::infect(
     	recent_inf = infectionType;
     	recent_dis = 0;
     	recent_hosp = 0;
-	last_serotype = infectionType;	
+	last_serotype = infectionType;
+	R0[infectionType] = 0;
 	if(humInf != nullptr){
 	    //printf("Human %s-%d infected by human %s-%d day %d\n", this->getHouseID().c_str(), this->getHouseMemNum(), humInf->getHouseID().c_str(), humInf->getHouseMemNum(),currentDay);
-	    humanInfectors.insert(make_pair(infectionType,humInf));
+	    humInf->increaseR0(infectionType);
+	    humanInfectors.insert(make_pair(infectionType,humInf));	    
 	}
 	
 	

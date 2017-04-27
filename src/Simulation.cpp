@@ -87,7 +87,7 @@ void Simulation::simEngine() {
         currentDay++;
 	//       	printf("tempStats, %d, %d, %lu\n", currentDay, humanDeaths, mosquitoes.size());
     }
-    outputReport.finalizeReport();
+    outputReport.finalizeReport(currentDay);
     if(vaccinationStrategy == "random_trial"){
 	recruitmentTrial.finalizeTrial(currentDay);
     }

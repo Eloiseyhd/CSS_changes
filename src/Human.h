@@ -93,6 +93,7 @@ private:
     map<unsigned,bool> immunity_perm;
     std::unique_ptr<traject_t> trajectories;
     map<unsigned,sp_human_t> humanInfectors;
+    map<unsigned,int> R0;
     
     // return by reference
     std::set<string> locsVisited;
@@ -122,6 +123,7 @@ public:
     void setVaxImmunity(bool);
     void setImmunityTemp(bool);
     void setSeroStatusAtVaccination();
+    void increaseR0(unsigned sero_in){R0[sero_in]++;}
     void setTrajDay(int dayIn){trajDay = dayIn;}
     void setContactByTrial(int dayIn){lastDayContactedByTrial = dayIn;}
     void setFirstContactWithTrial(int dayIn){firstContactWithTrial = dayIn;}
@@ -168,7 +170,8 @@ public:
     int getFirstContactWithTrial(){return firstContactWithTrial;}    
     int getTrialEnrollmentDay(){return trialDay;}
     int getExposedCount(unsigned sero){return exposedCount[sero];}
-    int getPreExposureAtVaccination(unsigned);    
+    int getPreExposureAtVaccination(unsigned);
+    int getR0(unsigned sero){return R0[sero];}
     string getExposureDate(unsigned sero){return (dateOfExposures[sero] == "" )? "NA" : dateOfExposures[sero] ;}
     string getHumInfectorID(unsigned sero);
     

@@ -46,12 +46,14 @@ class Report {
     std::ofstream outAges;
     std::ofstream outGroups;
     std::ofstream outFOI;
+    std::ofstream outR0;
     std::ofstream outSpatial;
     
     bool reportCohort;
     bool reportAges;
     bool reportGroups;
     bool reportFOI;
+    bool printR0;
     bool reportSpatial;
     
     bool printCohortPop;
@@ -160,7 +162,8 @@ public:
     void resetAgeStats();
     void resetFOIStats();
     void resetSpatialStats();
-    void finalizeReport();
+    void finalizeReport(int);
+    void printR0Report(int);
 
 };
 
