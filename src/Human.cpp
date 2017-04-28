@@ -66,7 +66,7 @@ void Human::initializeHuman(unsigned currDay, vector<double> FOI, RandomNumGener
 
     attractiveness = rGen.getAttractiveness();
     //printf("Attractiveness,%s,%.4f\n",this->getPersonID().c_str(),attractiveness);
-    updateAttractiveness(currDay);
+    //updateAttractiveness(currDay);
     immunity_temp = false;
     if(currDay == 0){
 	// Set the initial conditions for the immune profile by serotype
@@ -399,6 +399,7 @@ int Human::getPreExposureAtVaccination(unsigned sero){
 }
 
 void Human::updateAttractiveness(unsigned currDay){
+    //printf("Updating attractiveness\n");
     updateBodySize(currDay);
     attractiveness = pow(bodySize, 1.541);
 }

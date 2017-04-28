@@ -9,8 +9,12 @@ double RandomNumGenerator::getWaningTime(double wan) {
 }
 
 double RandomNumGenerator::getAttractiveness(){
-    std::gamma_distribution<> d(attractShape,1.0);
-    return d(gen);
+    if(attractShape > 0){
+	std::gamma_distribution<> d(attractShape,1.0);
+	return d(gen);
+    }else{
+	return 1;
+    }
 }
 
 unsigned RandomNumGenerator::getMozEmerge(double mozMean) {    
@@ -135,7 +139,7 @@ RandomNumGenerator::RandomNumGenerator(
     mozRest = mbite;
     halflife = hlife;
     attractShape = atShape;
-    if(attractShape <= 0){
+    if(attractShape < 0){
 	attractShape = 0.01;
     }
 }
