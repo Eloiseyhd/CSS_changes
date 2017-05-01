@@ -185,22 +185,21 @@ void Simulation::humanDynamics() {
         // select movement trajectory for the day
         phum.second->setTrajDay(rGen.getRandomNum(N_TRAJECTORY));
 
-        // simulate possible imported infection
+        // simulate possible imported infection, ignore vaccinated individuals
 	for(unsigned serotype = 1; serotype <= (N_SERO); serotype++){
 	    if(rGen.getEventProbability() < ForceOfImportation.at(serotype)){
-		if(!phum.second->isImmune(serotype)){		    
-		    phum.second->infect(currentDay, serotype, &rGenInf, &disRates, &hospRates, nullptr);
-		    if(phum.second->infection != nullptr){
+		if(!phum.second->isImported() && phum.second->infection == nullptr){
+		    phum.second->infectImport(currentDay, serotype,&rGenInf);
+		    if(phum.second->infection != nullptr){	    
 			outputReport.addImportation(serotype,(phum.second).get());
 		    }
 		}
 	    }
 	}
-
+	
 	//update vaccine immunity if necessary
 	if(phum.second->isVaccinated()){
 	    phum.second->updateVaccineEfficacy(currentDay);
-	    //	    phum.second->getVaccine()->printVaccine();
 	}
 
 

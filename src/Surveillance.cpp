@@ -91,7 +91,7 @@ void Surveillance::initialize_human_surveillance(Human * h, int currDay){
 void Surveillance::track_infected(Human * h, int currDay){
     string id(h->getPersonID());
     //    printf("track_infected %s day %d\n", id.c_str(),currDay);
-    if(h->infection != NULL){	
+    if(h->isInfected() && h->infection != nullptr){	
 	if(recordsDatabase.find(id)->second.first_real_infected == -1){
 	    //	    printf("FIRST INFECTION IN THE TRIAL: %s day %d\n", id.c_str(),currDay);
 	    recordsDatabase.find(id)->second.first_real_infected = h->infection->getStartDay();
@@ -125,7 +125,7 @@ int Surveillance::update_human_surveillance(Human * h, int currDay, RandomNumGen
 		recordsDatabase.find(id)->second.previousExposure[i] = h->getPreExposureAtVaccination(i);
 		recordsDatabase.find(id)->second.dateExposure[i] = h->getExposureDate(i);
 	    }
-	    if(h->infection != NULL){
+	    if(h->isInfected() && h->infection != nullptr){
 		// set IIP and serotype and symptoms
 		unsigned serotype = h->infection->getInfectionType() - 1;
 		recordsDatabase.find(id)->second.onset[serotype] = h->infection->getSymptomOnset();
@@ -204,7 +204,7 @@ void Surveillance::finalize_human_surveillance(Human *h, int currDay, bool drop_
 
 void Surveillance::contactPerson(Human * h, int currDay, RandomNumGenerator * rGen){
     string id(h->getPersonID());
-    if(h->infection != NULL){
+    if(h->isInfected() && h->infection != nullptr){
 	int serotype =  h->infection->getInfectionType() -1;
 	if(recordsDatabase.find(id)->second.TTR[serotype] == -1){
 	    // If the symptoms happened between last contact and today
@@ -219,7 +219,7 @@ int Surveillance::PCR_test(Human * h, int currDay, RandomNumGenerator * rGen){
     string id(h->getPersonID());
     int pcr_result = -1;
     double sensitivity = 0.0;
-    if(h->infection != NULL){
+    if(h->isInfected() && h->infection != NULL){
 	// Is this a primary or secondary infection? 
 	// Vaccinees will have a secondary-like viral curve
 	double b1 = 0.0;

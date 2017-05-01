@@ -104,15 +104,15 @@ bool Mosquito::infectingBite(
 {
     sp_human_t humBite = whoBite(time, locNow, rGen);    
     if(humBite != nullptr){
-	printf("BITE,%s_%d,%.2f,1\n",humBite->getHouseID().c_str(),humBite->getHouseMemNum(),humBite->getAttractiveness());
+	//printf("BITE,%s_%d,%.2f,1\n",humBite->getHouseID().c_str(),humBite->getHouseMemNum(),humBite->getAttractiveness());
 	if(humBite->infection != nullptr){
             humBite->infection->setInfectiousnessHuman(currentDay);
             if(rGenInf->getEventProbability() < humBite->infection->getInfectiousness()){
 		//                double sday = double(currentDay) + rGenInf->getMozLatencyDays(mozEIP);
                 int eday = numDays + 1;
-		/*                infection.reset(new Infection(
-				  round(sday), eday, 0.0, humBite->infection->getInfectionType(), 0, 0, 0.0));*/
-		humanInfector = humBite;
+		if(!humBite->isImported()){
+		    humanInfector = humBite;
+		}
                 infection.reset(new Infection(
                     -1, eday, 0.0, humBite->infection->getInfectionType(), 0, 0, 0.0
                 ));
@@ -138,12 +138,10 @@ bool Mosquito::infectiousBite(
 {
     sp_human_t humBite = whoBite(time, locNow, rGen);
     if(humBite != nullptr){	
-	printf("BITE,%s_%d,%.2f,1\n",humBite->getHouseID().c_str(),humBite->getHouseMemNum(),humBite->getAttractiveness());
+	//printf("BITE,%s_%d,%.2f,1\n",humBite->getHouseID().c_str(),humBite->getHouseMemNum(),humBite->getAttractiveness());
         if(infection != nullptr && humBite->infection == nullptr && !humBite->isImmune(infection->getInfectionType())){
-            if(rGenInf->getEventProbability() < infection->getInfectiousness() && humanInfector != nullptr){		
+            if(rGenInf->getEventProbability() < infection->getInfectiousness()){		
                 humBite->infect(currentDay, infection->getInfectionType(), rGenInf, disRates, hospRates, humanInfector);
-            }else if(humanInfector == nullptr){
-		throw runtime_error("In Mosquito.cpp:: Human infector is null");
 	    }
         }
 	nbites++;

@@ -45,6 +45,7 @@ Human::Human(string hID,
     }
     
     infected = false;
+    infectedImport = false;
     symptomatic = false;
     hospitalized = false;
     vaccineImmunity = false;
@@ -92,6 +93,7 @@ void Human::checkRecovered(unsigned currDay){
        hospitalized = false;
        symptomatic = false;
        reportSymptoms = false;
+       infectedImport = false;
     }
 }
 
@@ -191,6 +193,17 @@ int Human::getPreviousInfections(){
  //   return (*trajectories.get())[i];
 //}
 
+void Human::infectImport(
+    int currentDay,
+    unsigned infectionType,
+    RandomNumGenerator * rGen)
+{
+    // Imported cases have an infection but do not report any symptoms... They should be invisible for our surveillance system
+    infectedImport = true;
+    infection.reset(new Infection(
+    	      currentDay + 1, currentDay + 15, 0.0, infectionType, getPreviousInfections() == 0, recent_dis > 0, exp(rGen->getRandomNormal() * 0.2701716 + 1.750673)));
+}
+
 void Human::infect(
     int currentDay,
     unsigned infectionType,
@@ -243,6 +256,7 @@ void Human::infect(
     // Records the date of each exposure
     string ss = dateOfExposures[infectionType - 1].empty() ? std::to_string(currentDay) : ";" + std::to_string(currentDay);
     dateOfExposures[infectionType - 1] += ss;
+
     //printf("NEW EXPOSURE:: ID %s,  %s -- %s\n",getHouseID().c_str(), dateOfExposures[infectionType - 1].c_str(), ss.c_str());
 	
     if(rGen->getEventProbability() < RRInf * vax_protection){
@@ -257,8 +271,7 @@ void Human::infect(
 	    humInf->increaseR0(infectionType);
 	    humanInfectors.insert(make_pair(infectionType,humInf));	    
 	}
-	
-	
+		
     	if(getPreviousInfections() + vaxAdvancement == 0){
     	    if(rGen->getEventProbability() < (*disRates)[0] * RRDis){
 		recent_dis = infectionType;
@@ -312,13 +325,6 @@ void Human::infect(
     }
 }
 
-string Human::getHumInfectorID(unsigned sero){
-    if(humanInfectors[sero] != nullptr){	
-	return humanInfectors[sero]->getPersonID();
-    }else{
-	return std::string();
-    }
-}
 
 void Human::initiateBodySize(unsigned currDay, RandomNumGenerator& rGen){
     bodySizeBirth = -1.0;

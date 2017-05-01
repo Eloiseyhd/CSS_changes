@@ -75,6 +75,7 @@ private:
     bool hospitalized;
     bool immunity_temp;
     bool infected;
+    bool infectedImport;
     bool seroStatusAtVaccination;
     bool symptomatic;
     bool vaccineImmunity;
@@ -113,6 +114,7 @@ public:
     void enrollInTrial(int, string);
     void setSelfReportProb(double prob_){selfReportProb = prob_;}
     void infect(int, unsigned, RandomNumGenerator *, map<unsigned,double> *, map<unsigned,double> *, sp_human_t);
+    void infectImport(int, unsigned, RandomNumGenerator *);
     void initiateBodySize(unsigned,RandomNumGenerator&);
     void resetRecent();
     void setCohort(int c_){cohort = c_;}
@@ -173,7 +175,6 @@ public:
     int getPreExposureAtVaccination(unsigned);
     int getR0(unsigned sero){return R0[sero];}
     string getExposureDate(unsigned sero){return (dateOfExposures[sero] == "" )? "NA" : dateOfExposures[sero] ;}
-    string getHumInfectorID(unsigned sero);
     
 
     bool isHospitalized(){return hospitalized;}
@@ -182,6 +183,7 @@ public:
     bool isImmuneTemp(){return immunity_temp;}
     bool isImmuneVax(){return vaccineImmunity;}
     bool isInfected(){return infected;}
+    bool isImported(){return infectedImport;}
     bool isSymptomatic(){return symptomatic;}
     bool isVaccinated(){return vaccinated;}
     bool getSeroStatusAtVaccination(){return seroStatusAtVaccination;}
