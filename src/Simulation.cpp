@@ -28,7 +28,7 @@ string Simulation::readInputs() {
 
     outputPath.erase(remove(outputPath.begin(), outputPath.end(), '\"'), outputPath.end());
     
-    RandomNumGenerator rgen(rSeed, huImm, emergeFactor, 1 / mozDailyDeathRate.back(), firstBiteRate.back(), halflife,attractShape);
+    RandomNumGenerator rgen(rSeed, huImm, emergeFactor, 1 / mozDailyDeathRate.back(), firstBiteRate.back(), halflife, attractShape);
     rGen = rgen;
     
     RandomNumGenerator rgen2(rSeedInf, huImm, emergeFactor, 1 / mozDailyDeathRate.back(), firstBiteRate.back(), halflife, attractShape);
@@ -66,7 +66,9 @@ void Simulation::simEngine() {
 	humanDeaths = 0;
         if(ceil(double(currentDay + 1) / 365.0) != ceil(double(currentDay) / 365.0)){
             year++;
-            //updatePop();
+	    if(attractShape < 0){
+		updatePop();
+	    }
         }
 	printf("day %d year %d Humans %lu Mosquitoes %lu\n",currentDay, year,humans.size(), mosquitoes.size());
         for(auto itLoc = locations.begin(); itLoc != locations.end(); itLoc++){

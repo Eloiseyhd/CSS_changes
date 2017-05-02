@@ -12,8 +12,10 @@ double RandomNumGenerator::getAttractiveness(){
     if(attractShape > 0){
 	std::gamma_distribution<> d(attractShape,1.0);
 	return d(gen);
-    }else{
+    }else if (attractShape == 0){
 	return 1;
+    }else{
+	return -1;
     }
 }
 

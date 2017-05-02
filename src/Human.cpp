@@ -67,7 +67,9 @@ void Human::initializeHuman(unsigned currDay, vector<double> FOI, RandomNumGener
 
     attractiveness = rGen.getAttractiveness();
     //printf("Attractiveness,%s,%.4f\n",this->getPersonID().c_str(),attractiveness);
-    //updateAttractiveness(currDay);
+    if(attractiveness == -1){
+	updateAttractiveness(currDay);
+    }
     immunity_temp = false;
     if(currDay == 0){
 	// Set the initial conditions for the immune profile by serotype
