@@ -17,32 +17,26 @@ Report::Report(){
     reportFOI = false;
     printR0 = false;
     reportSpatial = false;    
-
     printCohortPop = false;
     printAgesPop = false;
     printGroupsPop = false;
-    printZonesFOI = false;
-    
+    printZonesFOI = false;    
     printGroupsAgeFirst = false;
     printGroupsTotalAges = false;
-
-    spatialMosquitoes = false;
-    
+    spatialMosquitoes = false;    
     groupsMaxIndex = 0;
     cohortMaxIndex = 0;
     ageMaxIndex = 0;
-
     groupsAges.clear();
     groupsStats.clear();
     groupsAvgAgeFirst = 0;
-
     cohortAges.clear();
     cohortStats.clear();
-
+    secondaryCases.clear();
+    dailyFOI.clear();	
     discreteAges.min = 0;
     discreteAges.max = 0;
     ageStats.clear();
-
     parameters.clear();
     spatialData.clear();
     
@@ -50,22 +44,19 @@ Report::Report(){
 	cohortEvents[i] = 0;
 	groupsEvents[i] = 0;
 	ageEvents[i] = 0;
-    }
-    
+    }    
     for(int i = 0; i < 2; i++){
 	cohortStatus[i] = 0;
 	groupsStatus[i] = 0;
 	ageStatus[i] = 0;
-    }
-    
+    }    
     for(int i = 0; i < 3; i++){
 	groupsReportPeriod[i] = 0;
 	cohortReportPeriod[i] = 0;
 	ageReportPeriod[i] = 0;
 	foiReportPeriod[i] = 0;
 	spatialReportPeriod[i] = 0;
-    }
-    
+    }    
     for(int i = 0; i < 4; i++){
 	foiTypes[i] = 0;
 	newInfections[i] = 0;
@@ -75,9 +66,7 @@ Report::Report(){
 	mozExposed[i] = 0;
 	mozInfectious[i] = 0;
 	importations[i] = 0;
-    }
-    totalHumans = 0;
-    
+    }    
     for(int i = 0; i < 5; i++){
 	// There are four status VacSero+ VacSero- PlacSero+ PlacSero-
 	for(int j = 0; j < 4; j++){
@@ -91,7 +80,6 @@ Report::Report(){
     outCohort.close();
     outAges.close();
     outGroups.close();
-
     events = {"inf", "dis", "hosp", "serop", "vac"};
     status = {"vac", "plac", "serop", "seron"};
 }
@@ -105,8 +93,7 @@ void Report::setupZones(set<string> zonesIn){
 	for(unsigned i = 0; i < 4; i++){
 	    tmp.push_back(0);
 	}
-	zonesInf.insert(make_pair(tmpstr,tmp));
-	zonesSus.insert(make_pair(tmpstr,tmp));
+	zonesToPrint.insert(tmpstr);
 	++locIt;
     }
 }
@@ -164,23 +151,12 @@ void Report::setupReport(string file, string outputPath_, string simName_) {
 	    exit(1);
 	}
     }
-
     if(reportFOI == true){
 	string outputFOIFile = outputPath_ + "/" + simName_ + "_foi.csv";
-	string outputR0File = outputPath_ + "/" + simName_ + "_R0.csv";
 	outFOI.open(outputFOIFile);
 	if (!outFOI.good()) {
 	    exit(1);
-	}
-	if(printR0 == true){
-	    outR0.open(outputR0File);
-	}
-	if (!outR0.good()) {
-	    exit(1);
-	}
-	if(printZonesFOI == true){
-	    printf("PRINTING FoI per ZONE\n");
-	}
+	}	
     }
     if(reportGroups == true){
 	outputGroupsFile = outputPath_ + "/" + simName_ + "_pop.csv";
@@ -189,7 +165,6 @@ void Report::setupReport(string file, string outputPath_, string simName_) {
 	    exit(1);
 	}
     }
-
     if(reportCohort == true){
 	outputCohortFile = outputPath_ + "/" + simName_ + "_cohort.csv";
 	outCohort.open(outputCohortFile);
@@ -197,7 +172,6 @@ void Report::setupReport(string file, string outputPath_, string simName_) {
 	    exit(1);
 	}
     }
-
     if(reportAges == true){
 	outputAgesFile = outputPath_ + "/" + simName_ + "_ages.csv";
 	outAges.open(outputAgesFile);
@@ -312,7 +286,8 @@ void Report::parsePeriod(string line, int * period_temp){
     }
     // If there are less than 3 values in the period, or the the start:increase:end don't make sense
     if(count < 3 || !(period_temp[0] < period_temp[1] + period_temp[2] && period_temp[1] < period_temp[2])){
-		exit(1);
+	printf("Reporting issue: The period has not been setup properly\n");
+	exit(1);
     }
 }
 
@@ -323,19 +298,20 @@ void Report::parseGroupsAges(string line, vector<rangeStruct> * ages_temp){
     linetemp << line;
     ages_temp->clear();
     while(getline(linetemp,line2,';')){
-		stringstream lTemp; lTemp << line2;
-		string line3;
-		rangeStruct rangeTemp;
-		getline(lTemp,line3,',');
-		rangeTemp.min = strtol(line3.c_str(), NULL, 10);
-		getline(lTemp,line3,',');
-		rangeTemp.max = strtol(line3.c_str(), NULL, 10);
-		if(rangeTemp.min + rangeTemp.max > 0){
-		    ages_temp->push_back(rangeTemp);
-		}
+	stringstream lTemp; lTemp << line2;
+	string line3;
+	rangeStruct rangeTemp;
+	getline(lTemp,line3,',');
+	rangeTemp.min = strtol(line3.c_str(), NULL, 10);
+	getline(lTemp,line3,',');
+	rangeTemp.max = strtol(line3.c_str(), NULL, 10);
+	if(rangeTemp.min + rangeTemp.max > 0){
+	    ages_temp->push_back(rangeTemp);
+	}
     }
     if(ages_temp->empty()){
-		exit(1);
+	printf("Report::ParseGroupsAges ages_temp is empty\n");
+	exit(1);
     }
 }
 
@@ -352,12 +328,12 @@ Report::rangeStruct Report::parseDiscreteAges(string line){
     if(rangeTemp.min + rangeTemp.max > 0 && rangeTemp.min < rangeTemp.max && rangeTemp.min >= 0){
 	return rangeTemp;
     }else{
+	printf("Report::parseDiscreteAges minimum and maximum ages do not make sense\n");
 	exit(1);
     }
 }
 
 void Report::parseEvents(string line, int * Events_, int len){
-
     stringstream linetemp;
     string line2;
     linetemp.clear();
@@ -380,19 +356,16 @@ void Report::parseEvents(string line, int * Events_, int len){
 
 void Report::updateMosquitoReport(int currDay, Mosquito * m, Location * locNow){
     if(reportFOI == true){
-	if(currDay >= foiReportPeriod[0] && currDay <= foiReportPeriod[2] && (currDay - foiReportPeriod[0]) % foiReportPeriod[1] == 0){
-	    if(m->infection == nullptr){
-		for(unsigned i = 0; i < 4; i++){
-		    mozSusceptibles[i]++;
-		}
+	if(m->infection == nullptr){
+	    for(unsigned i = 1; i < 5; i++){
+		dailyFOI[currDay][i]["mozsus"]++;
+	    }
+	}else{
+	    unsigned sero = m->infection->getInfectionType();
+	    if(m->infection->getInfectiousness() > 0.0){
+		dailyFOI[currDay][sero]["mozinf"]++;
 	    }else{
-		// get type
-		unsigned sero = m->infection->getInfectionType();
-		if(m->infection->getInfectiousness() > 0.0){
-		    mozInfectious[sero - 1]++;
-		}else{
-		    mozExposed[sero - 1]++;
-		}
+		dailyFOI[currDay][sero]["mozexp"]++;
 	    }
 	}
     }
@@ -435,10 +408,7 @@ void Report::updateReport(int currDay, Human * h, Location * locNow){
 	if(printR0 == true){
 	    updateSecondaryCases(currDay,h);
 	}
-	if(currDay >= foiReportPeriod[0] && currDay <= foiReportPeriod[2] && (currDay - foiReportPeriod[0]) % foiReportPeriod[1] == 0){
-	    updateFOIReport(currDay, h);
-	    reportNum++;
-	}
+	updateFOI(currDay, h);
     }
     if(reportSpatial == true && spatialMosquitoes == false){
 	if(currDay >= spatialReportPeriod[0] && currDay <= spatialReportPeriod[2] && (currDay - spatialReportPeriod[0]) % spatialReportPeriod[1] == 0){
@@ -469,54 +439,11 @@ void Report::printReport(int currDay){
 	    resetAgeStats();
 	}
     }
-    if(reportFOI == true){
-	if(currDay >= foiReportPeriod[0] && currDay <= foiReportPeriod[2] && (currDay - foiReportPeriod[0]) % foiReportPeriod[1] == 0){
-	    printFOIReport(currDay);
-	    resetFOIStats();
-	}
-    }
     if(reportSpatial == true){
 	if(currDay >= spatialReportPeriod[0] && currDay <= spatialReportPeriod[2] && (currDay - spatialReportPeriod[0]) % spatialReportPeriod[1] == 0){
 	    printSpatialReport(currDay);
 	    resetSpatialStats();
 	}
-    }
-}
-void Report::updateSecondaryCases(int currDay, Human * h){
-    if(h != nullptr){
-	if(h->infection != nullptr){
-	    unsigned sero = h->infection->getInfectionType();
-	    int infDay = h->infection->getStartDay();
-	    string id = h->getPersonID();
-	    secondaryCases[infDay][sero][id] = h->getR0(sero);
-	}
-    }
-}
-
-void Report::updateFOIReport(int currDay, Human * h){
-    // Collect the number of susceptibles and infections per serotype
-    // If h is infectious, then get the serotype
-    totalHumans++;
-    string tmpzone = h->getZoneID();
-    if(h->getRecentInf() > 0){
-	int sero = h->getRecentType();
-	if(sero > 0){
-	    newInfections[sero - 1]++; //The types from Human go from 1 - 4
-	    zonesInf[tmpzone][sero-1]++;
-	}
-    }
-    
-    // Check for immunity to all the serotypes
-    for(unsigned i = 0; i < 4; i++){
-	susceptibles[i] +=  h->isPermImmune(i + 1) ? 0 : 1;
-	susceptibles_temp[i] += h->isImmune(i+1) ? 0 : 1;
-	zonesSus[tmpzone][i] += h->isPermImmune(i + 1) ? 0 : 1;
-    }
-}
-
-void Report::addImportation(int sero_in, Human * h){
-    if(sero_in > 0 && sero_in < 5){
-	importations[sero_in - 1]++;
     }
 }
 
@@ -1208,44 +1135,6 @@ void Report::printSpatialReport(int currDay){
     }
 }
 
-void Report::printFOIReport(int currDay){
-    vector<string> foi_values; string outstring;
-    foi_values.clear();
-    for(int i = 0; i < 4; i++){
-	if(foiTypes[i]){
-	    double foi_temp = susceptibles[i] > 0 ? (double) newInfections[i] / (double) susceptibles[i] : 1;
-	    foi_values.push_back(std::to_string(foi_temp));
-	    foi_values.push_back(std::to_string(susceptibles[i]));
-	    foi_values.push_back(std::to_string(susceptibles_temp[i]));
-	    foi_values.push_back(std::to_string(newInfections[i]));
-	    foi_values.push_back(std::to_string(mozSusceptibles[i]));
-	    foi_values.push_back(std::to_string(mozExposed[i]));
-	    foi_values.push_back(std::to_string(mozInfectious[i]));
-	    foi_values.push_back(std::to_string(importations[i]));
-	}
-    }
-
-    if(printZonesFOI == true){
-	for(auto locIt = zonesInf.begin(); locIt != zonesInf.end();){
-	    string zz = locIt->first;
-	    for(int i = 0; i < 4; i++){
-		if(foiTypes[i]){
-		    double foi_temp = zonesSus[zz][i] > 0 ? (double) zonesInf[zz][i] / (double) zonesSus[zz][i] : 1;
-		    foi_values.push_back(std::to_string(foi_temp));
-		}
-	    }
-	    ++locIt;
-	}
-    }
-    
-    foi_values.push_back(std::to_string(totalHumans));
-    if(!foi_values.empty()){
-	Report::join(foi_values,',',outstring);
-	outFOI << currDay << ",";
-	outFOI << outstring;
-    }
-}
-
 void Report::printAgesReport(int currDay){
     outAges << currDay << ",";
     for(int i = 0; i < 5 ; i++){
@@ -1470,9 +1359,6 @@ void Report::printHeaders(){
     if(reportAges == true){
 	printAgesHeader();
     }
-    if(reportFOI == true){
-	printFOIHeader();
-    }
     if(reportSpatial == true){
 	printSpatialHeader();
     }
@@ -1509,40 +1395,6 @@ void Report::printSpatialHeader(){
     }
 }
 
-void Report::printFOIHeader(){
-    vector<string> headers; string outstring;
-    headers.clear();
-    printf("PRINTING FOI HEADERS\n");
-    for(int i = 0; i < 4; i++){
-	if(foiTypes[i]){
-	    headers.push_back("Denv" + std::to_string(i+1));
-	    headers.push_back("Susceptible_" + std::to_string(i+1));
-	    headers.push_back("Susceptible_temp_" + std::to_string(i+1));
-	    headers.push_back("Infectious_" + std::to_string(i+1));
-	    headers.push_back("MozSusceptible_" + std::to_string(i+1));
-	    headers.push_back("MozExposed_" + std::to_string(i+1));
-	    headers.push_back("MozInfectious_" + std::to_string(i+1));
-	    headers.push_back("Importations_" + std::to_string(i+1));
-	}
-    }
-    if(printZonesFOI == true){
-	for(auto locIt = zonesInf.begin(); locIt != zonesInf.end();){
-	    for(int i = 0; i < 4; i++){
-		if(foiTypes[i]){
-		    printf("PRINTING ZONES HEADERS FOR ZONE %s and SEROTYPE %d\n", (locIt->first).c_str(), i);
-		    headers.push_back("FOI_" + locIt->first +std::to_string(i + 1));
-		}
-	    }
-	    ++locIt;
-	}
-    }
-    headers.push_back("Humans");
-    if(!headers.empty()){
-	Report::join(headers,',',outstring);
-	outFOI << "day,";
-	outFOI << outstring;	
-    }
-}
 
 void Report::printAgesHeader(){
     outAges << "day,";
@@ -1784,9 +1636,6 @@ void Report::resetReports(){
     if(reportAges == true){
 	resetAgeStats();
     }
-    if(reportFOI == true){
-	resetFOIStats();
-    }
     if(reportSpatial == true){
 	resetSpatialStats();
     }
@@ -1796,31 +1645,6 @@ void Report::resetSpatialStats(){
     spatialData.clear();
 }
 
-void Report::resetFOIStats(){
-    for(int i = 0; i < 4; i++){
-	newInfections[i] = 0;
-	susceptibles[i] = 0;
-	susceptibles_temp[i] = 0;
-	mozSusceptibles[i] = 0;
-	mozInfectious[i] = 0;
-	mozExposed[i] = 0;
-	importations[i] = 0;
-    }
-    totalHumans = 0;
-    for(auto locIt = zonesInf.begin(); locIt != zonesInf.end();){
-	for(int i = 0; i < 4; i++){
-	    locIt->second[i] = 0;
-	}
-	++locIt;
-    }
-    
-    for(auto locIt = zonesSus.begin(); locIt != zonesSus.end();){
-	for(int i = 0; i < 4; i++){
-	    locIt->second[i] = 0;
-	}
-	++locIt;
-    }
-}
 
 void Report::resetAgeStats(){
     ageStats.clear();
@@ -1916,52 +1740,205 @@ void Report::resetGroupStats(){
     }
 }
 
-void Report::printR0Report(int lastDay){
-    outR0 << "day,R0_Denv1, R0_Denv2,R0_Denv3,R0_Denv4\n";
-    for(int d = 0; d < lastDay; d++){
-	vector<string> R_values; string outstring;
-	R_values.clear();       
-	if(secondaryCases.find(d) != secondaryCases.end()){
-	    for(unsigned s = 1; s < 5; s++){
-		if(secondaryCases[d].find(s) != secondaryCases[d].end()){
-		    int dailyR0 = 0;
-		    int sumInfectors = 0;
-		    for(auto idt = secondaryCases[d][s].begin(); idt != secondaryCases[d][s].end();idt++){
-			if(idt->second >= 0){
-			    dailyR0 += idt->second;
-			    sumInfectors++;
-			}
-		    }
-		    if(sumInfectors == 0){
-			sumInfectors = 1;
-		    }
-		    R_values.push_back(std::to_string((double) dailyR0 / (double) sumInfectors));
-		}else{
-		    R_values.push_back("0.00");
+void Report::updateFOI(int currDay, Human * h){
+    human_counts[currDay]++;
+    string tmpzone = h->getZoneID();
+    if(h->isInfected()){
+	if(h->infection != nullptr){
+	    if(h->infection->getStartDay() == currDay){
+		int sero = h->infection->getInfectionType();
+		if(sero > 0){
+		    dailyFOI[currDay][sero]["newinf"]++;
+		    dailyFOI[currDay][sero][tmpzone + "newinf"]++;
 		}
 	    }
-	}else{
-	    for(unsigned s = 1; s < 5; s++){
-		R_values.push_back("0.00");
+	}
+    }    
+    // Check for immunity against all the serotypes
+    for(unsigned i = 1; i < 5; i++){
+	dailyFOI[currDay][i]["sus"] +=  h->isPermImmune(i) ? 0 : 1;
+	dailyFOI[currDay][i]["sustmp"] += h->isImmune(i) ? 0 : 1;
+	dailyFOI[currDay][i][tmpzone + "sus"] += h->isPermImmune(i) ? 0 : 1;
+    }
+}
+
+void Report::updateSecondaryCases(int currDay, Human * h){
+    if(h != nullptr){
+	if(h->isInfected()){
+	    if(h->infection != nullptr){
+		unsigned sero = h->infection->getInfectionType();
+		int infDay = h->infection->getStartDay();
+		string id = h->getPersonID();
+		secondaryCases[infDay][sero][id] = h->getR0(sero);
 	    }
 	}
-	if(!R_values.empty()){
-	    Report::join(R_values,',',outstring);
-	    outR0 << d << ",";
-	    outR0 << outstring;
+    }
+}
+
+void Report::addImportation(int currDay, int sero_in, Human * h){
+    if(sero_in > 0 && sero_in < 5){
+	dailyFOI[currDay][sero_in]["imports"]++;
+    }
+}
+
+void Report::printFOIReport(int lastDay){    
+    std::vector<string> headerstr; string headout;
+    headerstr.clear();
+    for(int s = 1; s < 5; s++){
+	if(foiTypes[s - 1]){
+	    if(printR0 == true){
+		headerstr.push_back("R0_Denv"+std::to_string(s));
+	    }
+	    headerstr.push_back("Denv"+std::to_string(s));
+	    headerstr.push_back("Susceptible_" + std::to_string(s));
+	    headerstr.push_back("Susceptible_temp_" + std::to_string(s));
+	    headerstr.push_back("Infectious_" + std::to_string(s));
+	    headerstr.push_back("MozSusceptible_" + std::to_string(s));
+	    headerstr.push_back("MozExposed_" + std::to_string(s));
+	    headerstr.push_back("MozInfectious_" + std::to_string(s));
+	    headerstr.push_back("Importations_" + std::to_string(s));
+	}
+	if(printZonesFOI == true){
+	    for(auto locIt = zonesToPrint.begin(); locIt != zonesToPrint.end();){
+		headerstr.push_back("FOI_" + *locIt + std::to_string(s));
+		++locIt;
+	    }
+	}
+    }
+    
+    headerstr.push_back("Humans");
+    
+    if(!headerstr.empty()){
+	outFOI << "day,";
+	Report::join(headerstr,',',headout);
+	outFOI << headout;	
+    }
+    
+    for(int d = 0; d < lastDay; d++){
+	string outstring;
+	vector<string> foi_values; foi_values.clear();
+	for(unsigned s = 1; s < 5; s++){
+	    if(printR0 == true){
+		string R0str = "0.000";
+		if(secondaryCases.find(d) != secondaryCases.end()){		
+		    if(secondaryCases[d].find(s) != secondaryCases[d].end()){
+			int dailyR0 = 0;
+			int sumInfectors = 0;
+			for(auto idt = secondaryCases[d][s].begin(); idt != secondaryCases[d][s].end();idt++){
+			    if(idt->second >= 0){
+				dailyR0 += idt->second;
+				sumInfectors++;
+			    }
+			}
+			R0str = sumInfectors > 0 ? std::to_string((double) dailyR0 / (double) sumInfectors) : 0;
+		    }
+		}
+		foi_values.push_back(R0str);
+	    }
+
+	    string foistr = "0.000";	    
+	    if(dailyFOI.find(d) != dailyFOI.end()){
+		if(dailyFOI[d].find(s) != dailyFOI[d].end()){
+		    double foi_temp = dailyFOI[d][s]["sus"] > 0 ? (double) dailyFOI[d][s]["newinf"] / (double) dailyFOI[d][s]["sus"] : 0;
+		    foistr = std::to_string(foi_temp);
+		}
+	    }
+	    foi_values.push_back(foistr);
+
+	    foistr = "0.000";	    
+	    if(dailyFOI.find(d) != dailyFOI.end()){
+		if(dailyFOI[d].find(s) != dailyFOI[d].end()){
+		    foistr = std::to_string(dailyFOI[d][s]["sus"]);
+		}
+	    }
+	    foi_values.push_back(foistr);
+
+	    foistr = "0.000";	    
+	    if(dailyFOI.find(d) != dailyFOI.end()){
+		if(dailyFOI[d].find(s) != dailyFOI[d].end()){
+		    foistr = std::to_string(dailyFOI[d][s]["sustmp"]);
+		}
+	    }
+	    foi_values.push_back(foistr);
+
+	    foistr = "0.000";	    
+	    if(dailyFOI.find(d) != dailyFOI.end()){
+		if(dailyFOI[d].find(s) != dailyFOI[d].end()){
+		    foistr = std::to_string(dailyFOI[d][s]["newinf"]);
+		}
+	    }
+	    foi_values.push_back(foistr);
+
+	    foistr = "0.000";	    
+	    if(dailyFOI.find(d) != dailyFOI.end()){
+		if(dailyFOI[d].find(s) != dailyFOI[d].end()){
+		    foistr = std::to_string(dailyFOI[d][s]["mozsus"]);
+		}
+	    }
+	    foi_values.push_back(foistr);
+
+	    foistr = "0.000";	    
+	    if(dailyFOI.find(d) != dailyFOI.end()){
+		if(dailyFOI[d].find(s) != dailyFOI[d].end()){
+		    foistr = std::to_string(dailyFOI[d][s]["mozexp"]);
+		}
+	    }
+	    foi_values.push_back(foistr);
+	    
+	    foistr = "0.000";	    
+	    if(dailyFOI.find(d) != dailyFOI.end()){
+		if(dailyFOI[d].find(s) != dailyFOI[d].end()){
+		    foistr = std::to_string(dailyFOI[d][s]["mozinf"]);
+		}
+	    }
+	    foi_values.push_back(foistr);
+
+	    foistr = "0.000";	    
+	    if(dailyFOI.find(d) != dailyFOI.end()){
+		if(dailyFOI[d].find(s) != dailyFOI[d].end()){
+		    foistr = std::to_string(dailyFOI[d][s]["imports"]);
+		}
+	    }
+	    foi_values.push_back(foistr);
+	    
+	    if(printZonesFOI == true){		
+		for(auto locIt = zonesToPrint.begin(); locIt != zonesToPrint.end();){
+		    foistr = "0.000";
+		    if(dailyFOI[d].find(s) != dailyFOI[d].end()){
+			if(dailyFOI[d][s].find(*locIt + "newinf") != dailyFOI[d][s].end()){
+			    double foi_temp = dailyFOI[d][s][*locIt + "sus"] > 0 ? (double) dailyFOI[d][s][*locIt + "newinf"] / (double) dailyFOI[d][s][*locIt + "sus"] : 0;
+			    foistr = std::to_string(foi_temp);
+			    
+			}
+		    }
+		    ++locIt;
+		    foi_values.push_back(foistr);
+		}
+	    }	    
+	}
+	string humstr = "0";
+	if(human_counts.find(d) != human_counts.end()){
+	    humstr = std::to_string(human_counts[d]);
+	}
+	foi_values.push_back(humstr);
+	
+	if(!foi_values.empty()){
+	    Report::join(foi_values,',',outstring);
+	    outFOI << d << ",";
+	    outFOI << outstring;
 	}    	
     }
-    outR0.close();
+    outFOI.close();
 }
+
 
 void Report::finalizeReport(int currDay){
     outCohort.close();
     outAges.close();
     outGroups.close();
-    outFOI.close();
     outSpatial.close();
-    if(reportFOI == true && printR0 == true){
-	this->printR0Report(currDay);
+    if(reportFOI == true){
+	this->printFOIReport(currDay);
     }
 }
 

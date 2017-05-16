@@ -71,6 +71,13 @@ Infection::Infection(unsigned sd, unsigned ed, double infn, unsigned ityp, bool 
 }
 
 Infection::Infection() {
+    /*    startDay = -1;
+    endDay = -1;
+    infectiousness = -1;
+    infType = -1;
+    primary = false;
+    symptomatic = false;
+    IIP = -1;*/
 }
 
 Infection::Infection(const Infection& orig) {

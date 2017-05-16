@@ -46,7 +46,6 @@ class Report {
     std::ofstream outAges;
     std::ofstream outGroups;
     std::ofstream outFOI;
-    std::ofstream outR0;
     std::ofstream outSpatial;
     
     bool reportCohort;
@@ -67,10 +66,10 @@ class Report {
     vector<string> status;
 
     map<string, string> parameters;
-    map<string, vector<int>> zonesInf;
-    map<string, vector<int>> zonesSus;
+    set<string> zonesToPrint;
     map<int,map<unsigned,map<string,int>>> secondaryCases;
-    
+    map<int,map<unsigned,map<string,int>>> dailyFOI;
+    map<int,int> human_counts;
     int cohortEvents[5];
     int cohortStatus[4];
     int cohortReportPeriod[3];
@@ -104,8 +103,7 @@ class Report {
     int mozSusceptibles[4];
     int mozExposed[4];
     int mozInfectious[4];
-    int totalHumans;
-	
+    
     int spatialReportPeriod[3];
     bool spatialMosquitoes;
     vector<string> spatialData;
@@ -141,7 +139,6 @@ public:
     void printGroupsHeader();
     void printCohortHeader();
     void printAgesHeader();
-    void printFOIHeader();
     void printSpatialHeader();
     void printGroupsReport(int);
     void printCohortReport(int);
@@ -152,8 +149,8 @@ public:
     void updateGroupsReport(int, Human *);
     void updateAgesReport(int, Human *);
     void updateSecondaryCases(int, Human *);
-    void updateFOIReport(int, Human *);
-    void addImportation(int, Human *);
+    void updateFOI(int, Human *);
+    void addImportation(int, int, Human *);
     void updateSpatialReport(int, Human *, Location *);
     void updateMosquitoReport(int, Mosquito *, Location *);
     void resetReports();
@@ -162,8 +159,7 @@ public:
     void resetAgeStats();
     void resetFOIStats();
     void resetSpatialStats();
-    void finalizeReport(int);
-    void printR0Report(int);
+    void finalizeReport(int);    
 
 };
 

@@ -66,7 +66,6 @@ void Human::initializeHuman(unsigned currDay, vector<double> FOI, RandomNumGener
     initiateBodySize(currDay,rGen);
 
     attractiveness = rGen.getAttractiveness();
-    //printf("Attractiveness,%s,%.4f\n",this->getPersonID().c_str(),attractiveness);
     if(attractiveness == -1){
 	updateAttractiveness(currDay);
     }

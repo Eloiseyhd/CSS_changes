@@ -59,7 +59,7 @@ sp_human_t Mosquito::whoBite(
     map<sp_human_t,double,Human::sortid> humanMap;
     // loop through set of 
     // (shared pointers to) humans at this place
-    for(auto sphum :locNow->getHumans() ){
+    for(auto sphum : locNow->getHumans() ){
         const string & currentLoc = sphum->getCurrentLoc(time);
         if(currentLoc == locationID){
             humanMap.insert(make_pair(sphum,sphum->getAttractiveness()));
@@ -77,17 +77,21 @@ sp_human_t Mosquito::whoBite(
     }
 
     double biteWho = rGen->getEventProbability() * attractivenessSum;
-    //printf("BiteWho: %.2f\n",biteWho);
     // find human based on cum attractiveness? 
     attractivenessSum = 0;
     // need mapItr at this scope
     auto mapItr = humanMap.begin();
+
     for(; attractivenessSum < biteWho; mapItr++) {
         attractivenessSum += mapItr->second;
 	//	printf("CHOOSE ATTRACTIVENESS OF %s -> %f, sum: %.2f\n", mapItr->first->getPersonID().c_str(), mapItr->second,attractivenessSum);
     }
-    // back up one?
-    mapItr--;
+    // back up one? --- I'm not sure this is working right...it seems to make sense as long as biteWho > 0
+    if(biteWho > 0){
+	mapItr--;
+    }else{
+	printf("BiteWho is 0\n");
+    }    
     return mapItr->first; 
 }
 
@@ -104,7 +108,7 @@ bool Mosquito::infectingBite(
 {
     sp_human_t humBite = whoBite(time, locNow, rGen);    
     if(humBite != nullptr){
-	printf("BITE,%s_%d,%.2f,1\n",humBite->getHouseID().c_str(),humBite->getHouseMemNum(),humBite->getAttractiveness());
+	//printf("BITE,%s_%d,%.2f,1\n",humBite->getHouseID().c_str(),humBite->getHouseMemNum(),humBite->getAttractiveness());
 	if(humBite->infection != nullptr){
             humBite->infection->setInfectiousnessHuman(currentDay);
             if(rGenInf->getEventProbability() < humBite->infection->getInfectiousness()){
@@ -137,11 +141,11 @@ bool Mosquito::infectiousBite(
     std::ofstream * out)
 {
     sp_human_t humBite = whoBite(time, locNow, rGen);
-    if(humBite != nullptr){	
-	printf("BITE,%s_%d,%.2f,1\n",humBite->getHouseID().c_str(),humBite->getHouseMemNum(),humBite->getAttractiveness());
+    if(humBite != nullptr){
+	//printf("BITE,%s_%d,%.2f,1\n",humBite->getHouseID().c_str(),humBite->getHouseMemNum(),humBite->getAttractiveness());
         if(infection != nullptr && humBite->infection == nullptr && !humBite->isImmune(infection->getInfectionType())){
             if(rGenInf->getEventProbability() < infection->getInfectiousness()){		
-                humBite->infect(currentDay, infection->getInfectionType(), rGenInf, disRates, hospRates, humanInfector);
+		humBite->infect(currentDay, infection->getInfectionType(), rGenInf, disRates, hospRates, humanInfector);
 	    }
         }
 	nbites++;

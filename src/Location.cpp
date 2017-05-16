@@ -98,6 +98,11 @@ void Location::updateInfectedVisitor(){
     }
 }
 
+void Location::printHumans(){
+    for(auto itHum = humans.begin(); itHum != humans.end(); itHum++){
+	printf("Human %s in Location %s\n", (*itHum)->getPersonID().c_str(), locID.c_str());
+    }
+}
 
 
 

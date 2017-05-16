@@ -190,10 +190,10 @@ void Simulation::humanDynamics() {
         // simulate possible imported infection, ignore vaccinated individuals
 	for(unsigned serotype = 1; serotype <= (N_SERO); serotype++){
 	    if(rGen.getEventProbability() < ForceOfImportation.at(serotype)){
-		if(!phum.second->isImported() && phum.second->infection == nullptr){
+		if(phum.second->isImported() == false && phum.second->infection == nullptr){
 		    phum.second->infectImport(currentDay, serotype,&rGenInf);
 		    if(phum.second->infection != nullptr){	    
-			outputReport.addImportation(serotype,(phum.second).get());
+			outputReport.addImportation(currentDay, serotype,(phum.second).get());
 		    }
 		}
 	    }

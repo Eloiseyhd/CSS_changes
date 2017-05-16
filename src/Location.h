@@ -32,6 +32,7 @@ public:
     void removeHuman(sp_human_t);
     std::set<sp_human_t,Human::sortid> & getHumans(){return humans;}
     void addCloseLoc(string);
+    void printHumans();
     double getDistanceFromLoc(Location &) const;
     double getLocX() const;
     double getLocY() const;

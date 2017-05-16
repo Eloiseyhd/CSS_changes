@@ -16,7 +16,7 @@ double RandomNumGenerator::getAttractiveness(){
 	return 1;
     }else{
 	return -1;
-    }
+    }    
 }
 
 unsigned RandomNumGenerator::getMozEmerge(double mozMean) {    
@@ -141,9 +141,6 @@ RandomNumGenerator::RandomNumGenerator(
     mozRest = mbite;
     halflife = hlife;
     attractShape = atShape;
-    if(attractShape < 0){
-	attractShape = 0.01;
-    }
 }
 
 RandomNumGenerator::RandomNumGenerator() {

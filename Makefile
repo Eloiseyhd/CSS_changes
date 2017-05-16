@@ -8,11 +8,10 @@ TARGET = DengueSim
 INCDIR = include
 #VPATH = $(SRCDIR) $(INCDIR)
 
-
 CFLAGS := -std=c++11 -pthread 
 
 ifeq ($(DEBUG), 1)
-    CFLAGS += -Wall -ggdb
+        CFLAGS += -Wall -ggdb
 else
 	ifeq ($(PERFORM), 1)
 		CFLAGS += -O2 -Wall -Wno-format 
@@ -31,6 +30,7 @@ _OBJ = main.o Simulation.o  Human.o Location.o Mosquito.o RandomNumGenerator.o I
 BIN = $(RUNDIR)/$(TARGET)
 
 OBJ = $(patsubst %,$(OBJDIR)/%,$(_OBJ))
+
 
 all: $(BIN)
 
