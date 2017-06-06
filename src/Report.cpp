@@ -1907,6 +1907,7 @@ void Report::printFOIReport(int lastDay){
 		    if(dailyFOI[d].find(s) != dailyFOI[d].end()){
 			if(dailyFOI[d][s].find(*locIt + "newinf") != dailyFOI[d][s].end()){
 			    double foi_temp = dailyFOI[d][s][*locIt + "sus"] > 0 ? (double) dailyFOI[d][s][*locIt + "newinf"] / (double) dailyFOI[d][s][*locIt + "sus"] : 0;
+			    //double foi_temp = (double) dailyFOI[d][s][*locIt + "newinf"];
 			    foistr = std::to_string(foi_temp);
 			    
 			}
