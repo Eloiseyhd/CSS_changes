@@ -40,7 +40,7 @@ class Report {
     string outputCohortFile;
     string outputAgesFile;
     string outputGroupsFile;
-
+    string outputFOIFile;
 
     std::ofstream outCohort;
     std::ofstream outAges;

@@ -13,6 +13,7 @@ Human::Human(string hID,
     zoneID = zID;
     houseMemNum = hMemID;
     personID = hID + std::to_string(hMemID);
+    visitorID = "";
     gender = gen;
     bday = birthYear * 365 + rGen.getRandomNum(365);
     if(deathYear >= 0){
@@ -94,7 +95,10 @@ void Human::checkRecovered(unsigned currDay){
        hospitalized = false;
        symptomatic = false;
        reportSymptoms = false;
-       infectedImport = false;
+       if(infectedImport){
+	   infectedImport = false;
+	   visitorID = "";
+       }
     }
 }
 
@@ -158,6 +162,10 @@ const string & Human::getPersonID() const{
     return personID;
 }
 
+const string & Human::getVisitorID() const{
+    return visitorID;
+}
+
 int Human::getHouseMemNum() const {
     return houseMemNum;
 }
@@ -197,12 +205,15 @@ int Human::getPreviousInfections(){
 void Human::infectImport(
     int currentDay,
     unsigned infectionType,
-    RandomNumGenerator * rGen)
+    RandomNumGenerator * rGen,
+    int visit_)
 {
     // Imported cases have an infection but do not report any symptoms... They should be invisible for our surveillance system
     infectedImport = true;
+    visitorR0[infectionType] = 0;
     infection.reset(new Infection(
     	      currentDay + 1, currentDay + 15, 0.0, infectionType, getPreviousInfections() == 0, recent_dis > 0, exp(rGen->getRandomNormal() * 0.2701716 + 1.750673)));
+    visitorID = "IQVIS" + std::to_string(visit_);
 }
 
 void Human::infect(
@@ -269,10 +280,13 @@ void Human::infect(
 	R0[infectionType] = 0;
 	if(humInf != nullptr){
 	    //printf("Human %s-%d infected by human %s-%d day %d\n", this->getHouseID().c_str(), this->getHouseMemNum(), humInf->getHouseID().c_str(), humInf->getHouseMemNum(),currentDay);
-	    humInf->increaseR0(infectionType);
-	    humanInfectors.insert(make_pair(infectionType,humInf));	    
+	    if(humInf->isImported()){
+		humInf->increaseVisitorR0(infectionType);
+	    }else{
+		humInf->increaseR0(infectionType);
+	    }	    
 	}
-		
+	
     	if(getPreviousInfections() + vaxAdvancement == 0){
     	    if(rGen->getEventProbability() < (*disRates)[0] * RRDis){
 		recent_dis = infectionType;

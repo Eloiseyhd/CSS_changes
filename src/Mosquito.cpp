@@ -114,9 +114,7 @@ bool Mosquito::infectingBite(
             if(rGenInf->getEventProbability() < humBite->infection->getInfectiousness()){
 		//                double sday = double(currentDay) + rGenInf->getMozLatencyDays(mozEIP);
                 int eday = numDays + 1;
-		if(!humBite->isImported()){
-		    humanInfector = humBite;
-		}
+		humanInfector = humBite;
                 infection.reset(new Infection(
                     -1, eday, 0.0, humBite->infection->getInfectionType(), 0, 0, 0.0
                 ));

@@ -77,6 +77,7 @@ private:
     std::multimap<string,sp_human_t> humans;
     std::multimap<int,sp_human_t> future_humans;
     map<string, sp_human_t> total_humans_by_id;
+
     std::set<std::string> zones;
     std::map<std::string,unsigned> zones_counts;
     unsigned currentDay;
@@ -126,6 +127,7 @@ private:
     int deathMoz;
     int lifeMoz;
     int humanDeaths;
+    int visitorsCounter;
     vector<double> meanDailyEIP;
     vector<double> firstBiteRate;
     vector<double> secondBiteRate;

@@ -88,13 +88,14 @@ private:
 
     string houseID;
     string personID;
+    string visitorID;
     string zoneID;
     string trialArm;
     
     map<unsigned,bool> immunity_perm;
     std::unique_ptr<traject_t> trajectories;
-    map<unsigned,sp_human_t> humanInfectors;
     map<unsigned,int> R0;
+    map<unsigned,int> visitorR0;
     
     // return by reference
     std::set<string> locsVisited;
@@ -114,7 +115,7 @@ public:
     void enrollInTrial(int, string);
     void setSelfReportProb(double prob_){selfReportProb = prob_;}
     void infect(int, unsigned, RandomNumGenerator *, map<unsigned,double> *, map<unsigned,double> *, sp_human_t);
-    void infectImport(int, unsigned, RandomNumGenerator *);
+    void infectImport(int, unsigned, RandomNumGenerator *,int);
     void initiateBodySize(unsigned,RandomNumGenerator&);
     void resetRecent();
     void setCohort(int c_){cohort = c_;}
@@ -126,6 +127,7 @@ public:
     void setImmunityTemp(bool);
     void setSeroStatusAtVaccination();
     void increaseR0(unsigned sero_in){R0[sero_in]++;}
+    void increaseVisitorR0(unsigned sero_in){visitorR0[sero_in]++;}
     void setTrajDay(int dayIn){trajDay = dayIn;}
     void setContactByTrial(int dayIn){lastDayContactedByTrial = dayIn;}
     void setFirstContactWithTrial(int dayIn){firstContactWithTrial = dayIn;}
@@ -174,6 +176,8 @@ public:
     int getExposedCount(unsigned sero){return exposedCount[sero];}
     int getPreExposureAtVaccination(unsigned);
     int getR0(unsigned sero){return R0[sero];}
+    int getVisitorR0(unsigned sero){return visitorR0[sero];}
+    
     string getExposureDate(unsigned sero){return (dateOfExposures[sero] == "" )? "NA" : dateOfExposures[sero] ;}
     
 
@@ -195,6 +199,7 @@ public:
     const string & getHouseID() const;
     const string & getZoneID() const;
     const string & getPersonID() const;
+    const string & getVisitorID() const;
     string getTrialArm(){return trialArm;}
     const std::set<string> & getLocsVisited();
     //traject_t const& getTrajectory(unsigned) const;

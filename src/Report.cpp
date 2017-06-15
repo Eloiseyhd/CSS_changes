@@ -144,19 +144,15 @@ void Report::setupReport(string file, string outputPath_, string simName_) {
     reportSpatial = this->readParameter("spatial_print", reportSpatial);
     spatialMosquitoes = this->readParameter("spatial_mosquitoes", spatialMosquitoes);
 
+    if(reportFOI == true){
+	outputFOIFile = outputPath_ + "/" + simName_ + "_foi.csv";
+    }
     if(reportSpatial == true){
 	string outputSpatialFile = outputPath_ + "/" + simName_ + "_spatial.csv";
 	outSpatial.open(outputSpatialFile);
 	if (!outSpatial.good()) {
 	    exit(1);
 	}
-    }
-    if(reportFOI == true){
-	string outputFOIFile = outputPath_ + "/" + simName_ + "_foi.csv";
-	outFOI.open(outputFOIFile);
-	if (!outFOI.good()) {
-	    exit(1);
-	}	
     }
     if(reportGroups == true){
 	outputGroupsFile = outputPath_ + "/" + simName_ + "_pop.csv";
@@ -1772,6 +1768,14 @@ void Report::updateSecondaryCases(int currDay, Human * h){
 		secondaryCases[infDay][sero][id] = h->getR0(sero);
 	    }
 	}
+	if(h->isImported()){
+	    if(h->infection != nullptr){
+		unsigned sero = h->infection->getInfectionType();
+		int infDay = h->infection->getStartDay();
+		string id = h->getVisitorID();
+		secondaryCases[infDay][sero][id] = h->getVisitorR0(sero);
+	    }
+	}
     }
 }
 
@@ -1782,6 +1786,10 @@ void Report::addImportation(int currDay, int sero_in, Human * h){
 }
 
 void Report::printFOIReport(int lastDay){    
+    outFOI.open(outputFOIFile);
+    if (!outFOI.good()) {
+	exit(1);
+    }
     std::vector<string> headerstr; string headout;
     headerstr.clear();
     for(int s = 1; s < 5; s++){
@@ -1839,7 +1847,7 @@ void Report::printFOIReport(int lastDay){
 	    string foistr = "0.000";	    
 	    if(dailyFOI.find(d) != dailyFOI.end()){
 		if(dailyFOI[d].find(s) != dailyFOI[d].end()){
-		    double foi_temp = dailyFOI[d][s]["sus"] > 0 ? (double) dailyFOI[d][s]["newinf"] / (double) dailyFOI[d][s]["sus"] : 0;
+		    double foi_temp = dailyFOI[d][s]["sustmp"] > 0 ? (double) dailyFOI[d][s]["newinf"] / (double) dailyFOI[d][s]["sustmp"] : 0;
 		    foistr = std::to_string(foi_temp);
 		}
 	    }

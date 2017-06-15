@@ -61,6 +61,7 @@ string Simulation::readInputs() {
 void Simulation::simEngine() {
     deathMoz = 0;
     lifeMoz = 0;
+    visitorsCounter = 0;
     while(currentDay < numDays){
         //rGen.showState(48, "# Daily RNG state excerpt: ");
 	humanDeaths = 0;
@@ -70,7 +71,7 @@ void Simulation::simEngine() {
 		updatePop();
 	    }
         }
-	printf("day %d year %d Humans %lu Mosquitoes %lu\n",currentDay, year,humans.size(), mosquitoes.size());
+	printf("day %d year %d Humans %lu Mosquitoes %lu visitors %d\n",currentDay, year,humans.size(), mosquitoes.size(), visitorsCounter);
         for(auto itLoc = locations.begin(); itLoc != locations.end(); itLoc++){
             itLoc->second->updateInfectedVisitor();
         }
@@ -124,7 +125,7 @@ void Simulation::humanDynamics() {
     // walk through today's births
     // add to humans, locations
     for (auto it = newbornsRange.first; it != newbornsRange.second; it++){
-	//        printf("Human %s is born in day %d\n", it->second->getPersonID().c_str(), currentDay);
+	//printf("Human %s is born in day %d\n", it->second->getPersonID().c_str(), currentDay);
         // copy-construct shared pointer to human
         sp_human_t h = it->second;
         if(locations.find(h->getHouseID()) != locations.end()){
@@ -153,6 +154,7 @@ void Simulation::humanDynamics() {
             // skip this person
             continue;
         }
+	//printf("Human %s is born in day %d\n", phum.second->getPersonID().c_str(), phum.second->getBirthday());
         // daily mortality for humans by age
         if(phum.second->getDeathday() == int(currentDay)){
 	    if(vaccinationStrategy == "random_trial" && phum.second->isEnrolledInTrial() == true){
@@ -191,7 +193,8 @@ void Simulation::humanDynamics() {
 	for(unsigned serotype = 1; serotype <= (N_SERO); serotype++){
 	    if(rGen.getEventProbability() < ForceOfImportation.at(serotype)){
 		if(phum.second->isImported() == false && phum.second->infection == nullptr){
-		    phum.second->infectImport(currentDay, serotype,&rGenInf);
+		    phum.second->infectImport(currentDay, serotype,&rGenInf,visitorsCounter);
+		    visitorsCounter++;
 		    if(phum.second->infection != nullptr){	    
 			outputReport.addImportation(currentDay, serotype,(phum.second).get());
 		    }
