@@ -43,7 +43,7 @@ bool Mosquito::takeBite(
             return true;
         }
     }
-    else if(infection->getInfectiousness() >= 0.0){	
+    else if(infection->getInfectiousness() >= 0.0){	// Maybe change for > 0
         return infectiousBite(time, locNow, rGen, rGenInf, disRates, hospRates, currentDay, numDays, out);
     }
     return false;

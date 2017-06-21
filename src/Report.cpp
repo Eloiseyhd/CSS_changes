@@ -85,15 +85,10 @@ Report::Report(){
 }
 
 void Report::setupZones(set<string> zonesIn){
-    for(auto locIt = zonesIn.begin(); locIt != zonesIn.end();){
+    zonesToPrint = zonesIn;
+    for(auto locIt = zonesToPrint.begin(); locIt != zonesToPrint.end();){
 	std::string tmpstr = (*locIt);
-	printf("Setting up Zones in Report...zone:%s\n", tmpstr.c_str());
-	vector<int> tmp;
-	tmp.clear();
-	for(unsigned i = 0; i < 4; i++){
-	    tmp.push_back(0);
-	}
-	zonesToPrint.insert(tmpstr);
+	printf("Zone %s in Report\n", tmpstr.c_str());
 	++locIt;
     }
 }
