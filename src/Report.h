@@ -6,6 +6,7 @@
 #include <vector>
 #include <set>
 #include <map>
+#include <unordered_map>
 #include <iostream>
 #include <utility>
 #include <memory>
@@ -18,6 +19,7 @@ using std::string;
 using std::map;
 using std::vector;
 using std::set;
+using std::unordered_map;
 
 class Report {    
  public:
@@ -68,8 +70,8 @@ class Report {
     map<string, string> parameters;
     set<string> zonesToPrint;
     map<int,map<unsigned,map<string,int>>> secondaryCases;
-    map<int,map<unsigned,map<string,int>>> dailyFOI;
-    map<int,int> human_counts;
+    unordered_map<int,unordered_map<unsigned,unordered_map<string,int>>> dailyFOI;
+    unordered_map<int,int> human_counts;
     int cohortEvents[5];
     int cohortStatus[4];
     int cohortReportPeriod[3];
