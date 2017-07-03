@@ -1734,22 +1734,30 @@ void Report::resetGroupStats(){
 void Report::updateFOI(int currDay, Human * h){
     human_counts[currDay]++;
     string tmpzone = h->getZoneID();
+	string tmpzonesus=tmpzone+"sus";
+	string tmpzoneinf=tmpzone+"inf";
     if(h->isInfected()){
 	if(h->infection != nullptr){
 	    if(h->infection->getStartDay() == currDay){
 		int sero = h->infection->getInfectionType();
 		if(sero > 0){
 		    dailyFOI[currDay][sero]["newinf"]++;
-		    dailyFOI[currDay][sero][tmpzone + "newinf"]++;
+		    dailyFOI[currDay][sero][tmpzoneinf]++;
 		}
 	    }
 	}
     }    
     // Check for immunity against all the serotypes
     for(unsigned i = 1; i < 5; i++){
-	dailyFOI[currDay][i]["sus"] +=  h->isPermImmune(i) ? 0 : 1;
-	dailyFOI[currDay][i]["sustmp"] += h->isImmune(i) ? 0 : 1;
-	dailyFOI[currDay][i][tmpzone + "sus"] += h->isPermImmune(i) ? 0 : 1;
+	    if( h->isPermImmune(i))
+	    {
+		    dailyFOI[currDay][i]["sus"]+=1;
+		    dailyFOI[currDay][i][tmpzonesus] +=1;
+		    }
+	    if(h->isImmune(i))
+	    {
+		dailyFOI[currDay][i]["sustmp"]+=1;
+	    }
     }
 }
 
