@@ -44,7 +44,8 @@ Human::Human(string hID,
 	dateOfExposures.push_back("");
 	R0[i+1] = -1;
     }
-    
+	
+    immunity_perm={false,false,false,false};
     infected = false;
     infectedImport = false;
     symptomatic = false;
@@ -186,14 +187,11 @@ const std::set<string> & Human::getLocsVisited(){
 int Human::getPreviousInfections(){
     int previnf = 0;
 
-    if(immunity_perm[1])
-        previnf++;
-    if(immunity_perm[2])
-        previnf++;
-    if(immunity_perm[3])
-        previnf++;
-    if(immunity_perm[4])
-        previnf++;
+for(int i=0;i<4;i++)
+{
+	if(immunity_perm[i])
+	previnf++;
+ }
 
     return previnf;
 }
@@ -328,7 +326,7 @@ void Human::infect(
 	preExposureAtVaccination[infectionType - 1] = getPreviousInfections();
 	
 	for(int i = 0;i < N_SERO; i++){
-	    if(i != (infectionType - 1) && immunity_perm[i + 1] == false){
+	    if(i != (infectionType - 1) && immunity_perm[i] == false){
 		preExposureAtVaccination[i]++;
 	    }
 	}
@@ -363,14 +361,14 @@ bool Human::isImmune(unsigned serotype) const {
 
     if(immunity_temp){
 	immunity = true;
-    } else if(immunity_perm.at(serotype)) {
+    } else if(immunity_perm[serotype-1]) {
         immunity = true;
     }
     return immunity;
 }
 
 bool Human::isPermImmune(unsigned serotype) const{
-    if(immunity_perm.at(serotype)){
+    if(immunity_perm[serotype-1]){
 	return true;
     }else{
 	return false;
@@ -442,8 +440,7 @@ void Human::updateBodySize(unsigned currDay){
 }
 
 void Human::updateImmunityPerm(unsigned serotype, bool status) {
-    immunity_perm.erase(serotype);
-    immunity_perm.insert(std::make_pair(serotype,status));
+   immunity_perm[serotype-1]=status;
 }
 
 void Human::updateRecent(int infIn, int disIn, int hospIn){
