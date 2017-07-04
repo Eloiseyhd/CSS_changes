@@ -92,7 +92,7 @@ private:
     string zoneID;
     string trialArm;
     
-    map<unsigned,bool> immunity_perm;
+    array<bool> immunity_perm;
     std::unique_ptr<traject_t> trajectories;
     map<unsigned,int> R0;
     map<unsigned,int> visitorR0;
