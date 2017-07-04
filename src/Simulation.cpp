@@ -107,6 +107,8 @@ void Simulation::updatePop(){
 void Simulation::humanDynamics() {
     int age;
     int cohort = 0;
+    int sus=0;
+    int tmpsus=0;
     if(currentDay >= vaccineDay){
         cohort = floor(double(currentDay - vaccineDay) / 365.0) + 1;
     }
@@ -248,6 +250,11 @@ void Simulation::humanDynamics() {
 	Location * housetmp = locations[phum.second->getHouseID()].get();
 	zones_counts[housetmp->getZoneID()]++;
     }
+	sus=outputReport.getSus();
+	outputReport.updateDailyFOIsus(currentDay,sus);
+	
+	tmpsus=outputReport.getTmpsus();
+	outputReport.updateDailyFOItmpsus(currentDay,tmpsus);
     /*    for(auto locIt = zones.begin(); locIt != zones.end();){
       printf("zone: %s counts: %u\n", (*locIt).c_str(), zones_counts[(*locIt)]);
       ++locIt;
@@ -257,6 +264,8 @@ void Simulation::humanDynamics() {
 void Simulation::mosquitoDynamics(){
     double biteTime, dieTime;
     bool biteTaken;
+    int mozsus=0;
+
     generateMosquitoes();
     // Read entomological parameters that depend on temperature
     // If there are not enough values, take the last one
@@ -361,6 +370,8 @@ void Simulation::mosquitoDynamics(){
             ++it;
         }
     }
+	mozsus=outputReport.getMozsus();
+	outputReport.updateDailyFOImozsus(currentDay,mozsus);
 }
 
 
