@@ -106,6 +106,10 @@ class Report {
     int mozExposed[4];
     int mozInfectious[4];
     
+    int mozsus=0;
+    int sus=0;
+    int tmpsus=0;
+	
     int spatialReportPeriod[3];
     bool spatialMosquitoes;
     vector<string> spatialData;
@@ -162,6 +166,16 @@ public:
     void resetFOIStats();
     void resetSpatialStats();
     void finalizeReport(int);    
+	
+    int getMozsus();
+    void setMozsus();
+    int getSus();
+    void setSus();
+    int getTmpsus();
+    void setTmpsus();
+    void updateDailyFOIsus(int, int);
+    void updateDailyFOItmpsus(int, int);
+    void updateDailyFOImozsus(int, int);
 
 };
 
