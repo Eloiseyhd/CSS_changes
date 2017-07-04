@@ -349,7 +349,7 @@ void Report::updateMosquitoReport(int currDay, Mosquito * m, Location * locNow){
     if(reportFOI == true){
 	if(m->infection == nullptr){
 	    for(unsigned i = 1; i < 5; i++){
-		dailyFOI[currDay][i]["mozsus"]++;
+		mozsus++;
 	    }
 	}else{
 	    unsigned sero = m->infection->getInfectionType();
@@ -373,6 +373,20 @@ void Report::updateMosquitoReport(int currDay, Mosquito * m, Location * locNow){
 	    }
 	}
     }
+}
+void Report::setMozsus()
+
+mozsus=0;
+}
+int Report::getMozsus()
+{
+return mozsus;
+}
+void Report::updateDailyFOImozsus(int currDay, int mozsus){
+for(int i=1;i<5;i++)
+{
+dailyFOI[currDay][i]["mozsus"]+=mozsus;
+}
 }
 
 void Report::updateReport(int currDay, Human * h, Location * locNow){
@@ -1751,14 +1765,47 @@ void Report::updateFOI(int currDay, Human * h){
     for(unsigned i = 1; i < 5; i++){
 	    if( h->isPermImmune(i))
 	    {
-		    dailyFOI[currDay][i]["sus"]+=1;
+		    sus+=1;
 		    dailyFOI[currDay][i][tmpzonesus] +=1;
 		    }
 	    if(h->isImmune(i))
 	    {
-		dailyFOI[currDay][i]["sustmp"]+=1;
+		    sustmp+=1;
 	    }
     }
+}
+void Report::setSus()
+{
+sus=0;
+}
+
+int Report::getSus()
+{
+return sus;
+}
+
+void Report::updateDailyFOIsus(int currDay, int sus){
+for(int i=1;i<5;i++)
+{
+dailyFOI[currDay][i]["sus"]+=sus;
+}
+}
+
+void Report::setTmpsus()
+{
+tmpsus=0;
+}
+
+int Report::getTmpsus()
+{
+return tmpsus;
+}
+
+void Report::updateDailyFOItmpsus(int currDay, int tmpsus){
+for(int i=1;i<5;i++)
+{
+dailyFOI[currDay][i]["sustmp"]+=tmpsus;
+}
 }
 
 void Report::updateSecondaryCases(int currDay, Human * h){
